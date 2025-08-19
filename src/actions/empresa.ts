@@ -1,0 +1,180 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+import { Empresa } from "@/generated/prisma";
+import { prisma } from "@/lib/prisma";
+
+export const empresaCreateSchema = z.object({
+  email: z.email(),
+  senha: z.string().min(6),
+  cnpj: z.string().min(14).max(18),
+  rua: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional().nullable(),
+  bairro: z.string().optional(),
+  cidade: z.string().optional(),
+  cep: z.string().optional(),
+  estado: z.string().optional(),
+  telefone: z.string().optional(),
+});
+
+export const empresaUpdateSchema = empresaCreateSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "Envie ao menos um campo para atualizar.",
+  });
+
+function serializeEmpresa(e: Empresa) {
+  if (!e) return e;
+  return {
+    ...e,
+    id: e.id?.toString?.() ?? e.id,
+    created_at: e.created_at?.toISOString?.() ?? e.created_at,
+    updated_at: e.updated_at?.toISOString?.() ?? e.updated_at,
+  };
+}
+
+function toBigInt(id: string | number | bigint) {
+  if (typeof id === "bigint") return id;
+  if (typeof id === "number") return BigInt(id);
+  return BigInt(id); // string
+}
+
+function isPrismaUniqueError(err: any) {
+  return err?.code === "P2002";
+}
+
+export async function criarEmpresa(empresa: Empresa) {
+  try {
+    const data = empresaCreateSchema.parse(empresa);
+
+    const created = await prisma.empresa.create({
+      data: {
+        email: data.email,
+        senha: data.senha,
+        cnpj: data.cnpj,
+        rua: data.rua,
+        numero: data.numero,
+        complemento: data.complemento ?? null,
+        bairro: data.bairro,
+        cidade: data.cidade,
+        cep: data.cep,
+        estado: data.estado,
+        telefone: data.telefone,
+      },
+    });
+
+    revalidatePath("/empresas");
+    return { ok: true, data: serializeEmpresa(created) } as const;
+  } catch (err: any) {
+    if (isPrismaUniqueError(err)) {
+      const target = Array.isArray(err?.meta?.target)
+        ? err.meta.target.join(", ")
+        : "campo único";
+      return { ok: false, error: `Valor já existe para ${target}.` } as const;
+    }
+    return {
+      ok: false,
+      error: err?.message ?? "Erro ao criar empresa.",
+    } as const;
+  }
+}
+
+/** Read (lista tudo, com busca opcional) */
+export async function listarEmpresas(q?: string) {
+  const where = q
+    ? {
+        OR: [
+          { email: { contains: q, mode: "insensitive" } },
+          { cnpj: { contains: q, mode: "insensitive" } },
+          { cidade: { contains: q, mode: "insensitive" } },
+          { bairro: { contains: q, mode: "insensitive" } },
+        ],
+      }
+    : undefined;
+
+  const rows = await prisma.empresa.findMany({
+    where,
+    orderBy: { created_at: "desc" },
+  });
+
+  return { ok: true as const, data: rows.map(serializeEmpresa) };
+}
+
+/** Read (por ID) */
+export async function obterEmpresa(id: string | number | bigint) {
+  try {
+    const empresa = await prisma.empresa.findUnique({
+      where: { id: toBigInt(id) },
+    });
+    if (!empresa)
+      return { ok: false as const, error: "Empresa não encontrada." };
+    return { ok: true as const, data: serializeEmpresa(empresa) };
+  } catch (err: any) {
+    return {
+      ok: false as const,
+      error: err?.message ?? "Erro ao buscar empresa.",
+    };
+  }
+}
+
+/** Update */
+export async function atualizarEmpresa(
+  id: string | number | bigint,
+  input: unknown,
+) {
+  try {
+    const data = empresaUpdateSchema.parse(input);
+
+    const updated = await prisma.empresa.update({
+      where: { id: toBigInt(id) },
+      data: {
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.senha !== undefined && { senha: data.senha }),
+        ...(data.cnpj !== undefined && { cnpj: data.cnpj }),
+        ...(data.rua !== undefined && { rua: data.rua }),
+        ...(data.numero !== undefined && { numero: data.numero }),
+        ...(data.complemento !== undefined && {
+          complemento: data.complemento ?? null,
+        }),
+        ...(data.bairro !== undefined && { bairro: data.bairro }),
+        ...(data.cidade !== undefined && { cidade: data.cidade }),
+        ...(data.cep !== undefined && { cep: data.cep }),
+        ...(data.estado !== undefined && { estado: data.estado }),
+        ...(data.telefone !== undefined && { telefone: data.telefone }),
+      },
+    });
+
+    revalidatePath("/empresas");
+    return { ok: true as const, data: serializeEmpresa(updated) };
+  } catch (err: any) {
+    if (isPrismaUniqueError(err)) {
+      const target = Array.isArray(err?.meta?.target)
+        ? err.meta.target.join(", ")
+        : "campo único";
+      return { ok: false as const, error: `Valor já existe para ${target}.` };
+    }
+    return {
+      ok: false as const,
+      error: err?.message ?? "Erro ao atualizar empresa.",
+    };
+  }
+}
+
+/** Delete */
+export async function excluirEmpresa(id: string | number | bigint) {
+  try {
+    const deleted = await prisma.empresa.delete({
+      where: { id: toBigInt(id) },
+    });
+    revalidatePath("/empresas");
+    return { ok: true as const, data: serializeEmpresa(deleted) };
+  } catch (err: any) {
+    return {
+      ok: false as const,
+      error: err?.message ?? "Erro ao excluir empresa.",
+    };
+  }
+}
