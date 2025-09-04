@@ -8,19 +8,330 @@ datasource db {
   url      = env("SUPABASE_URL")
 }
 
+// ========================= Enums =========================
+enum StatusOrcamento {
+  RASCUNHO
+  ENVIADO
+  APROVADO
+  REJEITADO
+  VENCIDO
+  CANCELADO
+}
+
+enum StatusContrato {
+  RASCUNHO
+  ATIVO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum StatusTitulo {
+  PENDENTE
+  PARCIAL
+  PAGO
+  VENCIDO
+  CANCELADO
+}
+
+enum MetodoPagamento {
+  PIX
+  DINHEIRO
+  CREDITO
+  DEBITO
+  BOLETO
+  TED
+  DOC
+  OUTRO
+}
+
+enum TipoCaixa {
+  ENTRADA
+  SAIDA
+}
+
+// ========================= Núcleo =========================
 model Empresa {
-  id          BigInt   @id @default(autoincrement())
-  email       String   @unique @db.VarChar(255)
-  senha       String   @db.VarChar(255)
-  cnpj        String   @unique @db.VarChar(18)
-  rua         String   @db.VarChar(120)
-  numero      String   @db.VarChar(20)
-  complemento String?  @db.VarChar(120)
-  bairro      String   @db.VarChar(120)
-  cidade      String   @db.VarChar(120)
-  cep         String   @db.VarChar(9)
-  estado      String   @db.VarChar(2)
-  telefone    String   @db.VarChar(20)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
-  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  email       String  @unique
+  telefone    String
+  senha       String
+  cnpj        String  @unique
+  rua         String
+  numero      String
+  complemento String?
+  bairro      String
+  cidade      String
+  estado      String
+  cep         String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  clientes       Cliente[]
+  fornecedores   Fornecedor[]
+  locais         LocalEvento[]
+  itens          Item[]
+  orcamentos     Orcamento[]
+  contratos      Contrato[]
+  contasPagar    ContaPagar[]
+  contasReceber  ContaReceber[]
+  CategoriaFesta CategoriaFesta?
+}
+
+model Cliente {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  cpf         String?
+  telefone    String?
+  email       String?
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentos Orcamento[]
+  contratos  Contrato[]
+  titulos    ContaReceber[]
+}
+
+model Fornecedor {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  cnpj        String?
+  telefone    String?
+  email       String?
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  titulos ContaPagar[]
+}
+
+model LocalEvento {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  descricao   String
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  telefone    String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentos Orcamento[]
+  contratos  Contrato[]
+}
+
+model Item {
+  id        Int     @id @default(autoincrement())
+  uuid      String  @unique @default(uuid()) @db.Uuid
+  descricao String
+  precoBase Decimal @db.Decimal(12, 2)
+  empresaId Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentoItens OrcamentoItem[]
+  contratoItens  ContratoItem[]
+}
+
+model CategoriaFesta {
+  id        Int    @id @default(autoincrement())
+  uuid      String @unique @default(uuid()) @db.Uuid
+  descricao String
+  empresaId Int    @unique
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contratos  Contrato[]
+  orcamentos Orcamento[]
+}
+
+model Orcamento {
+  id          Int             @id @default(autoincrement())
+  uuid        String          @unique @default(uuid()) @db.Uuid
+  empresaId   Int
+  clienteId   Int
+  categoriaId Int?
+  localId     Int?
+  dataEvento  DateTime?
+  status      StatusOrcamento @default(RASCUNHO)
+  desconto    Decimal?        @db.Decimal(12, 2)
+  total       Decimal         @db.Decimal(14, 2)
+  observacao  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente Cliente      @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  local   LocalEvento? @relation(fields: [localId], references: [id], onDelete: SetNull)
+
+  itens          OrcamentoItem[]
+  contrato       Contrato?
+  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
+}
+
+model OrcamentoItem {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  orcamentoId Int
+  itemId      Int
+  quantidade  Decimal @db.Decimal(14, 3)
+  desconto    Decimal @db.Decimal(12, 2)
+  valorUnit   Decimal @db.Decimal(12, 2)
+  valorTotal  Decimal @db.Decimal(14, 2)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  item      Item      @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([orcamentoId, itemId])
+}
+
+model Contrato {
+  id          Int            @id @default(autoincrement())
+  uuid        String         @unique @default(uuid()) @db.Uuid
+  empresaId   Int
+  clienteId   Int
+  localId     Int?
+  categoriaId Int?
+  orcamentoId Int?           @unique
+  dataEvento  DateTime
+  horaInicio  DateTime
+  status      StatusContrato @default(ATIVO)
+  desconto    Decimal?       @db.Decimal(12, 2)
+  total       Decimal        @db.Decimal(14, 2)
+  observacao  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa   Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente   Cliente      @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  local     LocalEvento? @relation(fields: [localId], references: [id], onDelete: SetNull)
+  orcamento Orcamento?   @relation(fields: [orcamentoId], references: [id], onDelete: SetNull)
+
+  itens          ContratoItem[]
+  contasReceber  ContaReceber[]
+  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
+}
+
+model ContratoItem {
+  id         Int     @id @default(autoincrement())
+  uuid       String  @unique @default(uuid()) @db.Uuid
+  contratoId Int
+  itemId     Int
+  quantidade Decimal @db.Decimal(14, 3)
+  desconto   Decimal @db.Decimal(12, 2)
+  valorUnit  Decimal @db.Decimal(12, 2)
+  valorTotal Decimal @db.Decimal(14, 2)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([contratoId, itemId])
+}
+
+// ========================= Financeiro =========================
+model ContaPagar {
+  id             Int          @id @default(autoincrement())
+  uuid           String       @unique @default(uuid()) @db.Uuid
+  empresaId      Int
+  fornecedorId   Int
+  descricao      String?
+  dataVencimento DateTime?
+  dataPagamento  DateTime?
+  valorPago      Decimal      @default(0) @db.Decimal(14, 2)
+  // valorRestante  Decimal?     @db.Decimal(14, 2)
+  valorTotal     Decimal      @db.Decimal(14, 2)
+  status         StatusTitulo @default(PENDENTE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+}
+
+model ContaReceber {
+  id             Int          @id @default(autoincrement())
+  uuid           String       @unique @default(uuid()) @db.Uuid
+  empresaId      Int
+  clienteId      Int
+  contratoId     Int?
+  dataVencimento DateTime?
+  dataPagamento  DateTime?
+  valorPago      Decimal      @default(0) @db.Decimal(14, 2)
+  // valorRestante  Decimal?     @db.Decimal(14, 2)
+  valorTotal     Decimal      @db.Decimal(14, 2)
+  status         StatusTitulo @default(PENDENTE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa  Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente  Cliente   @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  contrato Contrato? @relation(fields: [contratoId], references: [id], onDelete: SetNull)
 }
