@@ -80,6 +80,8 @@ model Empresa {
   contasPagar    ContaPagar[]
   contasReceber  ContaReceber[]
   CategoriaFesta CategoriaFesta?
+  caixaEntradas  CaixaEntrada[]
+  caixaSaidas    CaixaSaida[]
 }
 
 model Cliente {
@@ -300,7 +302,7 @@ model ContaPagar {
   dataVencimento DateTime?
   dataPagamento  DateTime?
   valorPago      Decimal      @default(0) @db.Decimal(14, 2)
-  // valorRestante  Decimal?     @db.Decimal(14, 2)
+  valorRestante  Decimal?     @db.Decimal(14, 2)
   valorTotal     Decimal      @db.Decimal(14, 2)
   status         StatusTitulo @default(PENDENTE)
 
@@ -309,8 +311,9 @@ model ContaPagar {
   deletedAt DateTime? @map("deleted_at")
   deleted   Boolean   @default(false)
 
-  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  fornecedor Fornecedor @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  empresa    Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  fornecedor Fornecedor   @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  caixaSaida CaixaSaida[]
 }
 
 model ContaReceber {
@@ -322,7 +325,7 @@ model ContaReceber {
   dataVencimento DateTime?
   dataPagamento  DateTime?
   valorPago      Decimal      @default(0) @db.Decimal(14, 2)
-  // valorRestante  Decimal?     @db.Decimal(14, 2)
+  valorRestante  Decimal?     @db.Decimal(14, 2)
   valorTotal     Decimal      @db.Decimal(14, 2)
   status         StatusTitulo @default(PENDENTE)
 
@@ -331,7 +334,50 @@ model ContaReceber {
   deletedAt DateTime? @map("deleted_at")
   deleted   Boolean   @default(false)
 
-  empresa  Empresa   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  cliente  Cliente   @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  contrato Contrato? @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente      Cliente        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  contrato     Contrato?      @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  caixaEntrada CaixaEntrada[]
+}
+
+model CaixaEntrada {
+  id              Int             @id @default(autoincrement())
+  uuid            String          @unique @default(uuid()) @db.Uuid
+  empresaId       Int
+  contasReceberId Int
+  descricao       String?
+  valor           Decimal         @db.Decimal(14, 2)
+  dataRecebimento DateTime
+  metodo          MetodoPagamento
+  parcela         Int?
+  totalParcelas   Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa       Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contasReceber ContaReceber @relation(fields: [contasReceberId], references: [id], onDelete: Restrict)
+}
+
+model CaixaSaida {
+  id            Int             @id @default(autoincrement())
+  uuid          String          @unique @default(uuid()) @db.Uuid
+  empresaId     Int
+  contasPagarId Int
+  descricao     String?
+  valor         Decimal         @db.Decimal(14, 2)
+  dataPagamento DateTime
+  metodo        MetodoPagamento
+  parcela       Int?
+  totalParcelas Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contasPagar ContaPagar @relation(fields: [contasPagarId], references: [id], onDelete: Restrict)
 }
