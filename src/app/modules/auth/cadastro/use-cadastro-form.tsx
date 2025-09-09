@@ -43,12 +43,26 @@ export const useFormCadastro = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof FormSchema>) => {
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     console.log("values", values);
+    const response = await fetch("api/empresa", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: values.email,
+        cnpj: values.cnpj,
+        senha: values.senha,
+      }),
+    });
 
-    // router.push("/dashboard");
-
-    toast.success("You submitted the following values");
+    if (response.ok) {
+      router.push("/login");
+      toast.success("Empresa criada com sucesso");
+    } else {
+      console.error("Registration Failed!");
+    }
   };
 
   return { form, onSubmit };

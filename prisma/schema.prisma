@@ -53,18 +53,18 @@ enum TipoCaixa {
 model Empresa {
   id          Int     @id @default(autoincrement())
   uuid        String  @unique @default(uuid()) @db.Uuid
-  nome        String
+  nome        String?
   email       String  @unique
-  telefone    String
+  telefone    String?
   senha       String
   cnpj        String  @unique
-  rua         String
-  numero      String
+  rua         String?
+  numero      String?
   complemento String?
-  bairro      String
-  cidade      String
-  estado      String
-  cep         String
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

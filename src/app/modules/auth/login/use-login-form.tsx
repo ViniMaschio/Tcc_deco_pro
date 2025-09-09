@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,12 +29,23 @@ export const useFormLogin = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof FormSchema>) => {
-    console.log("values", values);
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    const signInData = await signIn("credentials", {
+      email: values.email,
+      senha: values.senha,
+      redirect: false,
+    });
 
-    // router.push("/dashboard");
+    console.log(signInData);
 
-    toast.success("You submitted the following values");
+    if (signInData?.error) {
+      toast.error("Oops! Algo deu errado! ", {
+        position: "top-center",
+      });
+    } else {
+      router.refresh();
+      router.push("/dashboard");
+    }
   };
 
   return { form, onSubmit };
