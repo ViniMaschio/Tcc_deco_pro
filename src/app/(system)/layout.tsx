@@ -2,11 +2,9 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import type React from "react";
 
+import NavigationProvider from "@/components/navegationsbars/Provider";
 import { Toaster } from "@/components/ui/sonner";
 import { authOptions } from "@/lib/auth";
-
-import { NavBar } from "./navegationbars/navbar";
-import { SideBar } from "./navegationbars/sidebar";
 
 export default async function RootLayout({
   children,
@@ -21,14 +19,8 @@ export default async function RootLayout({
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden bg-[#F1F5F9] text-black">
-      <div className="relative flex h-screen w-screen px-2 xl:gap-2">
-        <SideBar />
-        <div className="h-[100dvh] w-full overflow-x-hidden overflow-y-auto">
-          <NavBar />
-          {children}
-          <Toaster />
-        </div>
-      </div>
+      <NavigationProvider>{children}</NavigationProvider>
+      <Toaster />
     </div>
   );
 }

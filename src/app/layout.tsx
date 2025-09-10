@@ -1,9 +1,12 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 
-import Provider from "@/components/provider";
+import Provider from "@/components/Provider";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body>
+      <body className={inter.className}>
+        <title>DecoPro</title>
         <Provider>
           <Toaster richColors />
           {children}
