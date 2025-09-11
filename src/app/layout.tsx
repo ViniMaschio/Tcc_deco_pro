@@ -21,11 +21,11 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className={inter.className}>
-        <title>DecoPro</title>
-        <Provider>
-          <Toaster richColors />
-          {children}
-        </Provider>
+          <title>DecoPro</title>
+          <Provider>
+            <Toaster richColors />
+            {children}
+          </Provider>
       </body>
     </html>
   );

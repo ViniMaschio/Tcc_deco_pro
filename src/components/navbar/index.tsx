@@ -1,6 +1,14 @@
 "use client";
 
+import { IconButton } from "@radix-ui/themes";
+import { UserRound } from "lucide-react";
+import { FaUserAlt } from "react-icons/fa";
 import { IoIosMenu, IoMdNotifications } from "react-icons/io";
+import {
+  TbLayoutSidebarLeftCollapseFilled,
+  TbLayoutSidebarLeftExpandFilled,
+} from "react-icons/tb";
+import { useShallow } from "zustand/react/shallow";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,39 +27,50 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useSidebarStore } from "@/store/sidebar";
 
 export const NavBar = () => {
+  const [open, setOpen] = useSidebarStore(
+    useShallow((state) => [state.open, state.setOpen]),
+  );
+
   return (
     <>
       <div
         data-open={open}
-        className="m-2 mx-1 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-md bg-white px-3 shadow-sm data-[open=true]:w-[100%_-_288px]"
+        className="mx-1 mt-2 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-md bg-white px-3 shadow-sm data-[open=true]:w-[100%_-_288px]"
       >
         <div className="flex w-fit items-center justify-center">
-          <Button
-            className="border-input bg-background hover:bg-accent hover:text-accent-foreground block h-10 w-10 gap-3 rounded-md border transition-all duration-300 xl:hidden"
-            // onClick={() => setOpen(!open)}
+          <IconButton
+            onClick={() => setOpen(!open)}
+            variant="ghost"
+            color="gray"
           >
-            <IoIosMenu size={20} />
-          </Button>
+            {open ? (
+              <TbLayoutSidebarLeftCollapseFilled size={30} color="black" />
+            ) : (
+              <TbLayoutSidebarLeftExpandFilled size={30} color="black" />
+            )}
+          </IconButton>
         </div>
 
-        <Sheet>
-          <SheetTrigger asChild>
-            <div className="relative h-10 w-10">
-              <Button className="m-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-md bg-transparent p-0 transition-all duration-300 hover:bg-slate-400/15">
-                <IoMdNotifications size={24} color="black" />
-              </Button>
-              {/* {data?.notificationPaginated.items.length > 0 && (
+        <div className="ml-[auto] flex w-fit items-center justify-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <div>
+                <IconButton variant="ghost" size={"2"} color="gray">
+                  <IoMdNotifications size={24} color="black" />
+                </IconButton>
+                {/* {data?.notificationPaginated.items.length > 0 && (
                 <div className="bg-primary-red-500 absolute top-[10px] right-[10px] h-2 w-2 animate-pulse rounded-full" />
               )} */}
-            </div>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle className="flex items-center gap-3">
-                Notificações
-                {/* <Popover>
+              </div>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-3">
+                  Notificações
+                  {/* <Popover>
                   <PopoverTrigger asChild>
                     <Button className="m-0 h-8 w-8 rounded-lg bg-transparent p-0 transition-all duration-300 hover:bg-slate-500/15">
                       <Filter size={16} className="text-primary-500" />
@@ -78,10 +97,10 @@ export const NavBar = () => {
                     </div>
                   </PopoverContent>
                 </Popover> */}
-              </SheetTitle>
-              <SheetDescription />
-            </SheetHeader>
-            {/* <Notification
+                </SheetTitle>
+                <SheetDescription />
+              </SheetHeader>
+              {/* <Notification
               read={{
                 data: dataRead?.notificationPaginated,
                 loading: loadingRead,
@@ -105,33 +124,13 @@ export const NavBar = () => {
                   })),
               }}
             /> */}
-          </SheetContent>
-        </Sheet>
-
-        <div className="ml-[auto] flex w-fit items-center justify-center gap-2">
-          <div className="hidden flex-col items-end gap-1 xl:flex">
-            <span className="text-sm font-bold uppercase">
-              {/* {user?.userInfo?.nome || "-"} */}
-            </span>
-            {/* <span className="text-sm">{user?.userInfo?.email || "-"}</span> */}
-          </div>
+            </SheetContent>
+          </Sheet>
           <Menubar className="flex h-[3em] w-[3em] items-center justify-center border-0 hover:bg-none">
             <MenubarMenu>
               <MenubarTrigger>
-                <div className="relative h-[3em] w-[3em] cursor-pointer overflow-hidden rounded-[50%] border-[1px] bg-[#6b7280]">
-                  {/* {!!hasAvatar() ? (
-                    <img
-                      className="absolute h-full w-full"
-                      src={hasAvatar()}
-                      alt="Avatar do usuário conectado ao sistema"
-                    />
-                  ) : (
-                    <UserRound
-                      strokeWidth={0.5}
-                      className="absolute h-full w-full"
-                      color="snow"
-                    />
-                  )} */}
+                <div className="relative flex h-[3em] w-[3em] cursor-pointer items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
+                  <FaUserAlt className="text-center text-gray-700" size={30} />
                 </div>
               </MenubarTrigger>
               <MenubarContent className="mr-[0.5em] w-72 xl:w-fit">
