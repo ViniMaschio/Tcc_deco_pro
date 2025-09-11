@@ -1,22 +1,20 @@
 "use client";
 
 import { IconButton } from "@radix-ui/themes";
-import { UserRound } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { FaUserAlt } from "react-icons/fa";
-import { IoIosMenu, IoMdNotifications } from "react-icons/io";
+import { IoIosMenu, IoMdNotifications, IoMdSettings } from "react-icons/io";
 import {
   TbLayoutSidebarLeftCollapseFilled,
   TbLayoutSidebarLeftExpandFilled,
 } from "react-icons/tb";
 import { useShallow } from "zustand/react/shallow";
 
-import { Button } from "@/components/ui/button";
 import {
   Menubar,
   MenubarContent,
-  MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
@@ -34,13 +32,35 @@ export const NavBar = () => {
     useShallow((state) => [state.open, state.setOpen]),
   );
 
+  const pathname = usePathname();
+
+  // Função para obter o título da página baseado na rota
+  const getPageTitle = () => {
+    switch (pathname) {
+      case "/dashboard":
+        return "Dashboard";
+      case "/agenda":
+        return "Agenda";
+      case "/contratos":
+        return "Contratos";
+      case "/orcamentos":
+        return "Orçamentos";
+      case "/financeiro":
+        return "Financeiro";
+      case "/cadastros":
+        return "Cadastros";
+      default:
+        return "Dashboard";
+    }
+  };
+
   return (
     <>
       <div
         data-open={open}
-        className="mx-1 mt-2 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-md bg-white px-3 shadow-sm data-[open=true]:w-[100%_-_288px]"
+        className="mx-1 mt-2 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-t-md border-b bg-white px-3 data-[open=true]:w-[100%_-_288px]"
       >
-        <div className="flex w-fit items-center justify-center">
+        <div className="hidden w-fit px-2 xl:flex">
           <IconButton
             onClick={() => setOpen(!open)}
             variant="ghost"
@@ -53,12 +73,46 @@ export const NavBar = () => {
             )}
           </IconButton>
         </div>
-
-        <div className="ml-[auto] flex w-fit items-center justify-center gap-2">
+        <div className="flex flex-col px-2 xl:hidden xl:gap-4 xl:pl-14">
           <Sheet>
-            <SheetTrigger asChild>
+            <SheetTrigger asChild className="px-2">
+              <IconButton variant="outline" color="gray">
+                <IoIosMenu size={20} color="black" />
+                <span className="sr-only">Abrir / Fechar menu</span>
+              </IconButton>
+            </SheetTrigger>
+
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-3">
+                  <img
+                    src="/static/images/logo_collapse.png"
+                    alt="Logo do Projeto"
+                    className="h-5 w-5"
+                  />
+                  DecoPro
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="grid flex-1 auto-rows-min gap-6 px-4">
+                <Link href={"#"}>text</Link>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Título da página no centro */}
+        <div className="flex flex-1 justify-center">
+          <h1 className="text-xl font-semibold text-gray-900">
+            {getPageTitle()}
+          </h1>
+        </div>
+
+        <div className="ml-[auto] flex w-fit items-center justify-center gap-4">
+          <Sheet>
+            <SheetTrigger asChild className="px-2">
               <div>
-                <IconButton variant="ghost" size={"2"} color="gray">
+                <IconButton variant="ghost" color="gray">
                   <IoMdNotifications size={24} color="black" />
                 </IconButton>
                 {/* {data?.notificationPaginated.items.length > 0 && (
@@ -126,11 +180,16 @@ export const NavBar = () => {
             /> */}
             </SheetContent>
           </Sheet>
+
+          <IconButton variant="ghost" color="gray" className="px-2">
+            <IoMdSettings size={24} color="black" />
+          </IconButton>
+
           <Menubar className="flex h-[3em] w-[3em] items-center justify-center border-0 hover:bg-none">
             <MenubarMenu>
               <MenubarTrigger>
-                <div className="relative flex h-[3em] w-[3em] cursor-pointer items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
-                  <FaUserAlt className="text-center text-gray-700" size={30} />
+                <div className="relative flex h-[2em] w-[2em] cursor-pointer items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
+                  <FaUserAlt className="text-center text-gray-700" size={20} />
                 </div>
               </MenubarTrigger>
               <MenubarContent className="mr-[0.5em] w-72 xl:w-fit">

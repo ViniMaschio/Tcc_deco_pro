@@ -20,11 +20,13 @@ export default async function RootLayout({
 
   return (
     <div className="h-[100dvh] w-screen overflow-hidden bg-[#F1F5F9] text-black">
-      <div className="relative flex h-screen w-screen px-2 xl:gap-2">
+      <div className="relative flex h-screen w-screen">
         <SideBar />
-        <div className="h-[100dvh] w-full overflow-x-hidden overflow-y-auto">
+        <div className="flex flex-1 flex-col overflow-hidden">
           <NavBar />
-          {children}
+          <div className="max-h-[calc(100dvh_-h-16)] flex-1 overflow-x-hidden overflow-y-auto">
+            {children}
+          </div>
           <Toaster />
         </div>
       </div>
