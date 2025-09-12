@@ -82,26 +82,25 @@ export default async function Home() {
 
   return (
     <div className="mx-1 mb-2 overflow-auto rounded-b-md bg-white p-6">
-      {/* Header */}
-      <div className="mb-8">
-        {/* <h1 className="mb-2 text-3xl font-bold text-gray-900">Dashboard</h1> */}
-        <h2 className="mb-2 text-xl text-gray-600 font-semibold">
-          Bem-vindo de volta, {session?.user?.name || "Usuário"} 👋
-        </h2>
-        <p className="mb-4 text-gray-600">
-          Aqui você acompanha seus contratos, orçamentos e finanças em um só
-          lugar.
-        </p>
+      <div className="mb-8 flex flex-col justify-between xl:flex-row">
+        <div>
+          <h2 className="mb-2 text-xl font-semibold text-gray-600">
+            Bem-vindo de volta, {session?.user?.name || "Usuário"} 👋
+          </h2>
+          <p className="mb-4 text-gray-600">
+            Aqui você acompanha seus contratos, orçamentos e finanças em um só
+            lugar.
+          </p>
+        </div>
 
-        {/* Filtros de Data */}
-        <div className="flex gap-2">
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white">
+        <div className="m-auto flex h-fit max-w-full gap-2 overflow-x-auto rounded-xl bg-gray-200 p-2 text-nowrap xl:m-0">
+          <button className="h-8 w-40 rounded-xl bg-white px-4 text-sm font-medium text-black">
             Últimos 7 dias
           </button>
-          <button className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
+          <button className="h-8 w-40 rounded-xl px-4 text-sm font-medium text-gray-700 hover:bg-gray-300">
             Últimos 30 dias
           </button>
-          <button className="rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300">
+          <button className="h-8 w-40 rounded-xl px-4 text-sm font-medium text-gray-700 hover:bg-gray-300">
             Últimos 3 meses
           </button>
         </div>

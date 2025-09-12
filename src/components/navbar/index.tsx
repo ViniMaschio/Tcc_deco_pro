@@ -14,7 +14,9 @@ import { useShallow } from "zustand/react/shallow";
 import {
   Menubar,
   MenubarContent,
+  MenubarItem,
   MenubarMenu,
+  MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
 import {
@@ -110,7 +112,7 @@ export const NavBar = () => {
 
         <div className="ml-[auto] flex w-fit items-center justify-center gap-4">
           <Sheet>
-            <SheetTrigger asChild className="px-2">
+            <SheetTrigger asChild>
               <div>
                 <IconButton variant="ghost" color="gray">
                   <IoMdNotifications size={24} color="black" />
@@ -180,11 +182,6 @@ export const NavBar = () => {
             /> */}
             </SheetContent>
           </Sheet>
-
-          <IconButton variant="ghost" color="gray" className="px-2">
-            <IoMdSettings size={24} color="black" />
-          </IconButton>
-
           <Menubar className="flex h-[3em] w-[3em] items-center justify-center border-0 hover:bg-none">
             <MenubarMenu>
               <MenubarTrigger>
@@ -192,26 +189,26 @@ export const NavBar = () => {
                   <FaUserAlt className="text-center text-gray-700" size={20} />
                 </div>
               </MenubarTrigger>
-              <MenubarContent className="mr-[0.5em] w-72 xl:w-fit">
-                <div className="ml-2 flex w-full cursor-default items-center p-1">
-                  <span className="hidden font-bold xl:block">Usuário</span>
-                </div>
-                <div className="flex flex-col gap-1 pl-2 xl:hidden">
-                  <span className="text-md font-bold">
-                    {/* {user?.userInfo?.nome || "-"} */}
-                  </span>
-                  <span className="text-xs">
-                    {/* {user?.userInfo?.email || "-"} */}
-                  </span>
-                </div>
-                {/* {menus.map((menu) => (
-                  <div key={menu.label} onClick={() => clickedMenu(menu)}>
-                    <MenubarSeparator />
-                    <MenubarItem className="gap-4">
-                      {menu.icon} {menu.label} {menu.warning && menu.warning}
-                    </MenubarItem>
+              <MenubarContent className="mr-[0.5em] w-72 p-2 xl:w-fit">
+                <div className="flex items-center pb-1">
+                  <div className="relative flex h-[2em] w-[2em] items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
+                    <FaUserAlt
+                      className="text-center text-gray-700"
+                      size={20}
+                    />
                   </div>
-                ))} */}
+                  <div className="flex flex-col pl-2">
+                    <span className="text-sm font-semibold">Gabriel</span>
+                    <span className="text-xs text-black">
+                      gabrielribeiromaschio@hotmail.com
+                    </span>
+                  </div>
+                </div>
+                <MenubarSeparator />
+                <MenubarItem className="gap-4 text-sm">
+                  <IoMdSettings color="black" />
+                  Configurações
+                </MenubarItem>
               </MenubarContent>
             </MenubarMenu>
           </Menubar>

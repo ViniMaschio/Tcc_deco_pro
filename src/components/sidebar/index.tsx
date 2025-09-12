@@ -28,12 +28,12 @@ export const SideBar = () => {
 
   return (
     <div
-      className={`m-2 rounded-md bg-white transition-all duration-300 ${
+      className={`m-2 mr-1 hidden rounded-md bg-white transition-all duration-300 xl:block ${
         open ? "w-50" : "w-16"
       }`}
     >
       <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center justify-center border-b border-gray-200">
+        <div className="flex h-16 items-center justify-center">
           <div className="flex items-center gap-2">
             <img
               src="/static/images/logo_collapse.png"
