@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { MdExpandMore } from "react-icons/md";
@@ -23,7 +24,10 @@ export const SideBar = () => {
   };
 
   const handleLogout = () => {
-    router.push("/login");
+    signOut({
+      redirect: true,
+      callbackUrl: `${window.location.origin}/login`,
+    });
   };
 
   return (

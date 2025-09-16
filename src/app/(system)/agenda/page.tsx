@@ -1,9 +1,20 @@
-const Page = async () => {
+"use client";
+
+import Calendar from "@/app/modules/agenda/calendario/components";
+
+import { usePage } from "./use-page";
+
+export default function Page() {
+  const { currentDate, events, onDateChange, onSelectEvent } = usePage();
+
   return (
-    <div className="p-6">
-      <h1></h1>
+    <div className="mb-2 overflow-auto rounded-b-md bg-white p-6 sm:mx-1">
+      <Calendar
+        date={currentDate}
+        events={events}
+        onDateChange={onDateChange}
+        onSelectEvent={onSelectEvent}
+      />
     </div>
   );
-};
-
-export default Page;
+}
