@@ -1,7 +1,7 @@
 "use client";
 
+import { IconButton } from "@radix-ui/themes";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { MdExpandMore } from "react-icons/md";
@@ -24,20 +24,17 @@ export const SideBar = () => {
   };
 
   const handleLogout = () => {
-    signOut({
-      redirect: true,
-      callbackUrl: `${window.location.origin}/login`,
-    });
+    router.push("/login");
   };
 
   return (
     <div
-      className={`m-2 mr-1 hidden rounded-md bg-white transition-all duration-300 xl:block ${
+      className={`m-2 rounded-md bg-white transition-all duration-300 ${
         open ? "w-50" : "w-16"
       }`}
     >
       <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center justify-center">
+        <div className="flex h-16 items-center justify-center border-b border-gray-200">
           <div className="flex items-center gap-2">
             <img
               src="/static/images/logo_collapse.png"
@@ -80,9 +77,7 @@ export const SideBar = () => {
                       <ul className="mt-1 space-y-1 pl-6">
                         <li>
                           <button
-                            onClick={() =>
-                              handleNavigation("/cadastros/clientes")
-                            }
+                            onClick={() => handleNavigation("/clientes")}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
                           >
                             <span>Clientes</span>
@@ -90,9 +85,7 @@ export const SideBar = () => {
                         </li>
                         <li>
                           <button
-                            onClick={() =>
-                              handleNavigation("/cadastros/fornecedores")
-                            }
+                            onClick={() => handleNavigation("/fornecedores")}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
                           >
                             <span>Fornecedores</span>
@@ -100,9 +93,7 @@ export const SideBar = () => {
                         </li>
                         <li>
                           <button
-                            onClick={() =>
-                              handleNavigation("/cadastros/locais")
-                            }
+                            onClick={() => handleNavigation("/locais")}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
                           >
                             <span>Locais</span>
@@ -114,16 +105,14 @@ export const SideBar = () => {
                 ) : (
                   <button
                     onClick={() => handleNavigation(item?.path || "")}
-                    className={`flex w-full rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                       item.pathnames.includes(pathname)
                         ? "bg-primary text-white"
                         : "text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    <div className="flex gap-3 p-2.5">
-                      {item.icon}
-                      {open && <span>{item.label}</span>}
-                    </div>
+                    {item.icon}
+                    {open && <span>{item.label}</span>}
                   </button>
                 )}
               </li>
@@ -131,16 +120,13 @@ export const SideBar = () => {
           </ul>
         </nav>
 
-        <div className="p-3">
-          <button
-            onClick={handleLogout}
-            className="flex w-full rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200"
-          >
-            <div className="flex gap-3 px-3 py-2.5">
+        <div className="w-full p-3">
+          <IconButton onClick={handleLogout} variant="ghost" color={"gray"}>
+            <div className="flex w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">
               <IoLogOutOutline size={20} />
               {open && <span>Sair</span>}
             </div>
-          </button>
+          </IconButton>
         </div>
       </div>
     </div>

@@ -15,7 +15,6 @@ import { authOptions } from "@/lib/auth";
 export default async function Home() {
   const session = await getServerSession(authOptions);
 
-  // Dados mockados baseados na imagem
   const metrics = [
     {
       title: "Clientes",
