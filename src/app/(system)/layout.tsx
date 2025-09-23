@@ -4,7 +4,6 @@ import type React from "react";
 
 import { NavBar } from "@/components/navbar";
 import { SideBar } from "@/components/sidebar";
-import { Toaster } from "@/components/ui/sonner";
 import { authOptions } from "@/lib/auth";
 
 export default async function RootLayout({
@@ -27,7 +26,6 @@ export default async function RootLayout({
           <div className="max-h-[calc(100dvh_-h-16)] flex-1 overflow-x-hidden overflow-y-auto">
             {children}
           </div>
-          <Toaster />
         </div>
       </div>
     </div>
