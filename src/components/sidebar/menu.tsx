@@ -1,3 +1,5 @@
+import { CiDeliveryTruck } from "react-icons/ci";
+import { FaTruck } from "react-icons/fa";
 import {
   MdAccountBalance,
   MdAddBox,
@@ -5,6 +7,8 @@ import {
   MdDashboard,
   MdDescription,
   MdEvent,
+  MdPeopleAlt,
+  MdPinDrop,
 } from "react-icons/md";
 
 interface MenuProps {
@@ -13,7 +17,6 @@ interface MenuProps {
   icon?: React.ReactNode;
   path?: string;
   pathnames: string[];
-  submenus?: Omit<MenuProps, "pathnames">[];
 }
 
 export const menuItems: MenuProps[] = [
@@ -46,6 +49,13 @@ export const menuItems: MenuProps[] = [
     pathnames: ["/orcamentos"],
   },
   {
+    id: "clientes",
+    label: "Clientes",
+    icon: <MdPeopleAlt size={20} />,
+    path: "/clientes",
+    pathnames: ["/clientes"],
+  },
+  {
     id: "financeiro",
     label: "Financeiro",
     icon: <MdAccountBalance size={20} />,
@@ -53,16 +63,17 @@ export const menuItems: MenuProps[] = [
     pathnames: ["/financeiro"],
   },
   {
-    id: "cadastros",
-    label: "Cadastros",
-    icon: <MdAddBox size={20} />,
+    id: "fornecedor",
+    label: "Fornecedores",
+    icon: <FaTruck size={20} />,
+    path: "/fornecedor",
     pathnames: ["/fornecedor"],
-    submenus: [
-      {
-        id: "fornecedor",
-        label: "Fornecedor",
-        path: "/fornecedor",
-      },
-    ],
+  },
+  {
+    id: "locais",
+    label: "Locais",
+    icon: <MdPinDrop size={20} />,
+    path: "/locais",
+    pathnames: ["/locais"],
   },
 ];

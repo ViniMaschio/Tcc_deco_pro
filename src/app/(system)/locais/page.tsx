@@ -43,11 +43,7 @@ export default function Page() {
       <div className="flex h-[calc(100dvh-100px)] w-full flex-col transition-all duration-500 sm:mx-1">
         <div>
           <div className="flex flex-col bg-white p-6">
-            <div className="flex justify-between">
-              <div className="mt-1 flex items-center gap-2 text-2xl font-semibold">
-                <MapPinIcon size={32} />
-                Lista de Locais
-              </div>
+            <div className="flex justify-end">
               <div className="flex gap-2">
                 <Popover>
                   <PopoverTrigger asChild>

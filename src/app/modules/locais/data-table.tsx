@@ -1,3 +1,4 @@
+import { CircleNotchIcon } from "@phosphor-icons/react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -10,7 +11,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
-import { Typewriter } from "react-simple-typewriter";
 import { twMerge } from "tailwind-merge";
 
 import { Local } from "@/app/api/local/types";
@@ -130,15 +130,9 @@ export function LocalDataTable({
                   colSpan={columns.length}
                   className="h-12 text-center"
                 >
-                  <Typewriter
-                    words={["Carregando seus dados..."]}
-                    loop={Number.POSITIVE_INFINITY}
-                    cursor
-                    cursorStyle="|"
-                    typeSpeed={40}
-                    deleteSpeed={20}
-                    delaySpeed={1000}
-                  />
+                  <div className="flex w-full flex-col items-center justify-center">
+                    <CircleNotchIcon size={28} className="animate-spin" />
+                  </div>
                 </TableCell>
               </TableRow>
             ) : table.getRowModel().rows?.length ? (

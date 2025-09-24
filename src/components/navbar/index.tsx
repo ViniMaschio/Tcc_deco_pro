@@ -39,7 +39,7 @@ export const NavBar = () => {
   // Função para obter o título da página baseado na rota
   const getPageTitle = () => {
     switch (pathname) {
-      case "/dashboard":
+      case "/":
         return "Dashboard";
       case "/agenda":
         return "Agenda";
@@ -49,10 +49,12 @@ export const NavBar = () => {
         return "Orçamentos";
       case "/financeiro":
         return "Financeiro";
-      case "/cadastros":
-        return "Cadastros";
+      case "/fornecedores":
+        return "Fornecedores";
+      case "/locais":
+        return "Locais";
       default:
-        return "Dashboard";
+        return "";
     }
   };
 
@@ -117,9 +119,6 @@ export const NavBar = () => {
                 <IconButton variant="ghost" color="gray">
                   <IoMdNotifications size={24} color="black" />
                 </IconButton>
-                {/* {data?.notificationPaginated.items.length > 0 && (
-                <div className="bg-primary-red-500 absolute top-[10px] right-[10px] h-2 w-2 animate-pulse rounded-full" />
-              )} */}
               </div>
             </SheetTrigger>
             <SheetContent>

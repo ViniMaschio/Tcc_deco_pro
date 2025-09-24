@@ -4,7 +4,7 @@ import { IconButton } from "@radix-ui/themes";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
-import { MdExpandMore } from "react-icons/md";
+import { twMerge } from "tailwind-merge";
 import { useShallow } from "zustand/react/shallow";
 
 import { useSidebarStore } from "@/store/sidebar";
@@ -29,7 +29,7 @@ export const SideBar = () => {
 
   return (
     <div
-      className={`m-2 rounded-md bg-white transition-all duration-300 ${
+      className={`m-2 hidden rounded-md bg-white transition-all duration-350 xl:block ${
         open ? "w-50" : "w-16"
       }`}
     >
@@ -47,72 +47,34 @@ export const SideBar = () => {
           </div>
         </div>
 
-        {/* Navigation Menu */}
         <nav className="flex-1 px-3 py-4">
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.id}>
-                {Number(item.submenus?.length) > 0 ? (
-                  <div>
-                    <button
-                      onClick={() => setCadastrosOpen(!cadastrosOpen)}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                        item.pathnames.includes(pathname)
-                          ? "bg-primary text-white"
-                          : "text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {item.icon}
-                        {open && <span>{item.label}</span>}
-                      </div>
-                      {open && (
-                        <MdExpandMore
-                          size={16}
-                          className={`transition-transform ${cadastrosOpen ? "rotate-180" : ""}`}
-                        />
-                      )}
-                    </button>
-                    {open && cadastrosOpen && (
-                      <ul className="mt-1 space-y-1 pl-6">
-                        <li>
-                          <button
-                            onClick={() => handleNavigation("/clientes")}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
-                          >
-                            <span>Clientes</span>
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => handleNavigation("/fornecedores")}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
-                          >
-                            <span>Fornecedores</span>
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            onClick={() => handleNavigation("/locais")}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
-                          >
-                            <span>Locais</span>
-                          </button>
-                        </li>
-                      </ul>
+                {open ? (
+                  <button
+                    onClick={() => handleNavigation(item?.path || "")}
+                    className={twMerge(
+                      "flex h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      item.pathnames.includes(pathname)
+                        ? "bg-primary hover:bg-primary/90 text-white"
+                        : "text-gray-700 hover:bg-gray-200",
                     )}
-                  </div>
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleNavigation(item?.path || "")}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                    className={twMerge(
+                      "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       item.pathnames.includes(pathname)
-                        ? "bg-primary text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
+                        ? "bg-primary hover:bg-primary/90 text-white"
+                        : "text-gray-700 hover:bg-gray-200",
+                    )}
                   >
                     {item.icon}
-                    {open && <span>{item.label}</span>}
                   </button>
                 )}
               </li>
@@ -122,9 +84,9 @@ export const SideBar = () => {
 
         <div className="w-full p-3">
           <IconButton onClick={handleLogout} variant="ghost" color={"gray"}>
-            <div className="flex w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200">
+            <div className="flex w-full gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-all duration-500 hover:bg-gray-200">
               <IoLogOutOutline size={20} />
-              {open && <span>Sair</span>}
+              <span className={open ? "block" : "hidden"}>Sair</span>
             </div>
           </IconButton>
         </div>
