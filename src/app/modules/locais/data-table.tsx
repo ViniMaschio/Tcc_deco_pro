@@ -50,27 +50,22 @@ export function LocalDataTable({
   pagination,
   setPagination,
   changeFilters,
-  clearFilters,
-  setDataTable,
   filters,
   handleEdit,
   isLoading,
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id.toString(),
     getSortedRowModel: getSortedRowModel(),
     state: {
       sorting,
-      columnFilters,
     },
   });
 
@@ -141,23 +136,10 @@ export function LocalDataTable({
                   <TableRow
                     // onDoubleClick={() => handleEdit(data[row.index])}
                     key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
                     className={twMerge(
                       row.index % 2 ? "bg-[#f8fafc]" : "bg-auto",
                     )}
                   >
-                    {/* {table.getAllColumns().filter((c) => c.getCanHide())
-                      .length !== cookies.get<string[]>(cookieName).length ? (
-                      <TableCell
-                        className={twMerge(
-                          "w-12",
-                          row.index % 2 ? "bg-[#f8fafc]" : "bg-white",
-                          row.getIsSelected() &&
-                            "bg-primary-main-extra-light-light",
-                          "transition-all duration-500",
-                        )}
-                      />
-                    ) : undefined} */}
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
@@ -165,8 +147,6 @@ export function LocalDataTable({
                           cell.column.id === "actions" &&
                             "sticky right-0 z-[1] w-32",
                           row.index % 2 ? "bg-[#f8fafc]" : "bg-white",
-                          row.getIsSelected() &&
-                            "bg-primary-main-extra-light-light",
                           "transition-all duration-500",
                         )}
                       >

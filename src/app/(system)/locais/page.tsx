@@ -24,7 +24,6 @@ export default function Page() {
   const {
     extraColumns,
     pagination,
-    setPagination,
     changePagination,
     handleChangeFilters,
     handleClearFilters,
@@ -36,6 +35,7 @@ export default function Page() {
     showState,
     afterSubmit,
     localData,
+    isLoading,
   } = usePage();
 
   return (
@@ -93,7 +93,7 @@ export default function Page() {
           clearFilters={handleClearFilters}
           filters={filters}
           handleEdit={handleEdit}
-          isLoading={showState.isLoading}
+          isLoading={isLoading}
         />
       </div>
 

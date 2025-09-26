@@ -1,6 +1,7 @@
 "use client";
 
 import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef, Table } from "@tanstack/react-table";
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ import { Local } from "@/app/api/local/types";
 import { PaginationTable } from "@/app/api/types";
 import { LocalFilterType } from "@/app/modules/locais/columns";
 import { LocalPageStates } from "@/app/modules/locais/modal/types";
+import { SortingType } from "@/components/sort-table";
 import { ButtonAction } from "@/components/ui/button-action";
 import {
   DropdownMenu,
@@ -16,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { usePaginationStore } from "@/store/pagination";
+import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
   const [dataTable, setDataTable] = useState<Table<Local>>();
@@ -24,11 +26,8 @@ export const usePage = () => {
 
   const [showState, setShowState] = useState({} as LocalPageStates);
 
-  const perPage = usePaginationStore((state) => state.perPage);
-
   const [pagination, setPagination] = useState({
-    perPage,
-    update: false,
+    perPage: 15,
     currentPage: 1,
     count: 0,
     pagesCount: 1,
@@ -36,7 +35,7 @@ export const usePage = () => {
 
   const [filters, setFilters] = useState({
     sorting: {
-      name: "name",
+      name: "id",
       type: "asc",
     },
   } as LocalFilterType);
@@ -45,33 +44,75 @@ export const usePage = () => {
     setPagination((previous) => ({
       ...previous,
       ...pagination,
-      update: !previous.update,
     }));
   };
 
-  const getLocais = async () => {
-    changeShowState("isLoading", true);
-    const response = await fetch("api/local", {
+  const getLocais = async (
+    filtersParam: LocalFilterType,
+    paginationParam: PaginationTable,
+  ) => {
+    const queryString = buildQueryStringFrom(filtersParam, paginationParam);
+
+    const response = await fetch(`/api/local?${queryString}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
 
-    if (response.ok) {
-      response.json().then((items) => {
-        setLocalData(items);
-      });
-    } else {
-      console.error("Occorreu um erro ao buscar os locais!");
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "Erro ao buscar locais");
     }
 
-    changeShowState("isLoading", false);
+    return response.json() as Promise<{
+      data: Local[];
+      pagination: {
+        page: number;
+        perPage: number;
+        total: number;
+        totalPages: number;
+      };
+    }>;
   };
 
-  const handleChangeFilters = () => {};
+  const { data, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["locais", filters, pagination.currentPage, pagination.perPage],
+    queryFn: () => getLocais(filters, pagination),
+    select: (res) => ({
+      items: res.data,
+      meta: res.pagination,
+    }),
+  });
 
-  const handleClearFilters = () => {};
+  const handleChangeFilters = (
+    name: string,
+    value: string | number | boolean | SortingType | undefined,
+  ) => {
+    if (!value)
+      setFilters((filters) => ({
+        ...filters,
+        [name]: undefined,
+      }));
+    else if (name === "cep") {
+      setFilters((filters) => ({
+        ...filters,
+        cep: value.toString().replace("-", ""),
+      }));
+    } else {
+      setFilters((filters) => ({
+        ...filters,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      descricao: "",
+      cep: "",
+      cidade: "",
+    }));
+  };
 
   const handleEdit = () => {};
 
@@ -84,7 +125,7 @@ export const usePage = () => {
 
   const afterSubmit = () => {
     changeShowState("showModal", false);
-    getLocais();
+    refetch();
   };
 
   const extraColumns: ColumnDef<Local>[] = [
@@ -133,23 +174,27 @@ export const usePage = () => {
   ];
 
   useEffect(() => {
-    getLocais();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!data) return;
+
+    setLocalData(data.items);
+
+    setPagination((prev) => ({
+      ...prev,
+      count: data.meta.total,
+      pagesCount: data.meta.totalPages,
+    }));
+  }, [data]);
 
   useEffect(() => {
-    if (Number(localData?.length) > 0) {
-      setPagination((pagination) => ({
-        ...pagination,
-        count: Number(localData?.length),
-      }));
-    }
-  }, [localData]);
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: 1,
+    }));
+  }, [filters]);
 
   return {
     extraColumns,
     pagination,
-    setPagination,
     changePagination,
     handleChangeFilters,
     handleClearFilters,
@@ -161,5 +206,6 @@ export const usePage = () => {
     showState,
     afterSubmit,
     localData,
+    isLoading: isLoading || isFetching,
   };
 };

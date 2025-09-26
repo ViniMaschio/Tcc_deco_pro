@@ -1,18 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Local } from "@/app/api/local/types";
+import { formatCEPCodeNumber } from "@/utils/mask";
 
 export const columns: ColumnDef<Local>[] = [
-  {
-    id: "id",
-    accessorKey: "id",
-    meta: {
-      name: "ID",
-    },
-    header: () => {
-      return <span>ID</span>;
-    },
-  },
   {
     id: "descricao",
     accessorKey: "descricao",
@@ -44,16 +35,6 @@ export const columns: ColumnDef<Local>[] = [
     },
   },
   {
-    id: "complemento",
-    accessorKey: "complemento",
-    meta: {
-      name: "Complemento",
-    },
-    header: () => {
-      return <span>Complemento</span>;
-    },
-  },
-  {
     id: "bairro",
     accessorKey: "bairro",
     meta: {
@@ -61,16 +42,6 @@ export const columns: ColumnDef<Local>[] = [
     },
     header: () => {
       return <span>Bairro</span>;
-    },
-  },
-  {
-    id: "cidade",
-    accessorKey: "cidade",
-    meta: {
-      name: "Cidade",
-    },
-    header: () => {
-      return <span>Cidade</span>;
     },
   },
   {
@@ -84,6 +55,26 @@ export const columns: ColumnDef<Local>[] = [
     },
   },
   {
+    id: "cidade",
+    accessorKey: "cidade",
+    meta: {
+      name: "Cidade",
+    },
+    header: () => {
+      return <span>Cidade</span>;
+    },
+  },
+  {
+    id: "complemento",
+    accessorKey: "complemento",
+    meta: {
+      name: "Complemento",
+    },
+    header: () => {
+      return <span>Complemento</span>;
+    },
+  },
+  {
     id: "cep",
     accessorKey: "cep",
     meta: {
@@ -92,6 +83,11 @@ export const columns: ColumnDef<Local>[] = [
     header: () => {
       return <span>CEP</span>;
     },
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {formatCEPCodeNumber(row.getValue("cep"))}
+      </div>
+    ),
   },
   {
     id: "telefone",
@@ -112,7 +108,20 @@ export const localFilterCols = {
     type: "text",
     label: "Descrição",
     sortable: true,
-    fields: [],
+  },
+  cidade: {
+    name: "cidade",
+    sortName: "cidade",
+    type: "text",
+    label: "Cidade",
+    sortable: true,
+  },
+  cep: {
+    name: "cep",
+    sortName: "cep",
+    type: "text",
+    label: "CEP",
+    sortable: true,
   },
 };
 
