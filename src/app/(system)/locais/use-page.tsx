@@ -1,10 +1,10 @@
 "use client";
 
 import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ColumnDef, Table } from "@tanstack/react-table";
-import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Local } from "@/app/api/local/types";
 import { PaginationTable } from "@/app/api/types";
@@ -12,16 +12,11 @@ import { LocalFilterType } from "@/app/modules/locais/columns";
 import { LocalPageStates } from "@/app/modules/locais/modal/types";
 import { SortingType } from "@/components/sort-table";
 import { ButtonAction } from "@/components/ui/button-action";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
-  const [dataTable, setDataTable] = useState<Table<Local>>();
+  const [local, setLocal] = useState({} as Local);
+
   const [localData, setLocalData] = useState<Local[]>();
 
   const [showState, setShowState] = useState({} as LocalPageStates);
@@ -83,6 +78,29 @@ export const usePage = () => {
     }),
   });
 
+  const deleteLocal = async () => {
+    try {
+      await fetch(`/api/local/${local.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete" }),
+      });
+
+      changeShowState("showDialog", false);
+      toast.success("Operação realizada com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const { mutateAsync: removeLocal, isPending: isDeleting } = useMutation({
+    mutationFn: deleteLocal,
+    mutationKey: ["deleteLocal"],
+  });
+
   const handleChangeFilters = (
     name: string,
     value: string | number | boolean | SortingType | undefined,
@@ -114,7 +132,15 @@ export const usePage = () => {
     }));
   };
 
-  const handleEdit = () => {};
+  const handleEdit = (value: Local) => {
+    setLocal(value);
+    changeShowState("showModal", true);
+  };
+
+  const handleDelete = (value: Local) => {
+    setLocal(value);
+    changeShowState("showDialog", true);
+  };
 
   const changeShowState = (name: keyof LocalPageStates, value: boolean) => {
     setShowState((previous) => ({
@@ -140,33 +166,18 @@ export const usePage = () => {
               className="h-8 w-8 p-0 text-yellow-500 hover:text-yellow-500/80"
               variant={"outline"}
               tooltip="Editar"
-              //   onClick={() => handleEdit(row.original)}
+              onClick={() => handleEdit(row.original)}
             >
               <PencilIcon weight="fill" size={16} />
             </ButtonAction>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <ButtonAction
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
-                  variant={"outline"}
-                  tooltip="Excluir"
-                >
-                  <TrashIcon weight="fill" size={16} />
-                </ButtonAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                onClick={(e) => e.preventDefault()}
-                className="relative bg-white p-1 focus:bg-white"
-              >
-                <DropdownMenuItem
-                  // onClick={() => handleDelete(row.original.id)}
-                  className="flex cursor-pointer items-center justify-center gap-2 focus:bg-white"
-                >
-                  Confirmar
-                  <Check size={16} />
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ButtonAction
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
+              variant={"outline"}
+              tooltip="Excluir"
+              onClick={() => handleDelete(row.original)}
+            >
+              <TrashIcon weight="fill" size={16} />
+            </ButtonAction>
           </div>
         );
       },
@@ -198,7 +209,6 @@ export const usePage = () => {
     changePagination,
     handleChangeFilters,
     handleClearFilters,
-    setDataTable,
     filters,
     setFilters,
     handleEdit,
@@ -206,6 +216,10 @@ export const usePage = () => {
     showState,
     afterSubmit,
     localData,
+    local,
+    setLocal,
     isLoading: isLoading || isFetching,
+    removeLocal,
+    isDeleting,
   };
 };

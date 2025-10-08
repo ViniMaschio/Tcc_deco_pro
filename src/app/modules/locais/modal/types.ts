@@ -10,6 +10,7 @@ export type LocalModalProps = {
 export type LocalPageStates = {
   showModal: boolean;
   isLoading: boolean;
+  showDialog: boolean;
 };
 
 export type LocalModalStates = {

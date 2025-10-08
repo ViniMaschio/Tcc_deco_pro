@@ -7,17 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { buildOrderBy } from "@/utils/functions/quey-functions";
 
-const localSchema = z.object({
-  descricao: z.string().min(1, "Campo Obrigatório"),
-  rua: z.string().optional(),
-  numero: z.string().optional(),
-  complemento: z.string().optional(),
-  bairro: z.string().optional(),
-  cidade: z.string().optional(),
-  estado: z.string().optional(),
-  cep: z.string().optional(),
-  telefone: z.string().optional(),
-});
+import { localSchema } from "./types";
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +17,7 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado" },
+        { message: "Usuário não autenticado!" },
         { status: 401 },
       );
     }
@@ -46,7 +36,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error creating local:", error);
     return NextResponse.json(
-      { local: null, message: "Erro ao criar local" },
+      { local: null, message: "Erro ao criar local!" },
       { status: 500 },
     );
   }
@@ -75,7 +65,7 @@ export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return new Response("Unauthorized", { status: 401 });
+      return new Response("Usuário não autenticado!", { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -122,9 +112,9 @@ export async function GET(req: Request) {
     // PAGINAÇÃO
     const skip = (page - 1) * perPage;
     const [total, data] = await Promise.all([
-      db.localEvento.count({ where }),
+      db.localEvento.count({ where: { ...where, deleted: false } }),
       db.localEvento.findMany({
-        where,
+        where: { ...where, deleted: false },
         orderBy,
         skip,
         take: perPage,
@@ -142,7 +132,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("GET /api/local error:", error);
     return NextResponse.json(
-      { message: "Erro ao buscar locais" },
+      { message: "Erro ao buscar locais!" },
       { status: 500 },
     );
   }

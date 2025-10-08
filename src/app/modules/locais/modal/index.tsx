@@ -31,6 +31,7 @@ export const LocalModal = ({
 }: LocalModalProps) => {
   const { form, onSubmit, searchZipCode, localModalStates } = useLocalModal({
     afterSubmit,
+    local,
   });
 
   return (

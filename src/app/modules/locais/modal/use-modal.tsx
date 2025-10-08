@@ -10,7 +10,8 @@ import { LocalModalProps, LocalModalStates, ZipCodeResponse } from "./types";
 
 export const useLocalModal = ({
   afterSubmit,
-}: Omit<LocalModalProps, "open" | "changeOpen" | "local">) => {
+  local,
+}: Omit<LocalModalProps, "open" | "changeOpen">) => {
   const [localModalStates, setLocalModalStates] = useState(
     {} as LocalModalStates,
   );
@@ -107,34 +108,96 @@ export const useLocalModal = ({
       submitting: true,
     }));
 
-    const response = await fetch("api/local", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...convertValues,
-      }),
-    });
+    if (Number(values?.id) > 0) {
+      const response = await fetch(`api/local/${values.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...convertValues,
+        }),
+      });
 
-    if (response.ok) {
-      afterSubmit();
-      form.reset({
-        descricao: "",
-        rua: "",
-        numero: "",
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
-        cep: "",
-        telefone: "",
-      });
-      toast.success("Local criado com sucesso", {
-        position: "top-center",
-      });
+      if (response.ok) {
+        afterSubmit();
+        form.reset({
+          descricao: "",
+          rua: "",
+          numero: "",
+          complemento: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+          cep: "",
+          telefone: "",
+        });
+        toast.success("Local atualizado com sucesso", {
+          position: "top-center",
+        });
+      } else {
+        afterSubmit();
+        form.reset({
+          descricao: "",
+          rua: "",
+          numero: "",
+          complemento: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+          cep: "",
+          telefone: "",
+        });
+        console.error("Occorreu um erro ao atualizado o Local!");
+        toast.error("Erro ao atualizado o Local!", {
+          position: "top-center",
+        });
+      }
     } else {
-      console.error("Occorreu um erro ao criar o Local!");
+      const response = await fetch("api/local", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...convertValues,
+        }),
+      });
+
+      if (response.ok) {
+        afterSubmit();
+        form.reset({
+          descricao: "",
+          rua: "",
+          numero: "",
+          complemento: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+          cep: "",
+          telefone: "",
+        });
+        toast.success("Local criado com sucesso", {
+          position: "top-center",
+        });
+      } else {
+        afterSubmit();
+        form.reset({
+          descricao: "",
+          rua: "",
+          numero: "",
+          complemento: "",
+          bairro: "",
+          cidade: "",
+          estado: "",
+          cep: "",
+          telefone: "",
+        });
+        console.error("Occorreu um erro ao criar o Local!");
+        toast.error("Erro ao criar Local!", {
+          position: "top-center",
+        });
+      }
     }
 
     setLocalModalStates((previous) => ({
@@ -153,6 +216,10 @@ export const useLocalModal = ({
   useEffect(() => {
     form.setValue("cep", formatCEPCodeNumber(valueCep));
   }, [valueCep, form]);
+
+  useEffect(() => {
+    if (local?.id) form.reset(local);
+  }, [local, form]);
 
   return {
     form,

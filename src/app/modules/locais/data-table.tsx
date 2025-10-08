@@ -1,13 +1,11 @@
-import { CircleNotchIcon } from "@phosphor-icons/react";
+import { CircleNotchIcon, TrashIcon } from "@phosphor-icons/react";
 import {
   ColumnDef,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   SortingState,
-  type Table as StackTable,
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
@@ -18,6 +16,16 @@ import { PaginationTable } from "@/app/api/types";
 import { SortingType, SortTable } from "@/components/sort-table";
 import { TablePagination } from "@/components/TablePagination";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,14 +35,13 @@ import {
 } from "@/components/ui/table";
 
 import { localFilterCols, LocalFilterType } from "./columns";
+import { LocalPageStates } from "./modal/types";
 
 interface DataTableProps {
   columns: ColumnDef<Local>[];
   data: Local[];
   pagination: PaginationTable;
   setPagination: (pagination: PaginationTable) => void;
-  handleEdit: (value: Local) => void;
-  setDataTable?: (value: StackTable<Local>) => void;
   changeFilters: (
     name: string,
     value: string | SortingType | undefined,
@@ -42,6 +49,10 @@ interface DataTableProps {
   filters: LocalFilterType;
   clearFilters: () => void;
   isLoading: boolean;
+  showState: LocalPageStates;
+  changeShowState: (name: keyof LocalPageStates, value: boolean) => void;
+  removeLocal: () => void;
+  isDeleting: boolean;
 }
 
 export function LocalDataTable({
@@ -51,8 +62,11 @@ export function LocalDataTable({
   setPagination,
   changeFilters,
   filters,
-  handleEdit,
   isLoading,
+  showState,
+  changeShowState,
+  isDeleting,
+  removeLocal,
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -134,7 +148,6 @@ export function LocalDataTable({
               table.getRowModel().rows.map((row) => {
                 return (
                   <TableRow
-                    // onDoubleClick={() => handleEdit(data[row.index])}
                     key={row.id}
                     className={twMerge(
                       row.index % 2 ? "bg-[#f8fafc]" : "bg-auto",
@@ -173,6 +186,38 @@ export function LocalDataTable({
         </Table>
       </div>
       <TablePagination pagination={pagination} setPagination={setPagination} />
+
+      <AlertDialog open={showState.showDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex flex-col items-center justify-center text-center">
+              <TrashIcon size={64} className="text-gray-800" />
+              Tem certeza de que deseja excluir este registro?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Essa ação não poderá ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => changeShowState("showDialog", false)}
+              className="w-full cursor-pointer"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="w-full cursor-pointer bg-red-500 text-white hover:bg-red-500/80"
+              isLoading={isDeleting}
+              onClick={(e) => {
+                e.preventDefault();
+                removeLocal();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
