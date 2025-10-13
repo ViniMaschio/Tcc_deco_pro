@@ -74,7 +74,7 @@ export async function GET(req: Request) {
     );
     if (!parsed.success) {
       return NextResponse.json(
-        { errors: parsed.error.flatten() },
+        { data: [], pagination: null, message: "Parâmetros inválidos!" },
         { status: 400 },
       );
     }
@@ -132,7 +132,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("GET /api/local error:", error);
     return NextResponse.json(
-      { message: "Erro ao buscar locais!" },
+      { data: [], pagination: null, message: "Erro ao buscar locais!" },
       { status: 500 },
     );
   }

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export enum HttpStatusCode {
   ok = 200,
   serverError = 500,

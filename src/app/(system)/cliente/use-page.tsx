@@ -1,25 +1,23 @@
-"use client";
-
 import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { ColumnDef, Table } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { ColumnDef } from "@tanstack/react-table";
+import { useState } from "react";
 import { toast } from "sonner";
 
-import { Local } from "@/app/api/local/types";
+import { Cliente } from "@/app/api/cliente/types";
 import { PaginationTable } from "@/app/api/types";
-import { LocalFilterType } from "@/app/modules/locais/columns";
-import { LocalPageStates } from "@/app/modules/locais/modal/types";
+import { ClienteFilterType } from "@/app/modules/cliente/columns";
+import { ClientePageStates } from "@/app/modules/cliente/modal/types";
 import { SortingType } from "@/components/sort-table";
 import { ButtonAction } from "@/components/ui/button-action";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
-  const [local, setLocal] = useState({} as Local);
+  const [cliente, setCliente] = useState({} as Cliente);
 
-  const [localData, setLocalData] = useState<Local[]>();
+  const [clienteData, setClienteData] = useState<Cliente[]>();
 
-  const [showState, setShowState] = useState({} as LocalPageStates);
+  const [showState, setShowState] = useState({} as ClientePageStates);
 
   const [pagination, setPagination] = useState({
     perPage: 15,
@@ -33,7 +31,7 @@ export const usePage = () => {
       name: "id",
       type: "asc",
     },
-  } as LocalFilterType);
+  } as ClienteFilterType);
 
   const changePagination = (pagination: PaginationTable) => {
     setPagination((previous) => ({
@@ -42,24 +40,31 @@ export const usePage = () => {
     }));
   };
 
-  const getLocais = async (
-    filtersParam: LocalFilterType,
+  const changeShowState = (name: keyof ClientePageStates, value: boolean) => {
+    setShowState((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+  };
+
+  const getCliente = async (
+    filtersParam: ClienteFilterType,
     paginationParam: PaginationTable,
   ) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
-    const response = await fetch(`/api/local?${queryString}`, {
+    const response = await fetch(`/api/cliente?${queryString}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
       const msg = await response.text();
-      throw new Error(msg || "Erro ao buscar locais");
+      throw new Error(msg || "Erro ao buscar Clientes!");
     }
 
     return response.json() as Promise<{
-      data: Local[];
+      data: Cliente[];
       pagination: {
         page: number;
         perPage: number;
@@ -70,20 +75,19 @@ export const usePage = () => {
   };
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["locais", filters, pagination.currentPage, pagination.perPage],
-    queryFn: () => getLocais(filters, pagination),
+    queryKey: ["cliente", filters, pagination.currentPage, pagination.perPage],
+    queryFn: () => getCliente(filters, pagination),
     select: (res) => ({
       items: res.data,
       meta: res.pagination,
     }),
   });
 
-  const deleteLocal = async () => {
+  const handleDelete = async () => {
     try {
-      await fetch(`/api/local/${local.id}`, {
+      await fetch(`/api/cliente/${cliente.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete" }),
       });
 
       changeShowState("showDialog", false);
@@ -96,9 +100,9 @@ export const usePage = () => {
     }
   };
 
-  const { mutateAsync: removeLocal, isPending: isDeleting } = useMutation({
-    mutationFn: deleteLocal,
-    mutationKey: ["deleteLocal"],
+  const { mutateAsync: removeCliente, isPending: isDeleting } = useMutation({
+    mutationFn: handleDelete,
+    mutationKey: ["deleteCliente"],
   });
 
   const handleChangeFilters = (
@@ -126,27 +130,20 @@ export const usePage = () => {
   const handleClearFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      descricao: "",
+      nome: "",
       cep: "",
       cidade: "",
     }));
   };
 
-  const handleEdit = (value: Local) => {
-    setLocal(value);
+  const handleEdit = (value: Cliente) => {
+    setCliente(value);
     changeShowState("showModal", true);
   };
 
-  const handleDelete = (value: Local) => {
-    setLocal(value);
+  const handleShowDelete = (value: Cliente) => {
+    setCliente(value);
     changeShowState("showDialog", true);
-  };
-
-  const changeShowState = (name: keyof LocalPageStates, value: boolean) => {
-    setShowState((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
   };
 
   const afterSubmit = () => {
@@ -154,7 +151,7 @@ export const usePage = () => {
     refetch();
   };
 
-  const extraColumns: ColumnDef<Local>[] = [
+  const extraColumns: ColumnDef<Cliente>[] = [
     {
       id: "actions",
       enableHiding: false,
@@ -174,7 +171,7 @@ export const usePage = () => {
               className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
               variant={"outline"}
               tooltip="Excluir"
-              onClick={() => handleDelete(row.original)}
+              onClick={() => handleShowDelete(row.original)}
             >
               <TrashIcon weight="fill" size={16} />
             </ButtonAction>
@@ -184,42 +181,22 @@ export const usePage = () => {
     },
   ];
 
-  useEffect(() => {
-    if (!data) return;
-
-    setLocalData(data.items);
-
-    setPagination((prev) => ({
-      ...prev,
-      count: data.meta.total,
-      pagesCount: data.meta.totalPages,
-    }));
-  }, [data]);
-
-  useEffect(() => {
-    setPagination((prev) => ({
-      ...prev,
-      currentPage: 1,
-    }));
-  }, [filters]);
-
   return {
-    extraColumns,
-    pagination,
-    changePagination,
-    handleChangeFilters,
-    handleClearFilters,
+    data,
     filters,
-    setFilters,
-    handleEdit,
-    changeShowState,
+    cliente,
     showState,
-    afterSubmit,
-    localData,
-    local,
-    setLocal,
     isLoading: isLoading || isFetching,
-    removeLocal,
+    pagination,
     isDeleting,
+    setCliente,
+    afterSubmit,
+    clienteData,
+    extraColumns,
+    removeCliente,
+    changeShowState,
+    changePagination,
+    handleClearFilters,
+    handleChangeFilters,
   };
 };

@@ -43,16 +43,18 @@ export const NavBar = () => {
         return "Dashboard";
       case "/agenda":
         return "Agenda";
-      case "/contratos":
+      case "/contrato":
         return "Contratos";
-      case "/orcamentos":
+      case "/orcamento":
         return "Orçamentos";
       case "/financeiro":
         return "Financeiro";
-      case "/fornecedores":
+      case "/fornecedor":
         return "Fornecedores";
-      case "/locais":
+      case "/local":
         return "Locais";
+      case "/cliente":
+        return "Clientes";
       default:
         return "";
     }

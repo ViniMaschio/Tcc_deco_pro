@@ -52,8 +52,8 @@ export const menuItems: MenuProps[] = [
     id: "clientes",
     label: "Clientes",
     icon: <MdPeopleAlt size={20} />,
-    path: "/clientes",
-    pathnames: ["/clientes"],
+    path: "/cliente",
+    pathnames: ["/cliente"],
   },
   {
     id: "financeiro",
@@ -73,7 +73,7 @@ export const menuItems: MenuProps[] = [
     id: "locais",
     label: "Locais",
     icon: <MdPinDrop size={20} />,
-    path: "/locais",
-    pathnames: ["/locais"],
+    path: "/local",
+    pathnames: ["/local"],
   },
 ];

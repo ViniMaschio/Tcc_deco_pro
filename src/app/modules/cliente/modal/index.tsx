@@ -20,26 +20,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-import { LocalModalProps } from "./types";
-import { useLocalModal } from "./use-modal";
+import { ClienteModalProps } from "./types";
+import { useClienteModal } from "./use-modal";
 
-export const LocalModal = ({
+export const ClienteModal = ({
   open,
   changeOpen,
-  local,
+  cliente,
   afterSubmit,
-}: LocalModalProps) => {
-  const { form, onSubmit, searchZipCode, localModalStates } = useLocalModal({
-    afterSubmit,
-    local,
-  });
+}: ClienteModalProps) => {
+  const { form, onSubmit, searchZipCode, clienteModalState, handleResetForm } =
+    useClienteModal({
+      afterSubmit,
+      cliente,
+    });
 
   return (
     <Dialog open={open} onOpenChange={(value) => changeOpen(value)}>
       <DialogContent className="flex max-h-[90vh] max-w-[90vw] flex-col justify-between sm:max-w-[75vw]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>
-            {local?.id ? "Edição" : "Cadastro"} de Locais{" "}
+            {cliente?.id ? "Edição" : "Cadastro"} de Clientes{" "}
           </DialogTitle>
           <button
             onClick={() => changeOpen(false)}
@@ -56,21 +57,36 @@ export const LocalModal = ({
             className="overflow-auto"
           >
             <div className="grid grid-cols-12 gap-5">
-              <div className="col-span-10 w-full">
+              <div className="col-span-6 w-full">
                 <FormField
                   control={form.control}
-                  name="descricao"
+                  name="nome"
                   render={({ field }) => (
                     <FormItem className="col-span-1'">
-                      <FormLabel>Descrição</FormLabel>
+                      <FormLabel>Nome</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Descrição"
+                          placeholder="Nome"
                           value={field.value}
                           onChange={(e) =>
                             field.onChange(e.target.value.toUpperCase())
                           }
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="col-span-2 w-full">
+                <FormField
+                  control={form.control}
+                  name="cpf"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1'">
+                      <FormLabel>CPF</FormLabel>
+                      <FormControl>
+                        <Input placeholder="CPF" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -92,6 +108,21 @@ export const LocalModal = ({
                   )}
                 />
               </div>
+              <div className="col-span-2 w-full">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1'">
+                      <FormLabel>E-mail</FormLabel>
+                      <FormControl>
+                        <Input placeholder="E-mail" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="col-span-4 w-full">
                 <FormField
                   control={form.control}
@@ -106,7 +137,7 @@ export const LocalModal = ({
                           onSearch={(value) =>
                             searchZipCode(value?.toString() || "")
                           }
-                          searching={localModalStates.zipCode}
+                          searching={clienteModalState.zipCode}
                           placeholder="CEP"
                           {...field}
                         />
@@ -214,20 +245,10 @@ export const LocalModal = ({
           <Button
             variant={"outline"}
             onClick={() => {
-              form.reset({
-                descricao: "",
-                rua: "",
-                numero: "",
-                complemento: "",
-                bairro: "",
-                cidade: "",
-                estado: "",
-                cep: "",
-                telefone: "",
-              });
+              handleResetForm();
               changeOpen(false);
             }}
-            disabled={localModalStates.submitting}
+            disabled={clienteModalState.submitting}
           >
             Cancelar
           </Button>
@@ -235,7 +256,7 @@ export const LocalModal = ({
             variant={"default"}
             onClick={form.handleSubmit(onSubmit)}
             type="button"
-            loading={localModalStates.submitting}
+            loading={clienteModalState.submitting}
           >
             Salvar
           </Button>

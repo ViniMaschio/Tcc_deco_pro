@@ -2,42 +2,32 @@
 
 import { PlusCircle } from "lucide-react";
 
-import { Local } from "@/app/api/local/types";
-import { columns, localFilterCols } from "@/app/modules/locais/columns";
-import { LocalDataTable } from "@/app/modules/locais/data-table";
-import { LocalModal } from "@/app/modules/locais/modal";
+import { Cliente } from "@/app/api/cliente/types";
+import { clienteFilterCols, columns } from "@/app/modules/cliente/columns";
+import { ClienteDataTable } from "@/app/modules/cliente/data-table";
+import { ClienteModal } from "@/app/modules/cliente/modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 import { usePage } from "./use-page";
 
 export default function Page() {
   const {
-    extraColumns,
-    pagination,
-    changePagination,
-    handleChangeFilters,
-    handleClearFilters,
     filters,
-    changeShowState,
-    showState,
-    afterSubmit,
-    localData,
+    cliente,
     isLoading,
-    local,
-    setLocal,
-    removeLocal,
+    showState,
+    pagination,
     isDeleting,
+    setCliente,
+    clienteData,
+    afterSubmit,
+    extraColumns,
+    removeCliente,
+    changeShowState,
+    changePagination,
+    handleClearFilters,
+    handleChangeFilters,
   } = usePage();
 
   return (
@@ -50,7 +40,7 @@ export default function Page() {
                 <PageFilter
                   changeFilter={handleChangeFilters}
                   clearFilters={handleClearFilters}
-                  filterCols={localFilterCols}
+                  filterCols={clienteFilterCols}
                   filters={filters}
                 />
 
@@ -64,9 +54,10 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <LocalDataTable
+
+        <ClienteDataTable
           columns={[...columns, ...extraColumns]}
-          data={localData || []}
+          data={clienteData || []}
           pagination={pagination}
           setPagination={changePagination}
           changeFilters={handleChangeFilters}
@@ -75,20 +66,22 @@ export default function Page() {
           isLoading={isLoading}
           showState={showState}
           changeShowState={changeShowState}
-          removeLocal={removeLocal}
+          removeCliente={removeCliente}
           isDeleting={isDeleting}
         />
       </div>
 
-      <LocalModal
-        open={showState.showModal}
-        changeOpen={(value) => {
-          changeShowState("showModal", value);
-          setLocal({} as Local);
-        }}
-        afterSubmit={afterSubmit}
-        local={local}
-      />
+      {showState.showModal ? (
+        <ClienteModal
+          open={showState.showModal}
+          changeOpen={(value) => {
+            changeShowState("showModal", value);
+            setCliente({} as Cliente);
+          }}
+          afterSubmit={afterSubmit}
+          cliente={cliente}
+        />
+      ) : null}
     </>
   );
 }

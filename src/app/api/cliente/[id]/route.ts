@@ -5,7 +5,7 @@ import z from "zod";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 
-import { localSchema } from "../types";
+import { clienteSchema } from "../types";
 
 const idParamSchema = z.object({
   id: z
@@ -20,7 +20,7 @@ async function ensureEmpresaId() {
   return Number.isFinite(num) ? num : null;
 }
 
-// ATUALIZAR LOCAL
+// ATUALIZAR Cliente
 export async function PUT(req: Request, ctx: { params: { id: string } }) {
   try {
     const empresaId = await ensureEmpresaId();
@@ -41,40 +41,41 @@ export async function PUT(req: Request, ctx: { params: { id: string } }) {
     const { id } = parsedId.data;
 
     const json = await req.json();
-    const parsedBody = localSchema.safeParse(json);
+    const parsedBody = clienteSchema.safeParse(json);
     if (!parsedBody.success) {
       return NextResponse.json(
         { local: null, errors: z.treeifyError(parsedBody.error) },
         { status: 400 },
       );
     }
+
     const data = parsedBody.data;
 
-    const exists = await db.localEvento.findFirst({
+    const exists = await db.cliente.findFirst({
       where: { id, empresaId, deleted: false },
       select: { id: true },
     });
 
     if (!exists) {
       return NextResponse.json(
-        { local: null, message: "Local não encontrado!" },
+        { local: null, message: "Cliente não encontrado!" },
         { status: 404 },
       );
     }
 
-    const updated = await db.localEvento.update({
+    const updated = await db.cliente.update({
       where: { id },
       data,
     });
 
     return NextResponse.json(
-      { local: updated, message: "Local atualizado com sucesso!" },
+      { local: updated, message: "Cliente atualizado com sucesso!" },
       { status: 200 },
     );
   } catch (err) {
-    console.error("PUT /api/local/:id error:", err);
+    console.error("PUT /api/cliente/:id error:", err);
     return NextResponse.json(
-      { local: null, message: "Erro ao atualizar local" },
+      { local: null, message: "Erro ao atualizar cliente" },
       { status: 500 },
     );
   }
@@ -83,7 +84,7 @@ export async function PUT(req: Request, ctx: { params: { id: string } }) {
 // DELETAR LOCAL
 export async function PATCH(
   req: Request,
-  ctx: { params: Promise<{ id: string }> },
+  ctx: { params: Promise<{ id: string }> }, // 👈 aqui
 ) {
   try {
     const empresaId = await ensureEmpresaId();
@@ -94,46 +95,46 @@ export async function PATCH(
       );
     }
 
-    const { id } = await ctx.params; // 👈 e aqui
+    const { id } = await ctx.params;
     const parsedId = idParamSchema.safeParse({ id });
     if (!parsedId.success) {
       return NextResponse.json({ errors: parsedId.error }, { status: 400 });
     }
 
-    const { id: localId } = parsedId.data;
+    const { id: clienteId } = parsedId.data;
 
-    const local = await db.localEvento.findFirst({
-      where: { id: localId, empresaId },
+    const cliente = await db.cliente.findFirst({
+      where: { id: clienteId, empresaId },
       select: { id: true, deleted: true },
     });
 
-    if (!local) {
+    if (!cliente) {
       return NextResponse.json(
-        { message: "Local não encontrado!" },
+        { message: "Cliente não encontrado!" },
         { status: 404 },
       );
     }
 
-    if (local.deleted) {
+    if (cliente.deleted) {
       return NextResponse.json(
-        { message: "Local já deletado!" },
+        { message: "Cliente já deletado!" },
         { status: 200 },
       );
     }
 
-    await db.localEvento.update({
-      where: { id: localId },
+    await db.cliente.update({
+      where: { id: clienteId },
       data: { deleted: true, deletedAt: new Date() },
     });
 
     return NextResponse.json(
-      { message: "Local removido com sucesso!", id: localId },
+      { message: "Cliente removido com sucesso!", id: clienteId },
       { status: 200 },
     );
   } catch (err) {
-    console.error("PATCH /api/local/:id error:", err);
+    console.error("PATCH /api/cliente/:id error:", err);
     return NextResponse.json(
-      { message: "Erro ao deletar o Local!" },
+      { message: "Erro ao deletar o Cliente!" },
       { status: 500 },
     );
   }
