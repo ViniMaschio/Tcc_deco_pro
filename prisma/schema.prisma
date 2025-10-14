@@ -164,6 +164,7 @@ model LocalEvento {
 model Item {
   id        Int     @id @default(autoincrement())
   uuid      String  @unique @default(uuid()) @db.Uuid
+  nome      String
   descricao String
   precoBase Decimal @db.Decimal(12, 2)
   empresaId Int

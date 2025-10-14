@@ -7,6 +7,7 @@ import {
   MdDashboard,
   MdDescription,
   MdEvent,
+  MdInventory,
   MdPeopleAlt,
   MdPinDrop,
 } from "react-icons/md";
@@ -75,5 +76,12 @@ export const menuItems: MenuProps[] = [
     icon: <MdPinDrop size={20} />,
     path: "/local",
     pathnames: ["/local"],
+  },
+  {
+    id: "itens",
+    label: "Itens",
+    icon: <MdInventory size={20} />,
+    path: "/item",
+    pathnames: ["/item"],
   },
 ];

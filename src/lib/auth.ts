@@ -42,7 +42,11 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        return { id: existeEmpresa.id.toString(), email: existeEmpresa.email };
+        return { 
+          id: existeEmpresa.id.toString(), 
+          email: existeEmpresa.email,
+          empresaId: existeEmpresa.id
+        };
       },
     }),
   ],
@@ -57,7 +61,11 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       return {
         ...session,
-        user: { ...session.user, id: token.id, email: token.email },
+        user: { 
+          ...session.user, 
+          id: token.id, 
+          email: token.email,
+        },
       };
     },
   },

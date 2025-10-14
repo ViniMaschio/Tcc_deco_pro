@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
-import { Cliente } from "@/app/api/cliente/types";
+import { Item } from "@/app/api/item/types";
 import { PaginationTable } from "@/app/api/types";
 import { DeleteConfirmationDialog } from "@/components/delete-dialog";
 import { SortingType, SortTable } from "@/components/sort-table";
@@ -25,28 +25,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { clienteFilterCols, ClienteFilterType } from "./columns";
-import { ClientePageStates } from "./modal/types";
+import { itemFilterCols, ItemFilterType } from "./columns";
+import { ItemPageStates } from "./modal/types";
 
-interface DataTableProps {
-  columns: ColumnDef<Cliente>[];
-  data: Cliente[];
+interface ItemDataTableProps {
+  columns: ColumnDef<Item>[];
+  data: Item[];
   pagination: PaginationTable;
   setPagination: (pagination: PaginationTable) => void;
   changeFilters: (
     name: string,
     value: string | SortingType | undefined,
   ) => void;
-  filters: ClienteFilterType;
-  clearFilters: () => void;
+  filters: ItemFilterType;
   isLoading: boolean;
-  showState: ClientePageStates;
-  changeShowState: (name: keyof ClientePageStates, value: boolean) => void;
-  removeCliente: () => void;
+  showState: ItemPageStates;
+  changeShowState: (name: keyof ItemPageStates, value: boolean) => void;
+  removeItem: () => void;
   isDeleting: boolean;
 }
 
-export function ClienteDataTable({
+export function ItemDataTable({
   columns,
   data,
   pagination,
@@ -57,8 +56,8 @@ export function ClienteDataTable({
   showState,
   changeShowState,
   isDeleting,
-  removeCliente,
-}: DataTableProps) {
+  removeItem,
+}: ItemDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const table = useReactTable({
@@ -98,18 +97,16 @@ export function ClienteDataTable({
                               header.getContext(),
                             )}
                         <div className="flex items-center">
-                          {Object.keys(clienteFilterCols).includes(
-                            header.id,
-                          ) ? (
+                          {Object.keys(itemFilterCols).includes(header.id) ? (
                             <>
-                              {clienteFilterCols[
-                                header.id as keyof typeof clienteFilterCols
+                              {itemFilterCols[
+                                header.id as keyof typeof itemFilterCols
                               ].sortable ? (
                                 <SortTable
                                   filters={filters}
                                   name={
-                                    clienteFilterCols[
-                                      header.id as keyof typeof clienteFilterCols
+                                    itemFilterCols[
+                                      header.id as keyof typeof itemFilterCols
                                     ].sortName
                                   }
                                   changeFilter={changeFilters}
@@ -184,7 +181,7 @@ export function ClienteDataTable({
         <DeleteConfirmationDialog
           open={showState.showDialog}
           onOpenChange={(open) => changeShowState("showDialog", open)}
-          onConfirm={removeCliente}
+          onConfirm={removeItem}
           isLoading={isDeleting}
         />
       ) : null}

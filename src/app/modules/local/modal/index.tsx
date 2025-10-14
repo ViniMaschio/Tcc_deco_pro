@@ -36,16 +36,17 @@ export const LocalModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(value) => changeOpen(value)}>
-      <DialogContent className="flex max-h-[90vh] max-w-[90vw] flex-col justify-between sm:max-w-[75vw]">
+      <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
             {local?.id ? "Edição" : "Cadastro"} de Locais{" "}
           </DialogTitle>
           <button
             onClick={() => changeOpen(false)}
             className="cursor-pointer rounded-md p-1 text-gray-600 transition-colors duration-500 hover:bg-red-100 hover:text-red-800"
           >
-            <XIcon size={25} />
+            <XIcon size={20} className="sm:hidden" />
+            <XIcon size={25} className="hidden sm:block" />
           </button>
         </DialogHeader>
         <Separator />
@@ -53,15 +54,15 @@ export const LocalModal = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="overflow-auto"
+            className="overflow-auto px-1"
           >
-            <div className="grid grid-cols-12 gap-5">
-              <div className="col-span-10 w-full">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5 lg:gap-5">
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4">
                 <FormField
                   control={form.control}
                   name="descricao"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>Descrição</FormLabel>
                       <FormControl>
                         <Input
@@ -77,12 +78,12 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-2 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-1">
                 <FormField
                   control={form.control}
                   name="telefone"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>Telefone</FormLabel>
                       <FormControl>
                         <Input placeholder="Telefone" {...field} />
@@ -92,12 +93,12 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-5 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-2">
                 <FormField
                   control={form.control}
                   name="cep"
                   render={({ field }) => (
-                    <FormItem className="col-span-1 sm:col-span-3">
+                    <FormItem>
                       <FormLabel className="text-our-text-gray font-bold">
                         CEP
                       </FormLabel>
@@ -116,12 +117,12 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-5 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-2">
                 <FormField
                   control={form.control}
                   name="cidade"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>Cidade</FormLabel>
                       <FormControl>
                         <Input placeholder="Cidade" {...field} />
@@ -131,27 +132,37 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-2 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-1">
                 <FormField
                   control={form.control}
                   name="estado"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>UF</FormLabel>
                       <FormControl>
-                        <Input placeholder="UF" {...field} />
+                        <Input
+                          placeholder="UF"
+                          maxLength={2}
+                          value={field.value}
+                          onChange={(e) => {
+                            const value = e.target.value
+                              .toUpperCase()
+                              .replace(/[^A-Z]/g, "");
+                            field.onChange(value);
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="col-span-3 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-2">
                 <FormField
                   control={form.control}
                   name="rua"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>Rua</FormLabel>
                       <FormControl>
                         <Input placeholder="Rua" {...field} />
@@ -161,12 +172,12 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-3 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-2">
                 <FormField
                   control={form.control}
                   name="bairro"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
+                    <FormItem>
                       <FormLabel>Bairro</FormLabel>
                       <FormControl>
                         <Input placeholder="Bairro" {...field} />
@@ -176,30 +187,30 @@ export const LocalModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-4 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-1">
                 <FormField
                   control={form.control}
-                  name="complemento"
+                  name="numero"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
-                      <FormLabel>Complemento</FormLabel>
+                    <FormItem>
+                      <FormLabel>Numero</FormLabel>
                       <FormControl>
-                        <Input placeholder="Complemento" {...field} />
+                        <Input placeholder="Numero" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="col-span-2 w-full">
+              <div className="col-span-1 sm:col-span-1 lg:col-span-2">
                 <FormField
                   control={form.control}
-                  name="numero"
+                  name="complemento"
                   render={({ field }) => (
-                    <FormItem className="col-span-1'">
-                      <FormLabel>Numero</FormLabel>
+                    <FormItem>
+                      <FormLabel>Complemento</FormLabel>
                       <FormControl>
-                        <Input placeholder="Numero" {...field} />
+                        <Input placeholder="Complemento" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -210,7 +221,7 @@ export const LocalModal = ({
           </form>
         </Form>
 
-        <DialogFooter className="grid grid-cols-2 gap-2 py-2 sm:flex">
+        <DialogFooter className="flex flex-col gap-2 py-2 sm:flex-row sm:justify-end">
           <Button
             variant={"outline"}
             onClick={() => {
@@ -228,6 +239,7 @@ export const LocalModal = ({
               changeOpen(false);
             }}
             disabled={localModalStates.submitting}
+            className="w-full sm:w-auto"
           >
             Cancelar
           </Button>
@@ -236,6 +248,7 @@ export const LocalModal = ({
             onClick={form.handleSubmit(onSubmit)}
             type="button"
             loading={localModalStates.submitting}
+            className="w-full sm:w-auto"
           >
             Salvar
           </Button>

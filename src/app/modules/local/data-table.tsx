@@ -1,4 +1,4 @@
-import { CircleNotchIcon, TrashIcon } from "@phosphor-icons/react";
+import { CircleNotchIcon } from "@phosphor-icons/react";
 import {
   ColumnDef,
   flexRender,
@@ -13,18 +13,9 @@ import { twMerge } from "tailwind-merge";
 
 import { Local } from "@/app/api/local/types";
 import { PaginationTable } from "@/app/api/types";
+import { DeleteConfirmationDialog } from "@/components/delete-dialog";
 import { SortingType, SortTable } from "@/components/sort-table";
 import { TablePagination } from "@/components/TablePagination";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -187,37 +178,14 @@ export function LocalDataTable({
       </div>
       <TablePagination pagination={pagination} setPagination={setPagination} />
 
-      <AlertDialog open={showState.showDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex flex-col items-center justify-center text-center">
-              <TrashIcon size={64} className="text-gray-800" />
-              Tem certeza de que deseja excluir este registro?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              Essa ação não poderá ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => changeShowState("showDialog", false)}
-              className="w-full cursor-pointer"
-            >
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="w-full cursor-pointer bg-red-500 text-white hover:bg-red-500/80"
-              isLoading={isDeleting}
-              onClick={(e) => {
-                e.preventDefault();
-                removeLocal();
-              }}
-            >
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {showState.showDialog ? (
+        <DeleteConfirmationDialog
+          open={showState.showDialog}
+          onOpenChange={(open) => changeShowState("showDialog", open)}
+          onConfirm={removeLocal}
+          isLoading={isDeleting}
+        />
+      ) : null}
     </>
   );
 }

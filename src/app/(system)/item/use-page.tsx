@@ -2,20 +2,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Cliente } from "@/app/api/cliente/types";
+import { Item } from "@/app/api/item/types";
 import { PaginationTable } from "@/app/api/types";
-import {
-  ClienteFilterType,
-  createColumns,
-} from "@/app/modules/cliente/columns";
-import { ClientePageStates } from "@/app/modules/cliente/modal/types";
+import { createColumns, ItemFilterType } from "@/app/modules/item/columns";
+import { ItemPageStates } from "@/app/modules/item/modal/types";
 import { SortingType } from "@/components/sort-table";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
-  const [cliente, setCliente] = useState({} as Cliente);
+  const [item, setItem] = useState({} as Item);
 
-  const [showState, setShowState] = useState({} as ClientePageStates);
+  const [showState, setShowState] = useState({} as ItemPageStates);
 
   const [pagination, setPagination] = useState({
     perPage: 15,
@@ -29,7 +26,7 @@ export const usePage = () => {
       name: "id",
       type: "asc",
     },
-  } as ClienteFilterType);
+  } as ItemFilterType);
 
   const changePagination = (pagination: PaginationTable) => {
     setPagination((previous) => ({
@@ -38,31 +35,31 @@ export const usePage = () => {
     }));
   };
 
-  const changeShowState = (name: keyof ClientePageStates, value: boolean) => {
+  const changeShowState = (name: keyof ItemPageStates, value: boolean) => {
     setShowState((previous) => ({
       ...previous,
       [name]: value,
     }));
   };
 
-  const getCliente = async (
-    filtersParam: ClienteFilterType,
+  const getItems = async (
+    filtersParam: ItemFilterType,
     paginationParam: PaginationTable,
   ) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
-    const response = await fetch(`/api/cliente?${queryString}`, {
+    const response = await fetch(`/api/item?${queryString}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
       const msg = await response.text();
-      throw new Error(msg || "Erro ao buscar Clientes!");
+      throw new Error(msg || "Erro ao buscar itens!");
     }
 
     return response.json() as Promise<{
-      data: Cliente[];
+      data: Item[];
       pagination: {
         page: number;
         perPage: number;
@@ -73,8 +70,8 @@ export const usePage = () => {
   };
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["cliente", filters, pagination.currentPage, pagination.perPage],
-    queryFn: () => getCliente(filters, pagination),
+    queryKey: ["item", filters, pagination.currentPage, pagination.perPage],
+    queryFn: () => getItems(filters, pagination),
     select: (res) => ({
       items: res.data,
       meta: res.pagination,
@@ -83,24 +80,27 @@ export const usePage = () => {
 
   const handleDelete = async () => {
     try {
-      await fetch(`/api/cliente/${cliente.id}`, {
+      await fetch(`/api/item/${item.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
       });
 
       changeShowState("showDialog", false);
-      toast.success("Operação realizada com sucesso!", {
+      toast.success("Item excluído com sucesso!", {
         position: "top-center",
       });
       refetch();
     } catch (error) {
       console.error(error);
+      toast.error("Erro ao excluir item", {
+        position: "top-center",
+      });
     }
   };
 
-  const { mutateAsync: removeCliente, isPending: isDeleting } = useMutation({
+  const { mutateAsync: removeItem, isPending: isDeleting } = useMutation({
     mutationFn: handleDelete,
-    mutationKey: ["deleteCliente"],
+    mutationKey: ["deleteItem"],
   });
 
   const handleChangeFilters = (
@@ -112,12 +112,7 @@ export const usePage = () => {
         ...filters,
         [name]: undefined,
       }));
-    else if (name === "cep") {
-      setFilters((filters) => ({
-        ...filters,
-        cep: value.toString().replace("-", ""),
-      }));
-    } else {
+    else {
       setFilters((filters) => ({
         ...filters,
         [name]: value,
@@ -129,18 +124,17 @@ export const usePage = () => {
     setFilters((prev) => ({
       ...prev,
       nome: "",
-      cep: "",
-      cidade: "",
+      descricao: "",
     }));
   };
 
-  const handleEdit = (value: Cliente) => {
-    setCliente(value);
+  const handleEdit = (value: Item) => {
+    setItem(value);
     changeShowState("showModal", true);
   };
 
-  const handleShowDelete = (value: Cliente) => {
-    setCliente(value);
+  const handleShowDelete = (value: Item) => {
+    setItem(value);
     changeShowState("showDialog", true);
   };
 
@@ -154,21 +148,21 @@ export const usePage = () => {
     onDelete: handleShowDelete,
   });
 
-  const clienteData = data?.items || [];
+  const itemData = data?.items || [];
 
   return {
     data,
     filters,
-    cliente,
+    item,
     showState,
     isLoading: isLoading || isFetching,
     pagination,
     isDeleting,
-    setCliente,
+    setItem,
     afterSubmit,
-    clienteData,
+    itemData,
     columns,
-    removeCliente,
+    removeItem,
     changeShowState,
     changePagination,
     handleClearFilters,

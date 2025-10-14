@@ -105,6 +105,7 @@ export async function GET(req: Request) {
 
     const where: Prisma.ClienteWhereInput = {
       empresaId: Number(empresaId),
+      deleted: false,
       AND: [
         filter
           ? {
@@ -134,7 +135,7 @@ export async function GET(req: Request) {
     ]);
 
     const totalPages = Math.max(1, Math.ceil(total / perPage));
-    
+
     return NextResponse.json({
       data,
       pagination: {

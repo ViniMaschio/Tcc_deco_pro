@@ -1,9 +1,19 @@
+import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Cliente } from "@/app/api/cliente/types";
-import { formatCEPCodeNumber } from "@/utils/mask";
+import { ButtonAction } from "@/components/ui/button-action";
+import { formatCEPCodeNumber, formatPhoneNumber } from "@/utils/mask";
 
-export const columns: ColumnDef<Cliente>[] = [
+interface ColumnsProps {
+  onEdit: (cliente: Cliente) => void;
+  onDelete: (cliente: Cliente) => void;
+}
+
+export const createColumns = ({
+  onEdit,
+  onDelete,
+}: ColumnsProps): ColumnDef<Cliente>[] => [
   {
     id: "nome",
     accessorKey: "nome",
@@ -97,6 +107,43 @@ export const columns: ColumnDef<Cliente>[] = [
     },
     header: () => {
       return <span>Telefone</span>;
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {formatPhoneNumber(row.getValue("telefone"))}
+      </div>
+    ),
+  },
+  {
+    id: "actions",
+    meta: {
+      name: "Ações",
+    },
+    header: () => {
+      return <span>Ações</span>;
+    },
+    cell: ({ row }) => {
+      const cliente = row.original;
+      return (
+        <div className="flex items-center gap-1">
+          <ButtonAction
+            className="h-8 w-8 p-0 text-yellow-500 hover:text-yellow-500/80"
+            variant="outline"
+            tooltip="Editar"
+            onClick={() => onEdit(cliente)}
+          >
+            <PencilIcon weight="fill" size={16} />
+          </ButtonAction>
+          <ButtonAction
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
+            variant="outline"
+            tooltip="Excluir"
+            onClick={() => onDelete(cliente)}
+          >
+            <TrashIcon weight="fill" size={16} />
+          </ButtonAction>
+        </div>
+      );
     },
   },
 ];

@@ -13,6 +13,16 @@ export type ClientePageStates = {
   showDialog: boolean;
 };
 
+export type ClienteFilterType = {
+  nome: string;
+  cidade: string;
+  cep: string;
+  sorting: {
+    name: string;
+    type: "asc" | "desc";
+  };
+};
+
 export type ClienteModalStates = {
   zipCode: boolean;
   submitting: boolean;

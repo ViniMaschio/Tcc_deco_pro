@@ -4,7 +4,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-import { formatCEPCodeNumber, formatPhoneNumber } from "@/utils/mask";
+import {
+  formatCEPCodeNumber,
+  formatCPFNumber,
+  formatPhoneNumber,
+} from "@/utils/mask";
 
 import {
   ClienteModalProps,
@@ -121,6 +125,8 @@ export const useClienteModal = ({
     const convertValues = {
       ...values,
       cep: values.cep?.replace("-", ""),
+      telefone: values.telefone?.replace(/\D/g, ""),
+      cpf: values.cpf?.replace(/\D/g, ""),
     };
 
     setClienteModalStates((previous) => ({
@@ -129,7 +135,7 @@ export const useClienteModal = ({
     }));
 
     if (Number(values?.id) > 0) {
-      const response = await fetch(`api/local/${values.id}`, {
+      const response = await fetch(`api/cliente/${values.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +160,7 @@ export const useClienteModal = ({
         });
       }
     } else {
-      const response = await fetch("api/local", {
+      const response = await fetch("api/cliente", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -188,6 +194,7 @@ export const useClienteModal = ({
 
   const valuePhone = form.watch("telefone");
   const valueCep = form.watch("cep");
+  const valueCpf = form.watch("cpf");
 
   useEffect(() => {
     form.setValue("telefone", formatPhoneNumber(valuePhone));
@@ -196,6 +203,10 @@ export const useClienteModal = ({
   useEffect(() => {
     form.setValue("cep", formatCEPCodeNumber(valueCep));
   }, [valueCep, form]);
+
+  useEffect(() => {
+    form.setValue("cpf", formatCPFNumber(valueCpf));
+  }, [valueCpf, form]);
 
   useEffect(() => {
     if (cliente?.id) form.reset(cliente);

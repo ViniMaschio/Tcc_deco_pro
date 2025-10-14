@@ -2,10 +2,10 @@
 
 import { PlusCircle } from "lucide-react";
 
-import { Cliente } from "@/app/api/cliente/types";
-import { clienteFilterCols } from "@/app/modules/cliente/columns";
-import { ClienteDataTable } from "@/app/modules/cliente/data-table";
-import { ClienteModal } from "@/app/modules/cliente/modal";
+import { Item } from "@/app/api/item/types";
+import { itemFilterCols } from "@/app/modules/item/columns";
+import { ItemDataTable } from "@/app/modules/item/data-table";
+import { ItemModal } from "@/app/modules/item/modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
 
@@ -14,16 +14,16 @@ import { usePage } from "./use-page";
 export default function Page() {
   const {
     filters,
-    cliente,
+    item,
     isLoading,
     showState,
     pagination,
     isDeleting,
-    setCliente,
-    clienteData,
+    setItem,
+    itemData,
     afterSubmit,
     columns,
-    removeCliente,
+    removeItem,
     changeShowState,
     changePagination,
     handleClearFilters,
@@ -40,7 +40,7 @@ export default function Page() {
                 <PageFilter
                   changeFilter={handleChangeFilters}
                   clearFilters={handleClearFilters}
-                  filterCols={clienteFilterCols}
+                  filterCols={itemFilterCols}
                   filters={filters}
                 />
 
@@ -55,31 +55,30 @@ export default function Page() {
           </div>
         </div>
 
-        <ClienteDataTable
+        <ItemDataTable
           columns={columns}
-          data={clienteData || []}
+          data={itemData || []}
           pagination={pagination}
           setPagination={changePagination}
           changeFilters={handleChangeFilters}
-          clearFilters={handleClearFilters}
           filters={filters}
           isLoading={isLoading}
           showState={showState}
           changeShowState={changeShowState}
-          removeCliente={removeCliente}
+          removeItem={removeItem}
           isDeleting={isDeleting}
         />
       </div>
 
       {showState.showModal ? (
-        <ClienteModal
+        <ItemModal
           open={showState.showModal}
           changeOpen={(value) => {
             changeShowState("showModal", value);
-            setCliente({} as Cliente);
+            setItem({} as Item);
           }}
           afterSubmit={afterSubmit}
-          cliente={cliente}
+          item={item}
         />
       ) : null}
     </>

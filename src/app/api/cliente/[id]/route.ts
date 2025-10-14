@@ -81,10 +81,10 @@ export async function PUT(req: Request, ctx: { params: { id: string } }) {
   }
 }
 
-// DELETAR LOCAL
+// DELETAR CLIENTE
 export async function PATCH(
   req: Request,
-  ctx: { params: Promise<{ id: string }> }, // 👈 aqui
+  ctx: { params: Promise<{ id: string }> },
 ) {
   try {
     const empresaId = await ensureEmpresaId();

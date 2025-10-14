@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Local } from "@/app/api/local/types";
-import { formatCEPCodeNumber } from "@/utils/mask";
+import { formatCEPCodeNumber, formatPhoneNumber } from "@/utils/mask";
 
 export const columns: ColumnDef<Local>[] = [
   {
@@ -98,6 +98,11 @@ export const columns: ColumnDef<Local>[] = [
     header: () => {
       return <span>Telefone</span>;
     },
+    cell: ({ row }) => (
+      <div className="capitalize">
+        {formatPhoneNumber(row.getValue("telefone"))}
+      </div>
+    ),
   },
 ];
 

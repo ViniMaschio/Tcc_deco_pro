@@ -26,7 +26,13 @@ export const useLocalModal = ({
     complemento: z.string().optional(),
     bairro: z.string().optional(),
     cidade: z.string().optional(),
-    estado: z.string().optional(),
+    estado: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.length === 2,
+        "UF deve ter 2 letras",
+      ),
     cep: z.string().optional(),
     telefone: z.string().optional(),
   });
@@ -101,6 +107,7 @@ export const useLocalModal = ({
     const convertValues = {
       ...values,
       cep: values.cep?.replace("-", ""),
+      telefone: values.telefone?.replace(/\D/g, ""),
     };
 
     setLocalModalStates((previous) => ({

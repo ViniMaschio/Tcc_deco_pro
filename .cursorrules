@@ -1,0 +1,15 @@
+# Cursor Rules para o projeto Tcc_deco_pro
+
+## Configurações de Formatação
+- Use ESLint com simple-import-sort para organizar imports
+- Use Prettier para formatação de código
+- Formate automaticamente ao salvar (Ctrl+S)
+
+## Ordem dos Imports
+1. Bibliotecas externas (react, @phosphor-icons, etc.)
+2. Imports internos do projeto (@/app, @/components, etc.)
+
+## Configurações Específicas
+- ESLint deve executar automaticamente ao salvar
+- Organize imports automaticamente
+- Use Prettier como formatador padrão
