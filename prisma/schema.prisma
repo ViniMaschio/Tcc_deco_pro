@@ -50,6 +50,11 @@ enum TipoCaixa {
   SAIDA
 }
 
+enum TipoItem {
+  PRO
+  SER
+}
+
 // ========================= Núcleo =========================
 model Empresa {
   id          Int     @id @default(autoincrement())
@@ -162,11 +167,12 @@ model LocalEvento {
 }
 
 model Item {
-  id        Int     @id @default(autoincrement())
-  uuid      String  @unique @default(uuid()) @db.Uuid
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Uuid
   nome      String
-  descricao String
-  precoBase Decimal @db.Decimal(12, 2)
+  descricao String?
+  tipo      TipoItem @default(PRO)
+  precoBase Decimal  @db.Decimal(12, 2)
   empresaId Int
 
   createdAt DateTime  @default(now())
