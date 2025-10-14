@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { Empresa } from "@/generated/prisma";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/prisma";
 
 export const empresaCreateSchema = z.object({
   email: z.email(),
@@ -31,15 +31,15 @@ function serializeEmpresa(e: Empresa) {
   return {
     ...e,
     id: e.id?.toString?.() ?? e.id,
-    created_at: e.created_at?.toISOString?.() ?? e.created_at,
-    updated_at: e.updated_at?.toISOString?.() ?? e.updated_at,
+    created_at: e.createdAt?.toISOString?.() ?? e.createdAt,
+    updated_at: e.updatedAt?.toISOString?.() ?? e.updatedAt,
   };
 }
 
-function toBigInt(id: string | number | bigint) {
-  if (typeof id === "bigint") return id;
-  if (typeof id === "number") return BigInt(id);
-  return BigInt(id); // string
+function toNumber(id: string | number | bigint) {
+  if (typeof id === "number") return id;
+  if (typeof id === "bigint") return Number(id);
+  return Number(id); // string
 }
 
 function isPrismaUniqueError(err: any) {
@@ -87,17 +87,17 @@ export async function listarEmpresas(q?: string) {
   const where = q
     ? {
         OR: [
-          { email: { contains: q, mode: "insensitive" } },
-          { cnpj: { contains: q, mode: "insensitive" } },
-          { cidade: { contains: q, mode: "insensitive" } },
-          { bairro: { contains: q, mode: "insensitive" } },
+          { email: { contains: q, mode: "insensitive" as const } },
+          { cnpj: { contains: q, mode: "insensitive" as const } },
+          { cidade: { contains: q, mode: "insensitive" as const } },
+          { bairro: { contains: q, mode: "insensitive" as const } },
         ],
       }
     : undefined;
 
   const rows = await prisma.empresa.findMany({
     where,
-    orderBy: { created_at: "desc" },
+    orderBy: { createdAt: "desc" },
   });
 
   return { ok: true as const, data: rows.map(serializeEmpresa) };
@@ -107,7 +107,7 @@ export async function listarEmpresas(q?: string) {
 export async function obterEmpresa(id: string | number | bigint) {
   try {
     const empresa = await prisma.empresa.findUnique({
-      where: { id: toBigInt(id) },
+      where: { id: toNumber(id) },
     });
     if (!empresa)
       return { ok: false as const, error: "Empresa não encontrada." };
@@ -129,7 +129,7 @@ export async function atualizarEmpresa(
     const data = empresaUpdateSchema.parse(input);
 
     const updated = await prisma.empresa.update({
-      where: { id: toBigInt(id) },
+      where: { id: toNumber(id) },
       data: {
         ...(data.email !== undefined && { email: data.email }),
         ...(data.senha !== undefined && { senha: data.senha }),
@@ -167,7 +167,7 @@ export async function atualizarEmpresa(
 export async function excluirEmpresa(id: string | number | bigint) {
   try {
     const deleted = await prisma.empresa.delete({
-      where: { id: toBigInt(id) },
+      where: { id: toNumber(id) },
     });
     revalidatePath("/empresas");
     return { ok: true as const, data: serializeEmpresa(deleted) };
