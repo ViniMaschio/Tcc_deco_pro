@@ -7,11 +7,9 @@ import { db as prisma } from "@/lib/prisma";
 
 const updateItemSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").optional(),
-  descricao: z.string().min(1, "Descrição é obrigatória").optional(),
-  precoBase: z
-    .number()
-    .min(0, "Preço base deve ser maior ou igual a zero")
-    .optional(),
+  descricao: z.string().optional(),
+  tipo: z.enum(["PRO", "SER"]).optional(),
+  precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero").optional(),
 });
 
 const paramsSchema = z.object({
@@ -24,10 +22,7 @@ async function ensureEmpresaId() {
   return Number.isFinite(num) ? num : null;
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -45,33 +40,21 @@ export async function GET(
     });
 
     if (!item) {
-      return NextResponse.json(
-        { error: "Item não encontrado" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Item não encontrado" }, { status: 404 });
     }
 
     return NextResponse.json(item);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "ID inválido", details: error.issues },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "ID inválido", details: error.issues }, { status: 400 });
     }
 
     console.error("Erro ao buscar item:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -91,10 +74,7 @@ export async function PUT(
     });
 
     if (!existingItem) {
-      return NextResponse.json(
-        { error: "Item não encontrado" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Item não encontrado" }, { status: 404 });
     }
 
     const item = await prisma.item.update({
@@ -107,22 +87,16 @@ export async function PUT(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Dados inválidos", details: error.issues },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     console.error("Erro ao atualizar item:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -140,10 +114,7 @@ export async function PATCH(
     });
 
     if (!existingItem) {
-      return NextResponse.json(
-        { error: "Item não encontrado" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Item não encontrado" }, { status: 404 });
     }
 
     if (existingItem.deleted) {
@@ -161,16 +132,10 @@ export async function PATCH(
     return NextResponse.json({ message: "Item deletado com sucesso!" });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "ID inválido", details: error.issues },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "ID inválido", details: error.issues }, { status: 400 });
     }
 
     console.error("Erro ao excluir item:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

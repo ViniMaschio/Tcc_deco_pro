@@ -7,7 +7,8 @@ import { db as prisma } from "@/lib/prisma";
 
 const createItemSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  descricao: z.string().min(1, "Descrição é obrigatória"),
+  descricao: z.string().optional(),
+  tipo: z.enum(["PRO", "SER"]),
   precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero"),
 });
 
@@ -16,6 +17,7 @@ const querySchema = z.object({
   perPage: z.coerce.number().min(1).max(100).default(15),
   nome: z.string().optional(),
   descricao: z.string().optional(),
+  tipo: z.string().optional(),
   sorting: z.string().optional(),
 });
 
@@ -34,8 +36,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const query = Object.fromEntries(searchParams.entries());
-    const { page, perPage, nome, descricao, sorting } =
-      querySchema.parse(query);
+    const { page, perPage, nome, descricao, tipo, sorting } = querySchema.parse(query);
 
     const skip = (page - 1) * perPage;
     const take = perPage;
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
         contains: string;
         mode: "insensitive";
       };
+      tipo?: "PRO" | "SER";
     } = {
       empresaId,
       deleted: false,
@@ -68,6 +70,10 @@ export async function GET(request: NextRequest) {
         contains: descricao,
         mode: "insensitive",
       };
+    }
+
+    if (tipo) {
+      where.tipo = tipo as "PRO" | "SER";
     }
 
     const orderBy: Record<string, "asc" | "desc"> = {};
@@ -101,10 +107,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Erro ao buscar itens:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
@@ -114,17 +117,18 @@ export async function POST(request: NextRequest) {
     if (!empresaId) {
       return NextResponse.json(
         { local: null, message: "Usuário não autenticado!" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
     const body = await request.json();
-    const { nome, descricao, precoBase } = createItemSchema.parse(body);
+    const { nome, descricao, tipo, precoBase } = createItemSchema.parse(body);
 
     const item = await prisma.item.create({
       data: {
         nome,
         descricao,
+        tipo,
         precoBase,
         empresaId,
       },
@@ -135,14 +139,11 @@ export async function POST(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Dados inválidos", details: error.issues },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     console.error("Erro ao criar item:", error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

@@ -9,10 +9,7 @@ interface ColumnsProps {
   onDelete: (item: Item) => void;
 }
 
-export const createColumns = ({
-  onEdit,
-  onDelete,
-}: ColumnsProps): ColumnDef<Item>[] => [
+export const createColumns = ({ onEdit, onDelete }: ColumnsProps): ColumnDef<Item>[] => [
   {
     id: "nome",
     accessorKey: "nome",
@@ -31,6 +28,33 @@ export const createColumns = ({
     },
     header: () => {
       return <span>Descrição</span>;
+    },
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate">{row.getValue("descricao") || "-"}</div>
+    ),
+  },
+  {
+    id: "tipo",
+    accessorKey: "tipo",
+    meta: {
+      name: "Tipo",
+    },
+    header: () => {
+      return <span>Tipo</span>;
+    },
+    cell: ({ row }) => {
+      const tipo = row.getValue("tipo") as "PRO" | "SER";
+      return (
+        <div className="flex items-center">
+          <span
+            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+              tipo === "PRO" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"
+            }`}
+          >
+            {tipo === "PRO" ? "Produto" : "Serviço"}
+          </span>
+        </div>
+      );
     },
   },
   {
@@ -60,11 +84,7 @@ export const createColumns = ({
     header: () => {
       return <span>Data de Criação</span>;
     },
-    cell: ({ row }) => (
-      <div>
-        {new Date(row.getValue("createdAt")).toLocaleDateString("pt-BR")}
-      </div>
-    ),
+    cell: ({ row }) => <div>{new Date(row.getValue("createdAt")).toLocaleDateString("pt-BR")}</div>,
   },
   {
     id: "actions",
@@ -114,6 +134,18 @@ export const itemFilterCols = {
     type: "text",
     label: "Descrição",
     sortable: true,
+  },
+  tipo: {
+    name: "tipo",
+    sortName: "tipo",
+    type: "select",
+    label: "Tipo",
+    sortable: true,
+    options: [
+      { value: "", label: "Todos" },
+      { value: "PRO", label: "Produto" },
+      { value: "SER", label: "Serviço" },
+    ],
   },
 };
 

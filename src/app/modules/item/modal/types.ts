@@ -16,6 +16,7 @@ export type ItemPageStates = {
 export type ItemFilterType = {
   nome: string;
   descricao: string;
+  tipo: string;
   sorting: {
     name: string;
     type: "asc" | "desc";
@@ -28,6 +29,7 @@ export type ItemModalStates = {
 
 export interface ItemFormData {
   nome: string;
-  descricao: string;
+  descricao?: string;
+  tipo: "PRO" | "SER";
   precoBase: number;
 }

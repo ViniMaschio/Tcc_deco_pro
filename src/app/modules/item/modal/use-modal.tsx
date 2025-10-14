@@ -15,9 +15,8 @@ export const useItemModal = ({
   const FormSchema = z.object({
     id: z.number().optional(),
     nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
-    descricao: z
-      .string()
-      .min(3, "A descrição deve ter pelo menos 3 caracteres"),
+    descricao: z.string().optional(),
+    tipo: z.enum(["PRO", "SER"]),
     precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero"),
   });
 
@@ -26,6 +25,7 @@ export const useItemModal = ({
     defaultValues: {
       nome: "",
       descricao: "",
+      tipo: "PRO" as const,
       precoBase: 0,
     },
   });
@@ -34,6 +34,7 @@ export const useItemModal = ({
     form.reset({
       nome: "",
       descricao: "",
+      tipo: "PRO" as const,
       precoBase: 0,
     });
   };
@@ -103,7 +104,15 @@ export const useItemModal = ({
   };
 
   useEffect(() => {
-    if (item?.id) form.reset(item);
+    if (item?.id) {
+      form.reset({
+        id: item.id,
+        nome: item.nome,
+        descricao: item.descricao || "",
+        tipo: item.tipo,
+        precoBase: item.precoBase,
+      });
+    }
   }, [item, form]);
 
   return {

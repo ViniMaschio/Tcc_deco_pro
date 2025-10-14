@@ -42,10 +42,7 @@ export const usePage = () => {
     }));
   };
 
-  const getItems = async (
-    filtersParam: ItemFilterType,
-    paginationParam: PaginationTable,
-  ) => {
+  const getItems = async (filtersParam: ItemFilterType, paginationParam: PaginationTable) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
     const response = await fetch(`/api/item?${queryString}`, {
@@ -105,7 +102,7 @@ export const usePage = () => {
 
   const handleChangeFilters = (
     name: string,
-    value: string | number | boolean | SortingType | undefined,
+    value: string | number | boolean | SortingType | undefined
   ) => {
     if (!value)
       setFilters((filters) => ({
@@ -125,6 +122,7 @@ export const usePage = () => {
       ...prev,
       nome: "",
       descricao: "",
+      tipo: "",
     }));
   };
 
