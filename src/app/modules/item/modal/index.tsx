@@ -123,7 +123,15 @@ export const ItemModal = ({ open, changeOpen, item, afterSubmit }: ItemModalProp
                           min="0"
                           placeholder="0,00"
                           {...field}
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "" || value === null || value === undefined) {
+                              field.onChange(0);
+                            } else {
+                              const numValue = parseFloat(value);
+                              field.onChange(isNaN(numValue) ? 0 : numValue);
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

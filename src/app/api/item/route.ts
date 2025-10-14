@@ -7,9 +7,9 @@ import { db as prisma } from "@/lib/prisma";
 
 const createItemSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
-  descricao: z.string().optional(),
+  descricao: z.string().optional().nullable(),
   tipo: z.enum(["PRO", "SER"]),
-  precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero"),
+  precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero").default(0),
 });
 
 const querySchema = z.object({
@@ -122,7 +122,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log("Dados recebidos:", body);
+    
     const { nome, descricao, tipo, precoBase } = createItemSchema.parse(body);
+    console.log("Dados validados:", { nome, descricao, tipo, precoBase });
 
     const item = await prisma.item.create({
       data: {

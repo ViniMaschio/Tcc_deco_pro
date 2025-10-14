@@ -70,9 +70,7 @@ export async function criarEmpresa(empresa: Empresa) {
     return { ok: true, data: serializeEmpresa(created) } as const;
   } catch (err: any) {
     if (isPrismaUniqueError(err)) {
-      const target = Array.isArray(err?.meta?.target)
-        ? err.meta.target.join(", ")
-        : "campo único";
+      const target = Array.isArray(err?.meta?.target) ? err.meta.target.join(", ") : "campo único";
       return { ok: false, error: `Valor já existe para ${target}.` } as const;
     }
     return {
@@ -109,8 +107,7 @@ export async function obterEmpresa(id: string | number | bigint) {
     const empresa = await prisma.empresa.findUnique({
       where: { id: toNumber(id) },
     });
-    if (!empresa)
-      return { ok: false as const, error: "Empresa não encontrada." };
+    if (!empresa) return { ok: false as const, error: "Empresa não encontrada." };
     return { ok: true as const, data: serializeEmpresa(empresa) };
   } catch (err: any) {
     return {
@@ -121,10 +118,7 @@ export async function obterEmpresa(id: string | number | bigint) {
 }
 
 /** Update */
-export async function atualizarEmpresa(
-  id: string | number | bigint,
-  input: unknown,
-) {
+export async function atualizarEmpresa(id: string | number | bigint, input: unknown) {
   try {
     const data = empresaUpdateSchema.parse(input);
 
@@ -151,9 +145,7 @@ export async function atualizarEmpresa(
     return { ok: true as const, data: serializeEmpresa(updated) };
   } catch (err: any) {
     if (isPrismaUniqueError(err)) {
-      const target = Array.isArray(err?.meta?.target)
-        ? err.meta.target.join(", ")
-        : "campo único";
+      const target = Array.isArray(err?.meta?.target) ? err.meta.target.join(", ") : "campo único";
       return { ok: false as const, error: `Valor já existe para ${target}.` };
     }
     return {
