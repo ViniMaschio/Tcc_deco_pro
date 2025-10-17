@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import z from "zod";
 
 import { Prisma } from "@/generated/prisma";
-import { authOptions } from "@/lib/auth";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 import { buildOrderBy } from "@/utils/functions/quey-functions";
 
@@ -11,34 +10,31 @@ import { localSchema } from "./types";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const parsedBody = localSchema.parse(body);
-
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const empresaId = await ensureEmpresaId();
+    if (!empresaId) {
       return NextResponse.json(
-        { message: "Usuário não autenticado!" },
-        { status: 401 },
+        { local: null, message: "Usuário não autenticado!" },
+        { status: 401 }
       );
     }
+
+    const body = await req.json();
+    const parsedBody = localSchema.parse(body);
 
     const novoLocal = await db.localEvento.create({
       data: {
         ...parsedBody,
-        empresaId: Number(session?.user?.id),
+        empresaId,
       },
     });
 
     return NextResponse.json(
       { local: novoLocal, message: "Local criado com sucesso!" },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error creating local:", error);
-    return NextResponse.json(
-      { local: null, message: "Erro ao criar local!" },
-      { status: 500 },
-    );
+    return NextResponse.json({ local: null, message: "Erro ao criar local!" }, { status: 500 });
   }
 }
 
@@ -63,19 +59,20 @@ const querySchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return new Response("Usuário não autenticado!", { status: 401 });
+    const empresaId = await ensureEmpresaId();
+    if (!empresaId) {
+      return NextResponse.json(
+        { data: [], pagination: null, message: "Usuário não autenticado!" },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(req.url);
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(searchParams.entries()),
-    );
+    const parsed = querySchema.safeParse(Object.fromEntries(searchParams.entries()));
     if (!parsed.success) {
       return NextResponse.json(
         { data: [], pagination: null, message: "Parâmetros inválidos!" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -92,7 +89,7 @@ export async function GET(req: Request) {
 
     // Filtros dinâmicos
     const where: Prisma.LocalEventoWhereInput = {
-      empresaId: Number(session.user.id),
+      empresaId,
       AND: [
         filter
           ? {
@@ -102,9 +99,7 @@ export async function GET(req: Request) {
               ],
             }
           : {},
-        descricao
-          ? { descricao: { contains: descricao, mode: "insensitive" } }
-          : {},
+        descricao ? { descricao: { contains: descricao, mode: "insensitive" } } : {},
         cidade ? { cidade: { contains: cidade, mode: "insensitive" } } : {},
       ],
     };
@@ -127,13 +122,13 @@ export async function GET(req: Request) {
       { data, pagination: { page, perPage, total, totalPages } },
       {
         status: 200,
-      },
+      }
     );
   } catch (error) {
     console.error("GET /api/local error:", error);
     return NextResponse.json(
       { data: [], pagination: null, message: "Erro ao buscar locais!" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

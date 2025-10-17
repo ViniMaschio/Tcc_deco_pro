@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import z from "zod";
 
 import { Prisma } from "@/generated/prisma";
-import { authOptions } from "@/lib/auth";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 import { buildOrderBy } from "@/utils/functions/quey-functions";
 
 import { clienteSchema } from "./types";
-
-async function ensureEmpresaId() {
-  const session = await getServerSession(authOptions);
-  const num = Number(session?.user?.id);
-  return Number.isFinite(num) ? num : null;
-}
 
 export async function POST(req: Request) {
   try {
@@ -21,7 +14,7 @@ export async function POST(req: Request) {
     if (!empresaId) {
       return NextResponse.json(
         { local: null, message: "Usuário não autenticado!" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -37,14 +30,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { local: novoCliente, message: "Cliente criado com sucesso!" },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Erro ao criar cliente:", error);
-    return NextResponse.json(
-      { local: null, message: "Erro ao criar cliente!" },
-      { status: 500 },
-    );
+    return NextResponse.json({ local: null, message: "Erro ao criar cliente!" }, { status: 500 });
   }
 }
 
@@ -75,18 +65,16 @@ export async function GET(req: Request) {
     if (!empresaId) {
       return NextResponse.json(
         { local: null, message: "Usuário não autenticado!" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
     const { searchParams } = new URL(req.url);
-    const parsed = querySchema.safeParse(
-      Object.fromEntries(searchParams.entries()),
-    );
+    const parsed = querySchema.safeParse(Object.fromEntries(searchParams.entries()));
     if (!parsed.success) {
       return NextResponse.json(
         { data: [], pagination: null, message: "Parâmetros inválidos!" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -118,7 +106,7 @@ export async function GET(req: Request) {
             }
           : {},
         ...Object.entries(filters).map(([key, value]) =>
-          value ? { [key]: { contains: value, mode: "insensitive" } } : {},
+          value ? { [key]: { contains: value, mode: "insensitive" } } : {}
         ),
       ],
     };
@@ -149,7 +137,7 @@ export async function GET(req: Request) {
     console.error("Erro ao buscar clientes:", error);
     return NextResponse.json(
       { data: [], pagination: null, message: "Erro ao buscar clientes!" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

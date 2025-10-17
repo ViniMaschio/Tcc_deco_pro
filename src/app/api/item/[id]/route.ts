@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { z } from "zod";
 
-import { authOptions } from "@/lib/auth";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db as prisma } from "@/lib/prisma";
 
 const updateItemSchema = z.object({
@@ -15,12 +14,6 @@ const updateItemSchema = z.object({
 const paramsSchema = z.object({
   id: z.coerce.number().min(1),
 });
-
-async function ensureEmpresaId() {
-  const session = await getServerSession(authOptions);
-  const num = Number(session?.user?.id);
-  return Number.isFinite(num) ? num : null;
-}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

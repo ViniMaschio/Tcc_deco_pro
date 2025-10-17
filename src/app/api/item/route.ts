@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { z } from "zod";
 
-import { authOptions } from "@/lib/auth";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db as prisma } from "@/lib/prisma";
 
 const createItemSchema = z.object({
@@ -20,12 +19,6 @@ const querySchema = z.object({
   tipo: z.string().optional(),
   sorting: z.string().optional(),
 });
-
-async function ensureEmpresaId() {
-  const session = await getServerSession(authOptions);
-  const num = Number(session?.user?.id);
-  return Number.isFinite(num) ? num : null;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -123,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     console.log("Dados recebidos:", body);
-    
+
     const { nome, descricao, tipo, precoBase } = createItemSchema.parse(body);
     console.log("Dados validados:", { nome, descricao, tipo, precoBase });
 
