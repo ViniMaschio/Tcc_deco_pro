@@ -1,19 +1,18 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 import type React from "react";
 
 import { NavBar } from "@/components/navbar";
 import { SideBar } from "@/components/sidebar";
-import { authOptions } from "@/lib/auth";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
+  const empresaId = await ensureEmpresaId();
 
-  if (!session?.user) {
+  if (!empresaId) {
     redirect("/login");
   }
 

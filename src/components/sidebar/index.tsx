@@ -2,6 +2,7 @@
 
 import { IconButton } from "@radix-ui/themes";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { twMerge } from "tailwind-merge";
@@ -17,14 +18,15 @@ export const SideBar = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [cadastrosOpen, setCadastrosOpen] = useState(false);
-
   const handleNavigation = (path: string) => {
     router.push(path);
   };
 
   const handleLogout = () => {
-    router.push("/login");
+    signOut({
+      redirect: true,
+      callbackUrl: "/login",
+    });
   };
 
   return (
@@ -36,14 +38,8 @@ export const SideBar = () => {
       <div className="flex h-full flex-col">
         <div className="flex h-16 items-center justify-center border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <img
-              src="/static/images/logo_collapse.png"
-              alt="DecoPro"
-              className="h-8 w-8"
-            />
-            {open && (
-              <span className="text-xl font-bold text-gray-800">DecoPro</span>
-            )}
+            <img src="/static/images/logo_collapse.png" alt="DecoPro" className="h-8 w-8" />
+            {open && <span className="text-xl font-bold text-gray-800">DecoPro</span>}
           </div>
         </div>
 
@@ -58,7 +54,7 @@ export const SideBar = () => {
                       "flex h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       item.pathnames.includes(pathname)
                         ? "bg-primary hover:bg-primary/90 text-white"
-                        : "text-gray-700 hover:bg-gray-200",
+                        : "text-gray-700 hover:bg-gray-200"
                     )}
                   >
                     {item.icon}
@@ -71,7 +67,7 @@ export const SideBar = () => {
                       "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       item.pathnames.includes(pathname)
                         ? "bg-primary hover:bg-primary/90 text-white"
-                        : "text-gray-700 hover:bg-gray-200",
+                        : "text-gray-700 hover:bg-gray-200"
                     )}
                   >
                     {item.icon}

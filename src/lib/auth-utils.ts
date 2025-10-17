@@ -8,8 +8,20 @@ import { authOptions } from "./auth";
  */
 export async function ensureEmpresaId(): Promise<number | null> {
   const session = await getServerSession(authOptions);
-  const num = Number(session?.user?.id);
-  return Number.isFinite(num) ? num : null;
+
+  // Verificar se existe sessão e se o usuário tem ID válido
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  const num = Number(session.user.id);
+
+  // Verificar se é um número válido e maior que 0
+  if (!Number.isFinite(num) || num <= 0) {
+    return null;
+  }
+
+  return num;
 }
 
 /**
