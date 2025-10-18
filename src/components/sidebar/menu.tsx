@@ -4,6 +4,7 @@ import {
   MdAccountBalance,
   MdAddBox,
   MdAssignment,
+  MdCategory,
   MdDashboard,
   MdDescription,
   MdEvent,
@@ -83,5 +84,12 @@ export const menuItems: MenuProps[] = [
     icon: <MdInventory size={20} />,
     path: "/item",
     pathnames: ["/item"],
+  },
+  {
+    id: "categoria-festa",
+    label: "Categoria de Festa",
+    icon: <MdCategory size={20} />,
+    path: "/categoria-festa",
+    pathnames: ["/categoria-festa"],
   },
 ];
