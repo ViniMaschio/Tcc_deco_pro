@@ -1,14 +1,10 @@
 "use client";
 
 import { IconButton } from "@radix-ui/themes";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FaUserAlt } from "react-icons/fa";
 import { IoIosMenu, IoMdNotifications, IoMdSettings } from "react-icons/io";
-import {
-  TbLayoutSidebarLeftCollapseFilled,
-  TbLayoutSidebarLeftExpandFilled,
-} from "react-icons/tb";
+import { TbLayoutSidebarLeftCollapseFilled, TbLayoutSidebarLeftExpandFilled } from "react-icons/tb";
 import { useShallow } from "zustand/react/shallow";
 
 import {
@@ -30,9 +26,7 @@ import {
 import { useSidebarStore } from "@/store/sidebar";
 
 export const NavBar = () => {
-  const [open, setOpen] = useSidebarStore(
-    useShallow((state) => [state.open, state.setOpen]),
-  );
+  const [open, setOpen] = useSidebarStore(useShallow((state) => [state.open, state.setOpen]));
 
   const pathname = usePathname();
 
@@ -67,11 +61,7 @@ export const NavBar = () => {
         className="mx-1 mt-2 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-t-md border-b bg-white px-3 data-[open=true]:w-[100%_-_288px]"
       >
         <div className="hidden w-fit px-2 xl:flex">
-          <IconButton
-            onClick={() => setOpen(!open)}
-            variant="ghost"
-            color="gray"
-          >
+          <IconButton onClick={() => setOpen(!open)} variant="ghost" color="gray">
             {open ? (
               <TbLayoutSidebarLeftCollapseFilled size={30} color="black" />
             ) : (
@@ -80,38 +70,15 @@ export const NavBar = () => {
           </IconButton>
         </div>
         <div className="flex flex-col px-2 xl:hidden xl:gap-4 xl:pl-14">
-          <Sheet>
-            <SheetTrigger asChild className="px-2">
-              <IconButton variant="outline" color="gray">
-                <IoIosMenu size={20} color="black" />
-                <span className="sr-only">Abrir / Fechar menu</span>
-              </IconButton>
-            </SheetTrigger>
-
-            <SheetContent side="left">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-3">
-                  <img
-                    src="/static/images/logo_collapse.png"
-                    alt="Logo do Projeto"
-                    className="h-5 w-5"
-                  />
-                  DecoPro
-                </SheetTitle>
-              </SheetHeader>
-
-              <div className="grid flex-1 auto-rows-min gap-6 px-4">
-                <Link href={"#"}>text</Link>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <IconButton onClick={() => setOpen(true)} variant="outline" color="gray" className="px-2">
+            <IoIosMenu size={20} color="black" />
+            <span className="sr-only">Abrir menu</span>
+          </IconButton>
         </div>
 
         {/* Título da página no centro */}
         <div className="flex flex-1 justify-center">
-          <h1 className="text-xl font-semibold text-gray-900">
-            {getPageTitle()}
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900">{getPageTitle()}</h1>
         </div>
 
         <div className="ml-[auto] flex w-fit items-center justify-center gap-4">
@@ -193,16 +160,11 @@ export const NavBar = () => {
               <MenubarContent className="mr-[0.5em] w-72 p-2 xl:w-fit">
                 <div className="flex items-center pb-1">
                   <div className="relative flex h-[2em] w-[2em] items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
-                    <FaUserAlt
-                      className="text-center text-gray-700"
-                      size={20}
-                    />
+                    <FaUserAlt className="text-center text-gray-700" size={20} />
                   </div>
                   <div className="flex flex-col pl-2">
                     <span className="text-sm font-semibold">Gabriel</span>
-                    <span className="text-xs text-black">
-                      gabrielribeiromaschio@hotmail.com
-                    </span>
+                    <span className="text-xs text-black">gabrielribeiromaschio@hotmail.com</span>
                   </div>
                 </div>
                 <MenubarSeparator />
