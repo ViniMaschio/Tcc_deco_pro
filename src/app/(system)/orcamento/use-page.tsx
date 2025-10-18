@@ -4,9 +4,9 @@ import { toast } from "sonner";
 
 import { Orcamento } from "@/app/api/orcamento/types";
 import { PaginationTable } from "@/app/api/types";
-import { SortingType } from "@/components/sort-table";
 import { orcamentoColumns, OrcamentoFilterType } from "@/app/modules/orcamento/columns";
-import { OrcamentoPageStates } from "@/app/modules/orcamento/modal/types";
+import { OrcamentoPageStates } from "@/app/modules/orcamento/types";
+import { SortingType } from "@/components/sort-table";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {

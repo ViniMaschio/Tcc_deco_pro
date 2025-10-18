@@ -1,5 +1,6 @@
 import { XIcon } from "@phosphor-icons/react";
 
+import { InputCurrencyCents } from "@/components/input/input-currency-cents";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -117,21 +118,11 @@ export const ItemModal = ({ open, changeOpen, item, afterSubmit }: ItemModalProp
                     <FormItem className="col-span-1'">
                       <FormLabel>Preço Base</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
+                        <InputCurrencyCents
+                          value={field.value}
+                          onChange={field.onChange}
+                          showCurrency={true}
                           placeholder="0,00"
-                          {...field}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            if (value === "" || value === null || value === undefined) {
-                              field.onChange(0);
-                            } else {
-                              const numValue = parseFloat(value);
-                              field.onChange(isNaN(numValue) ? 0 : numValue);
-                            }
-                          }}
                         />
                       </FormControl>
                       <FormMessage />

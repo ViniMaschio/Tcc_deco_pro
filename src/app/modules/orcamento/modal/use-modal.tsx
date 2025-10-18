@@ -24,12 +24,14 @@ const orcamentoSchema = z.object({
 export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalProps) => {
   const [locais, setLocais] = useState<Local[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [itensDisponiveis, setItensDisponiveis] = useState<Item[]>([]);
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [itens, setItens] = useState<CreateOrcamentoData["itens"]>([]);
   const [total, setTotal] = useState(0);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | undefined>(undefined);
   const [localSelecionado, setLocalSelecionado] = useState<LocalAPI | undefined>(undefined);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState<Categoria | undefined>(
+    undefined
+  );
 
   const form = useForm<z.infer<typeof orcamentoSchema>>({
     resolver: zodResolver(orcamentoSchema),
@@ -46,23 +48,21 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
   const { isLoading } = useQuery({
     queryKey: ["orcamento-modal-data"],
     queryFn: async () => {
-      const [locaisRes, itensRes] = await Promise.all([fetch("/api/local"), fetch("/api/item")]);
-
-      const [locaisData, itensData] = await Promise.all([locaisRes.json(), itensRes.json()]);
+      const locaisRes = await fetch("/api/local");
+      const locaisData = await locaisRes.json();
 
       setLocais(locaisData.data || []);
-      setItensDisponiveis(itensData.data || []);
 
       // Buscar categorias se existirem
       try {
-        const categoriasRes = await fetch("/api/categoria");
+        const categoriasRes = await fetch("/api/categoria-festa");
         const categoriasData = await categoriasRes.json();
         setCategorias(categoriasData.data || []);
       } catch {
         console.log("Categorias não disponíveis");
       }
 
-      return { locaisData, itensData };
+      return { locaisData };
     },
   });
 
@@ -77,9 +77,18 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
         observacao: data.observacao || "",
       });
 
+      // Carregar categoria selecionada se existir
+      if (data.categoriaId && categorias.length > 0) {
+        const categoria = categorias.find((cat) => cat.id === data.categoriaId);
+        if (categoria) {
+          setCategoriaSelecionada(categoria);
+        }
+      }
+
       if (data.itens) {
         const itensData = data.itens.map((item) => ({
           itemId: item.itemId,
+          nome: item.nome,
           quantidade: item.quantidade,
           valorUnit: item.valorUnit,
           desconto: item.desconto,
@@ -97,8 +106,9 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       });
       setItens([]);
       setTotal(0);
+      setCategoriaSelecionada(undefined);
     }
-  }, [data, mode, form]);
+  }, [data, mode, form, categorias]);
 
   // Funções para gerenciar itens
   const calculateTotal = (itensList: CreateOrcamentoData["itens"]) => {
@@ -111,8 +121,22 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
   const addItem = () => {
     const newItem = {
       itemId: 0,
+      nome: "",
       quantidade: 1,
       valorUnit: 0,
+      desconto: 0,
+    };
+    const newItens = [...itens, newItem];
+    setItens(newItens);
+    calculateTotal(newItens);
+  };
+
+  const addItemFromAutocomplete = (item: Item) => {
+    const newItem = {
+      itemId: item.id,
+      nome: item.nome,
+      quantidade: 1,
+      valorUnit: item.precoBase,
       desconto: 0,
     };
     const newItens = [...itens, newItem];
@@ -191,39 +215,12 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     },
   });
 
-  // Mutação para excluir orçamento
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/orcamento/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao excluir orçamento");
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      toast.success("Orçamento excluído com sucesso!");
-      onSuccess();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-
   const handleSubmit = async (orcamentoData: CreateOrcamentoData) => {
     if (mode === "create") {
       await createMutation.mutateAsync(orcamentoData);
     } else if (mode === "edit" && data) {
       await updateMutation.mutateAsync({ id: data.id, data: orcamentoData });
     }
-  };
-
-  const handleDelete = async (id: number) => {
-    await deleteMutation.mutateAsync(id);
   };
 
   const onSubmit = (values: z.infer<typeof orcamentoSchema>) => {
@@ -236,12 +233,6 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       ...values,
       itens,
     });
-  };
-
-  const handleDeleteClick = () => {
-    if (data && window.confirm("Tem certeza que deseja excluir este orçamento?")) {
-      handleDelete(data.id);
-    }
   };
 
   const handleClienteSelect = (cliente: Cliente | null) => {
@@ -262,6 +253,15 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     }
   };
 
+  const handleCategoriaSelect = (categoria: Categoria | null) => {
+    setCategoriaSelecionada(categoria || undefined);
+    if (categoria) {
+      form.setValue("categoriaId", categoria.id);
+    } else {
+      form.setValue("categoriaId", undefined);
+    }
+  };
+
   return {
     // Estados
     activeTab,
@@ -271,24 +271,25 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     form,
     clienteSelecionado,
     localSelecionado,
+    categoriaSelecionada,
 
     // Dados
     locais,
     categorias,
-    itensDisponiveis,
 
     // Estados de loading
     isLoading,
-    isSubmitting: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
+    isSubmitting: createMutation.isPending || updateMutation.isPending,
 
     // Funções
     addItem,
+    addItemFromAutocomplete,
     updateItem,
     removeItem,
     onSubmit,
-    handleDeleteClick,
     calculateTotal,
     handleClienteSelect,
     handleLocalSelect,
+    handleCategoriaSelect,
   };
 };

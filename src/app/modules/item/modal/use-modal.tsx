@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
+import { centsToDecimal, decimalToCents } from "@/utils/currency";
+
 import { ItemModalProps, ItemModalStates } from "./types";
 
 export const useItemModal = ({
@@ -17,7 +19,7 @@ export const useItemModal = ({
     nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres"),
     descricao: z.string().optional(),
     tipo: z.enum(["PRO", "SER"]),
-    precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero"),
+    precoBase: z.number().min(0, "Preço base deve ser maior ou igual a zero"), // Valor em centavos
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -45,15 +47,19 @@ export const useItemModal = ({
       submitting: true,
     }));
 
+    // Converter centavos para decimal para envio à API
+    const dataToSend = {
+      ...values,
+      precoBase: centsToDecimal(values.precoBase), // Converter centavos para decimal
+    };
+
     if (Number(values?.id) > 0) {
       const response = await fetch(`api/item/${values.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...values,
-        }),
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
@@ -76,9 +82,7 @@ export const useItemModal = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...values,
-        }),
+        body: JSON.stringify(dataToSend),
       });
 
       if (response.ok) {
@@ -110,7 +114,7 @@ export const useItemModal = ({
         nome: item.nome,
         descricao: item.descricao || "",
         tipo: item.tipo,
-        precoBase: item.precoBase,
+        precoBase: decimalToCents(item.precoBase), // Converter decimal para centavos
       });
     }
   }, [item, form]);

@@ -4,7 +4,7 @@ import { Orcamento } from "@/app/api/orcamento/types";
 export type OrcamentoModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "create" | "edit" | "view" | "delete";
+  mode: "create" | "edit" | "view";
   data?: Orcamento;
   onSuccess: () => void;
 };
@@ -78,11 +78,11 @@ export type OrcamentoDataTableProps = {
 export type OrcamentoItensTableProps = {
   itens: Array<{
     itemId: number;
+    nome: string;
     quantidade: number;
     valorUnit: number;
     desconto?: number;
   }>;
-  itensDisponiveis: Item[];
   onUpdateItem: (
     index: number,
     field: "itemId" | "quantidade" | "valorUnit" | "desconto",
@@ -94,7 +94,7 @@ export type OrcamentoItensTableProps = {
 
 // Tipos para hooks
 export type UseOrcamentoModalProps = {
-  mode: "create" | "edit" | "view" | "delete";
+  mode: "create" | "edit" | "view";
   data?: Orcamento;
   onSuccess: () => void;
 };
@@ -104,12 +104,12 @@ export type UseOrcamentoPageReturn = {
   isLoading: boolean;
   showModal: {
     open: boolean;
-    mode: "create" | "edit" | "view" | "delete";
+    mode: "create" | "edit" | "view";
     data?: Orcamento;
   };
   setShowModal: (state: {
     open: boolean;
-    mode: "create" | "edit" | "view" | "delete";
+    mode: "create" | "edit" | "view";
     data?: Orcamento;
   }) => void;
   filters: OrcamentoFilterType;

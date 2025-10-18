@@ -33,6 +33,7 @@ export interface Orcamento {
 
 export interface OrcamentoItem {
   id: number;
+  nome: string;
   uuid: string;
   orcamentoId: number;
   itemId: number;
@@ -60,6 +61,7 @@ export interface CreateOrcamentoData {
   observacao?: string;
   itens: {
     itemId: number;
+    nome: string;
     quantidade: number;
     valorUnit: number;
     desconto?: number;
