@@ -1,6 +1,6 @@
 "use client";
 
-import Calendar from "@/app/modules/agenda/calendario/components";
+import Calendar from "@/app/modules/agenda/components";
 
 import { usePage } from "./use-page";
 

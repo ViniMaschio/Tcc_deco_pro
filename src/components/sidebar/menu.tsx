@@ -46,8 +46,8 @@ export const menuItems: MenuProps[] = [
     id: "orcamentos",
     label: "Orçamentos",
     icon: <MdAssignment size={20} />,
-    path: "/orcamentos",
-    pathnames: ["/orcamentos"],
+    path: "/orcamento",
+    pathnames: ["/orcamento"],
   },
   {
     id: "clientes",

@@ -14,7 +14,7 @@ const idParamSchema = z.object({
 });
 
 // ATUALIZAR Cliente
-export async function PUT(req: Request, ctx: { params: { id: string } }) {
+export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -24,7 +24,8 @@ export async function PUT(req: Request, ctx: { params: { id: string } }) {
       );
     }
 
-    const parsedId = idParamSchema.safeParse(ctx.params);
+    const params = await ctx.params;
+    const parsedId = idParamSchema.safeParse(params);
     if (!parsedId.success) {
       return NextResponse.json(
         { local: null, errors: z.treeifyError(parsedId.error) },

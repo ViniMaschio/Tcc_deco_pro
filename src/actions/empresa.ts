@@ -1,8 +1,10 @@
 "use server";
 
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { Prisma } from "@/generated/prisma";
 import { Empresa } from "@/generated/prisma";
 import { db as prisma } from "@/lib/prisma";
 
@@ -42,8 +44,8 @@ function toNumber(id: string | number | bigint) {
   return Number(id); // string
 }
 
-function isPrismaUniqueError(err: any) {
-  return err?.code === "P2002";
+function isPrismaUniqueError(err: unknown): err is PrismaClientKnownRequestError {
+  return err instanceof PrismaClientKnownRequestError && err.code === "P2002";
 }
 
 export async function criarEmpresa(empresa: Empresa) {

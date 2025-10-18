@@ -42,10 +42,7 @@ export const usePage = () => {
     }));
   };
 
-  const getLocais = async (
-    filtersParam: LocalFilterType,
-    paginationParam: PaginationTable,
-  ) => {
+  const getLocais = async (filtersParam: LocalFilterType, paginationParam: PaginationTable) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
     const response = await fetch(`/api/local?${queryString}`, {
@@ -103,7 +100,7 @@ export const usePage = () => {
 
   const handleChangeFilters = (
     name: string,
-    value: string | number | boolean | SortingType | undefined,
+    value: string | number | boolean | SortingType | undefined
   ) => {
     if (!value)
       setFilters((filters) => ({

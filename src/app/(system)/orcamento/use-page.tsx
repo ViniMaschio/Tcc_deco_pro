@@ -2,17 +2,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Cliente } from "@/app/api/cliente/types";
+import { Orcamento } from "@/app/api/orcamento/types";
 import { PaginationTable } from "@/app/api/types";
-import { ClienteFilterType, createColumns } from "@/app/modules/cliente/columns";
-import { ClientePageStates } from "@/app/modules/cliente/modal/types";
 import { SortingType } from "@/components/sort-table";
+import { orcamentoColumns, OrcamentoFilterType } from "@/app/modules/orcamento/columns";
+import { OrcamentoPageStates } from "@/app/modules/orcamento/modal/types";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
-  const [cliente, setCliente] = useState({} as Cliente);
+  const [orcamento, setOrcamento] = useState({} as Orcamento);
 
-  const [showState, setShowState] = useState({} as ClientePageStates);
+  const [showState, setShowState] = useState({} as OrcamentoPageStates);
 
   const [pagination, setPagination] = useState({
     perPage: 15,
@@ -26,7 +26,7 @@ export const usePage = () => {
       name: "id",
       type: "asc",
     },
-  } as ClienteFilterType);
+  } as OrcamentoFilterType);
 
   const changePagination = (pagination: PaginationTable) => {
     setPagination((previous) => ({
@@ -35,28 +35,31 @@ export const usePage = () => {
     }));
   };
 
-  const changeShowState = (name: keyof ClientePageStates, value: boolean) => {
+  const changeShowState = (name: keyof OrcamentoPageStates, value: boolean) => {
     setShowState((previous) => ({
       ...previous,
       [name]: value,
     }));
   };
 
-  const getCliente = async (filtersParam: ClienteFilterType, paginationParam: PaginationTable) => {
+  const getOrcamento = async (
+    filtersParam: OrcamentoFilterType,
+    paginationParam: PaginationTable
+  ) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
-    const response = await fetch(`/api/cliente?${queryString}`, {
+    const response = await fetch(`/api/orcamento?${queryString}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
       const msg = await response.text();
-      throw new Error(msg || "Erro ao buscar Clientes!");
+      throw new Error(msg || "Erro ao buscar Orçamentos!");
     }
 
     return response.json() as Promise<{
-      data: Cliente[];
+      data: Orcamento[];
       pagination: {
         page: number;
         perPage: number;
@@ -67,8 +70,8 @@ export const usePage = () => {
   };
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["cliente", filters, pagination.currentPage, pagination.perPage],
-    queryFn: () => getCliente(filters, pagination),
+    queryKey: ["orcamento", filters, pagination.currentPage, pagination.perPage],
+    queryFn: () => getOrcamento(filters, pagination),
     select: (res) => ({
       items: res.data,
       meta: res.pagination,
@@ -77,7 +80,7 @@ export const usePage = () => {
 
   const handleDelete = async () => {
     try {
-      await fetch(`/api/cliente/${cliente.id}`, {
+      await fetch(`/api/orcamento/${orcamento.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
       });
@@ -92,9 +95,9 @@ export const usePage = () => {
     }
   };
 
-  const { mutateAsync: removeCliente, isPending: isDeleting } = useMutation({
+  const { mutateAsync: removeOrcamento, isPending: isDeleting } = useMutation({
     mutationFn: handleDelete,
-    mutationKey: ["deleteCliente"],
+    mutationKey: ["deleteOrcamento"],
   });
 
   const handleChangeFilters = (
@@ -106,12 +109,7 @@ export const usePage = () => {
         ...filters,
         [name]: undefined,
       }));
-    else if (name === "cep") {
-      setFilters((filters) => ({
-        ...filters,
-        cep: value.toString().replace("-", ""),
-      }));
-    } else {
+    else {
       setFilters((filters) => ({
         ...filters,
         [name]: value,
@@ -122,19 +120,19 @@ export const usePage = () => {
   const handleClearFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      nome: "",
-      cep: "",
-      cidade: "",
+      search: "",
+      status: "",
+      dataEvento: "",
     }));
   };
 
-  const handleEdit = (value: Cliente) => {
-    setCliente(value);
+  const handleEdit = (value: Orcamento) => {
+    setOrcamento(value);
     changeShowState("showModal", true);
   };
 
-  const handleShowDelete = (value: Cliente) => {
-    setCliente(value);
+  const handleShowDelete = (value: Orcamento) => {
+    setOrcamento(value);
     changeShowState("showDialog", true);
   };
 
@@ -143,26 +141,23 @@ export const usePage = () => {
     refetch();
   };
 
-  const columns = createColumns({
-    onEdit: handleEdit,
-    onDelete: handleShowDelete,
-  });
+  const columns = orcamentoColumns;
 
-  const clienteData = data?.items || [];
+  const orcamentoData = data?.items || [];
 
   return {
     data,
     filters,
-    cliente,
+    orcamento,
     showState,
     isLoading: isLoading || isFetching,
     pagination,
     isDeleting,
-    setCliente,
+    setOrcamento,
     afterSubmit,
-    clienteData,
+    orcamentoData,
     columns,
-    removeCliente,
+    removeOrcamento,
     changeShowState,
     changePagination,
     handleClearFilters,

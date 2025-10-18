@@ -16,7 +16,7 @@ const querySchema = z.object({
   perPage: z.coerce.number().min(1).max(100).default(15),
   nome: z.string().optional(),
   descricao: z.string().optional(),
-  tipo: z.string().optional(),
+  tipo: z.enum(["PRO", "SER"]).optional(),
   sorting: z.string().optional(),
 });
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { IconButton } from "@radix-ui/themes";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { twMerge } from "tailwind-merge";
 import { useShallow } from "zustand/react/shallow";
@@ -38,7 +38,7 @@ export const SideBar = () => {
       <div className="flex h-full flex-col">
         <div className="flex h-16 items-center justify-center border-b border-gray-200">
           <div className="flex items-center gap-2">
-            <img src="/static/images/logo_collapse.png" alt="DecoPro" className="h-8 w-8" />
+            <Image src="/static/images/logo_collapse.png" alt="DecoPro" width={32} height={32} />
             {open && <span className="text-xl font-bold text-gray-800">DecoPro</span>}
           </div>
         </div>

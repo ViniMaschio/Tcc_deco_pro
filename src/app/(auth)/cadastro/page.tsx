@@ -16,9 +16,7 @@ export default function Cadastro() {
         />
 
         <div className="flex flex-col items-center">
-          <h2 className="pb-1 text-3xl font-bold text-gray-800">
-            Crie uma conta
-          </h2>
+          <h2 className="pb-1 text-3xl font-bold text-gray-800">Crie uma conta</h2>
           <p className="text-gray-600">Por Favor insira os dados.</p>
         </div>
       </div>

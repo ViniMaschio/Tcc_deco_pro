@@ -14,7 +14,7 @@ const idParamSchema = z.object({
 });
 
 // ATUALIZAR LOCAL
-export async function PUT(req: Request, ctx: { params: { id: string } }) {
+export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
