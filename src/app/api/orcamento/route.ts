@@ -7,6 +7,9 @@ import { db as prisma } from "@/lib/prisma";
 
 const createOrcamentoSchema = z.object({
   clienteId: z.number(),
+  status: z
+    .enum(["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "VENCIDO", "CANCELADO"])
+    .optional(),
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
   dataEvento: z.string().optional(),
@@ -137,6 +140,7 @@ export async function POST(request: NextRequest) {
       data: {
         empresaId: parseInt(session.user.id),
         clienteId: validatedData.clienteId,
+        status: validatedData.status || "RASCUNHO",
         categoriaId: validatedData.categoriaId,
         localId: validatedData.localId,
         dataEvento: validatedData.dataEvento ? new Date(validatedData.dataEvento) : null,

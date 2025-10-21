@@ -1,3 +1,5 @@
+import { OrcamentoStatus } from "@/app/modules/orcamento/enum";
+
 export interface Orcamento {
   id: number;
   uuid: string;
@@ -6,7 +8,7 @@ export interface Orcamento {
   categoriaId?: number;
   localId?: number;
   dataEvento?: Date;
-  status: "RASCUNHO" | "ENVIADO" | "APROVADO" | "REJEITADO" | "VENCIDO" | "CANCELADO";
+  status: OrcamentoStatus;
   desconto?: number;
   total: number;
   observacao?: string;
@@ -55,6 +57,7 @@ export interface OrcamentoItem {
 
 export interface CreateOrcamentoData {
   clienteId: number;
+  status?: OrcamentoStatus;
   categoriaId?: number;
   localId?: number;
   dataEvento?: string;
@@ -69,7 +72,7 @@ export interface CreateOrcamentoData {
 }
 
 export interface UpdateOrcamentoData extends Partial<CreateOrcamentoData> {
-  status?: "RASCUNHO" | "ENVIADO" | "APROVADO" | "REJEITADO" | "VENCIDO" | "CANCELADO";
+  status?: OrcamentoStatus;
 }
 
 export interface OrcamentoFilters {

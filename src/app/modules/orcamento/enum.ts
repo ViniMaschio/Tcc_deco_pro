@@ -1,0 +1,8 @@
+export enum OrcamentoStatus {
+  RASCUNHO = "RASCUNHO",
+  ENVIADO = "ENVIADO",
+  APROVADO = "APROVADO",
+  REJEITADO = "REJEITADO",
+  VENCIDO = "VENCIDO",
+  CANCELADO = "CANCELADO",
+}

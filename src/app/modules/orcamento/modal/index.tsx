@@ -2,6 +2,7 @@
 
 import { CheckCircle, FileText, Package } from "lucide-react";
 import moment from "moment";
+import { Controller } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -21,6 +22,7 @@ import { CategoriaAutocomplete } from "../../categoria-festa/auto-complete";
 import { ClienteAutocomplete } from "../../cliente/auto-complete";
 import { ItemAutocomplete } from "../../item/auto-complete";
 import { LocalAutocomplete } from "../../local/auto-complete";
+import { OrcamentoStatus } from "../enum";
 import { OrcamentoModalProps } from "../types";
 import { OrcamentoItensTable } from "./itens-table";
 import { useOrcamentoModal } from "./use-modal";
@@ -132,22 +134,33 @@ export const OrcamentoModal = ({
 
                   <div className="w-full space-y-2">
                     <Label htmlFor="status">Status</Label>
-                    <Select value={data?.status || "RASCUNHO"} disabled={isViewMode}>
-                      <SelectTrigger className="min-h-[2.5rem] w-full justify-between">
-                        <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-                          <CheckCircle className="text-primary h-4 w-4 flex-shrink-0" />
-                          <SelectValue />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                        <SelectItem value="ENVIADO">Enviado</SelectItem>
-                        <SelectItem value="APROVADO">Aprovado</SelectItem>
-                        <SelectItem value="REJEITADO">Rejeitado</SelectItem>
-                        <SelectItem value="VENCIDO">Vencido</SelectItem>
-                        <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Controller
+                        control={form.control}
+                        name="status"
+                        defaultValue={(data?.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO}
+                        render={({ field }) => (
+                          <Select
+                            value={(field.value as OrcamentoStatus) || OrcamentoStatus.RASCUNHO}
+                            onValueChange={(val) => field.onChange(val as OrcamentoStatus)}
+                            disabled={isViewMode}
+                          >
+                            <SelectTrigger className="min-h-[2.5rem] w-full justify-between">
+                              <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
+                                <CheckCircle className="text-primary h-4 w-4 flex-shrink-0" />
+                                <SelectValue />
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="RASCUNHO">Rascunho</SelectItem>
+                              <SelectItem value="ENVIADO">Enviado</SelectItem>
+                              <SelectItem value="APROVADO">Aprovado</SelectItem>
+                              <SelectItem value="REJEITADO">Rejeitado</SelectItem>
+                              <SelectItem value="VENCIDO">Vencido</SelectItem>
+                              <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
                   </div>
                 </div>
 

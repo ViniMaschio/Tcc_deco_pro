@@ -9,14 +9,18 @@ import { z } from "zod";
 
 import { Cliente } from "@/app/api/cliente/types";
 import { Local as LocalAPI } from "@/app/api/local/types";
-import { CreateOrcamentoData } from "@/app/api/orcamento/types";
+import { CreateOrcamentoData, UpdateOrcamentoData } from "@/app/api/orcamento/types";
 
+import { OrcamentoStatus } from "../enum";
 import { Categoria, Item, Local, UseOrcamentoModalProps } from "../types";
 
 const orcamentoSchema = z.object({
   clienteId: z.number().min(1, "Cliente é obrigatório"),
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
+  status: z
+    .enum(OrcamentoStatus)
+    .optional(),
   dataEvento: z.string().optional(),
   observacao: z.string().optional(),
 });
@@ -38,6 +42,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     defaultValues: {
       clienteId: data?.clienteId || 0,
       categoriaId: data?.categoriaId || undefined,
+      status: (data?.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO,
       localId: data?.localId || undefined,
       dataEvento: data?.dataEvento ? new Date(data.dataEvento).toISOString().split("T")[0] : "",
       observacao: data?.observacao || "",
@@ -71,7 +76,8 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     if (data && mode !== "create") {
       form.reset({
         clienteId: data.clienteId,
-        categoriaId: data.categoriaId || undefined,
+          categoriaId: data.categoriaId || undefined,
+          status: (data.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO,
         localId: data.localId || undefined,
         dataEvento: data.dataEvento ? new Date(data.dataEvento).toISOString().split("T")[0] : "",
         observacao: data.observacao || "",
@@ -100,6 +106,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       form.reset({
         clienteId: 0,
         categoriaId: undefined,
+        status: OrcamentoStatus.RASCUNHO,
         localId: undefined,
         dataEvento: "",
         observacao: "",
@@ -190,7 +197,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
 
   // Mutação para atualizar orçamento
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data: orcamentoData }: { id: number; data: CreateOrcamentoData }) => {
+    mutationFn: async ({ id, data: orcamentoData }: { id: number; data: UpdateOrcamentoData }) => {
       const response = await fetch(`/api/orcamento/${id}`, {
         method: "PUT",
         headers: {
