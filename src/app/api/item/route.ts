@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     const item = await prisma.item.create({
       data: {
         nome,
-        descricao,
+        descricao: descricao || undefined,
         tipo,
         precoBase,
         empresaId,

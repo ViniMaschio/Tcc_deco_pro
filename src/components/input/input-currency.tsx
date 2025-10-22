@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { formatDecimal, parseDecimalString, isValidDecimal } from "@/utils/currency";
 
 interface InputCurrencyProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "onBlur"> {
   value?: number | string;
   onChange?: (value: number) => void;
   onBlur?: (value: number) => void;
