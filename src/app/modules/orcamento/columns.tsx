@@ -3,17 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, PencilIcon, TrashIcon } from "@phosphor-icons/react";
 
 import { Orcamento } from "@/app/api/orcamento/types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ButtonAction } from "@/components/ui/button-action";
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
@@ -124,40 +118,45 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
   {
     id: "actions",
     header: "Ações",
-    cell: ({ row, table }) => {
+    cell: ({ row }) => {
       const orcamento = row.original;
-      const meta = table.options.meta as {
-        onView?: (orcamento: Orcamento) => void;
-        onEdit?: (orcamento: Orcamento) => void;
-        onDelete?: (orcamento: Orcamento) => void;
-      };
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => meta?.onView?.(orcamento)} className="cursor-pointer">
-              <Eye className="mr-2 h-4 w-4" />
-              Visualizar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => meta?.onEdit?.(orcamento)} className="cursor-pointer">
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => meta?.onDelete?.(orcamento)}
-              className="cursor-pointer text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          <ButtonAction
+            className="h-8 w-8 p-0 text-green-500 hover:text-green-500/80"
+            variant="outline"
+            tooltip="Visualizar"
+            onClick={() => {
+              const event = new CustomEvent("viewOrcamento", { detail: orcamento });
+              window.dispatchEvent(event);
+            }}
+          >
+            <Eye weight="fill" size={16} />
+          </ButtonAction>
+          <ButtonAction
+            className="h-8 w-8 p-0 text-yellow-500 hover:text-yellow-500/80"
+            variant="outline"
+            tooltip="Editar"
+            onClick={() => {
+              const event = new CustomEvent("editOrcamento", { detail: orcamento });
+              window.dispatchEvent(event);
+            }}
+          >
+            <PencilIcon weight="fill" size={16} />
+          </ButtonAction>
+          <ButtonAction
+            className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
+            variant="outline"
+            tooltip="Excluir"
+            onClick={() => {
+              const event = new CustomEvent("deleteOrcamento", { detail: orcamento });
+              window.dispatchEvent(event);
+            }}
+          >
+            <TrashIcon weight="fill" size={16} />
+          </ButtonAction>
+        </div>
       );
     },
   },

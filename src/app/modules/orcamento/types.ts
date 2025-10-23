@@ -14,6 +14,7 @@ export type OrcamentoPageStates = {
   showModal: boolean;
   isLoading: boolean;
   showDialog: boolean;
+  showViewModal: boolean;
 };
 
 // Tipos para filtros

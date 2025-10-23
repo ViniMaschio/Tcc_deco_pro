@@ -12,7 +12,11 @@ import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 export const usePage = () => {
   const [orcamento, setOrcamento] = useState({} as Orcamento);
 
-  const [showState, setShowState] = useState({} as OrcamentoPageStates);
+  const [showState, setShowState] = useState({
+    showModal: false,
+    showDialog: false,
+    showViewModal: false,
+  } as OrcamentoPageStates);
 
   const [pagination, setPagination] = useState({
     perPage: 15,
@@ -136,6 +140,11 @@ export const usePage = () => {
     changeShowState("showDialog", true);
   };
 
+  const handleViewOrcamento = (value: Orcamento) => {
+    setOrcamento(value);
+    changeShowState("showViewModal", true);
+  };
+
   const afterSubmit = () => {
     changeShowState("showModal", false);
     refetch();
@@ -162,5 +171,8 @@ export const usePage = () => {
     changePagination,
     handleClearFilters,
     handleChangeFilters,
+    handleViewOrcamento,
+    handleEdit,
+    handleShowDelete,
   };
 };

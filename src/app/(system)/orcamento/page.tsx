@@ -6,6 +6,7 @@ import { Orcamento } from "@/app/api/orcamento/types";
 import { orcamentoFilterCols } from "@/app/modules/orcamento/columns";
 import { OrcamentoDataTable } from "@/app/modules/orcamento/data-table";
 import { OrcamentoModal } from "@/app/modules/orcamento/modal";
+import { ViewItemsModal } from "@/app/modules/orcamento/view-items-modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
 
@@ -28,6 +29,9 @@ export default function Page() {
     changePagination,
     handleClearFilters,
     handleChangeFilters,
+    handleViewOrcamento,
+    handleEdit,
+    handleShowDelete,
   } = usePage();
 
   return (
@@ -68,6 +72,9 @@ export default function Page() {
           changeShowState={changeShowState}
           removeOrcamento={removeOrcamento}
           isDeleting={isDeleting}
+          onViewOrcamento={handleViewOrcamento}
+          onEditOrcamento={handleEdit}
+          onDeleteOrcamento={handleShowDelete}
         />
       </div>
 
@@ -81,6 +88,17 @@ export default function Page() {
           mode="create"
           data={orcamento}
           onSuccess={afterSubmit}
+        />
+      ) : null}
+
+      {showState.showViewModal ? (
+        <ViewItemsModal
+          open={showState.showViewModal}
+          onOpenChange={(value: boolean) => {
+            changeShowState("showViewModal", value);
+            setOrcamento({} as Orcamento);
+          }}
+          orcamento={orcamento}
         />
       ) : null}
     </>

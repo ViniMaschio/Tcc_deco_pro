@@ -8,7 +8,7 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 import { Orcamento } from "@/app/api/orcamento/types";
@@ -41,6 +41,9 @@ interface DataTableProps {
   changeShowState: (name: keyof OrcamentoPageStates, value: boolean) => void;
   removeOrcamento: () => void;
   isDeleting: boolean;
+  onViewOrcamento?: (orcamento: Orcamento) => void;
+  onEditOrcamento?: (orcamento: Orcamento) => void;
+  onDeleteOrcamento?: (orcamento: Orcamento) => void;
 }
 
 export function OrcamentoDataTable({
@@ -55,8 +58,36 @@ export function OrcamentoDataTable({
   changeShowState,
   isDeleting,
   removeOrcamento,
+  onViewOrcamento,
+  onEditOrcamento,
+  onDeleteOrcamento,
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
+
+  // Conectar eventos dos botões
+  useEffect(() => {
+    const handleViewOrcamento = (event: CustomEvent) => {
+      onViewOrcamento?.(event.detail);
+    };
+
+    const handleEditOrcamento = (event: CustomEvent) => {
+      onEditOrcamento?.(event.detail);
+    };
+
+    const handleDeleteOrcamento = (event: CustomEvent) => {
+      onDeleteOrcamento?.(event.detail);
+    };
+
+    window.addEventListener("viewOrcamento", handleViewOrcamento as EventListener);
+    window.addEventListener("editOrcamento", handleEditOrcamento as EventListener);
+    window.addEventListener("deleteOrcamento", handleDeleteOrcamento as EventListener);
+
+    return () => {
+      window.removeEventListener("viewOrcamento", handleViewOrcamento as EventListener);
+      window.removeEventListener("editOrcamento", handleEditOrcamento as EventListener);
+      window.removeEventListener("deleteOrcamento", handleDeleteOrcamento as EventListener);
+    };
+  }, [onViewOrcamento, onEditOrcamento, onDeleteOrcamento]);
 
   const table = useReactTable({
     data,
@@ -135,7 +166,7 @@ export function OrcamentoDataTable({
                       <TableCell
                         key={cell.id}
                         className={twMerge(
-                          cell.column.id === "actions" && "sticky right-0 z-[1] w-32",
+                          cell.column.id === "actions" && "sticky right-0 z-1 w-32",
                           row.index % 2 ? "bg-[#f8fafc]" : "bg-white",
                           "transition-all duration-500"
                         )}
