@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,10 +14,7 @@ export const useFormLogin = () => {
       .string()
       .min(8, "A senha deve ter no mínimo 8 caracteres")
       .regex(/[0-9]/, "A senha deve conter pelo menos um número")
-      .regex(
-        /[^A-Za-z0-9]/,
-        "A senha deve conter pelo menos um caractere especial",
-      ),
+      .regex(/[^A-Za-z0-9]/, "A senha deve conter pelo menos um caractere especial"),
   });
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -30,21 +26,32 @@ export const useFormLogin = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
-    const signInData = await signIn("credentials", {
-      email: values.email,
-      senha: values.senha,
-      redirect: false,
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          senha: values.senha,
+        }),
+      });
 
-    console.log(signInData);
+      const data = await response.json();
 
-    if (signInData?.error) {
-      toast.error("Oops! Algo deu errado! ", {
+      if (data.error) {
+        toast.error("Oops! Algo deu errado! ", {
+          position: "top-center",
+        });
+      } else {
+        router.refresh();
+        router.push("/");
+      }
+    } catch (error) {
+      toast.error("Erro de conexão", {
         position: "top-center",
       });
-    } else {
-      router.refresh();
-      router.push("/");
     }
   };
 

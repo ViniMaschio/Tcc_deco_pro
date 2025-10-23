@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth";
 import { CiLogout } from "react-icons/ci";
 
 import { Button } from "./ui/button";

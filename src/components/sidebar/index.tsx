@@ -3,7 +3,7 @@
 import { IconButton } from "@radix-ui/themes";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth";
 import { IoLogOutOutline } from "react-icons/io5";
 import { twMerge } from "tailwind-merge";
 import { useShallow } from "zustand/react/shallow";

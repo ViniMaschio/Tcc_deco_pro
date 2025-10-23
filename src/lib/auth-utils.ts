@@ -1,13 +1,11 @@
-import { getServerSession } from "next-auth";
-
-import { authOptions } from "./auth";
+import { auth } from "./auth-server";
 
 /**
  * Função global para obter o ID da empresa do usuário autenticado
  * @returns Promise<number | null> - ID da empresa ou null se não autenticado
  */
 export async function ensureEmpresaId(): Promise<number | null> {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   // Verificar se existe sessão e se o usuário tem ID válido
   if (!session?.user?.id) {

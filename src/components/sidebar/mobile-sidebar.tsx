@@ -4,7 +4,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { IconButton } from "@radix-ui/themes";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { twMerge } from "tailwind-merge";

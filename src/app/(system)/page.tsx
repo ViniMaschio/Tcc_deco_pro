@@ -1,6 +1,5 @@
 "use server";
 
-import { getServerSession } from "next-auth";
 import {
   MdAttachMoney,
   MdCalendarToday,
@@ -10,10 +9,10 @@ import {
   MdPeople,
 } from "react-icons/md";
 
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth-server";
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
 
   const metrics = [
     {
@@ -87,8 +86,7 @@ export default async function Home() {
             Bem-vindo de volta, {session?.user?.name || "Usuário"} 👋
           </h2>
           <p className="mb-4 text-gray-600">
-            Aqui você acompanha seus contratos, orçamentos e finanças em um só
-            lugar.
+            Aqui você acompanha seus contratos, orçamentos e finanças em um só lugar.
           </p>
         </div>
 
@@ -110,16 +108,10 @@ export default async function Home() {
         {metrics.map((metric, index) => (
           <div key={index} className="rounded-lg border bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <div className={`rounded-lg bg-gray-100 p-2 ${metric.color}`}>
-                {metric.icon}
-              </div>
+              <div className={`rounded-lg bg-gray-100 p-2 ${metric.color}`}>{metric.icon}</div>
             </div>
-            <h3 className="mb-1 text-sm font-medium text-gray-600">
-              {metric.title}
-            </h3>
-            <p className="mb-1 text-2xl font-bold text-gray-900">
-              {metric.value}
-            </p>
+            <h3 className="mb-1 text-sm font-medium text-gray-600">{metric.title}</h3>
+            <p className="mb-1 text-2xl font-bold text-gray-900">{metric.value}</p>
             <p className="text-sm text-gray-500">{metric.change}</p>
           </div>
         ))}
@@ -131,9 +123,7 @@ export default async function Home() {
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Orçamentos</h3>
-            <p className="text-sm text-gray-600">
-              You made 265 sales this month.
-            </p>
+            <p className="text-sm text-gray-600">You made 265 sales this month.</p>
           </div>
           <div className="space-y-3">
             {orcamentos.map((orcamento, index) => (
@@ -142,9 +132,7 @@ export default async function Home() {
                 className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
               >
                 <div>
-                  <p className="font-medium text-gray-900">
-                    {orcamento.cliente}
-                  </p>
+                  <p className="font-medium text-gray-900">{orcamento.cliente}</p>
                   <p className="text-sm text-gray-600">{orcamento.valor}</p>
                 </div>
                 <button className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white">
@@ -158,12 +146,8 @@ export default async function Home() {
         {/* Próximos Eventos */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Próximos Eventos
-            </h3>
-            <p className="text-sm text-gray-600">
-              Eventos agendados para os próximos dias
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">Próximos Eventos</h3>
+            <p className="text-sm text-gray-600">Eventos agendados para os próximos dias</p>
           </div>
           <div className="space-y-3">
             {eventos.map((evento, index) => (
@@ -181,9 +165,7 @@ export default async function Home() {
                     </div>
                   </div>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
-                  {evento.data}
-                </span>
+                <span className="text-sm font-medium text-gray-700">{evento.data}</span>
               </div>
             ))}
           </div>
@@ -193,16 +175,11 @@ export default async function Home() {
       {/* Cards Inferiores */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {cards.map((card, index) => (
-          <div
-            key={index}
-            className="rounded-lg border bg-white p-6 text-center shadow-sm"
-          >
+          <div key={index} className="rounded-lg border bg-white p-6 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
               <MdPeople size={24} className="text-gray-600" />
             </div>
-            <p className="mb-1 text-2xl font-bold text-gray-900">
-              {card.value}
-            </p>
+            <p className="mb-1 text-2xl font-bold text-gray-900">{card.value}</p>
             <p className="text-sm text-gray-600">{card.title}</p>
           </div>
         ))}
