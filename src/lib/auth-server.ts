@@ -1,22 +1,22 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcrypt";
 import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import CredentialsProvider from "next-auth/providers/credentials";
 
 import { db } from "./prisma";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions = {
   adapter: PrismaAdapter(db),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   pages: {
     signIn: "/login",
   },
 
   providers: [
-    Credentials({
+    CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "email", type: "email" },
@@ -48,14 +48,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       return {
         ...session,
         user: {
@@ -66,4 +66,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       };
     },
   },
-});
+};
+
+export default NextAuth(authOptions);
+
+// Exportar funções para compatibilidade com NextAuth.js v4
+export const auth = async () => {
+  const { getServerSession } = await import("next-auth");
+  return await getServerSession(authOptions);
+};
+
+export const signIn = async (provider: string, options: any) => {
+  const { signIn: nextAuthSignIn } = await import("next-auth/react");
+  return await nextAuthSignIn(provider, options);
+};
+
+export const signOut = async () => {
+  const { signOut: nextAuthSignOut } = await import("next-auth/react");
+  return await nextAuthSignOut();
+};

@@ -27,21 +27,17 @@ export const useFormLogin = () => {
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: values.email,
-          senha: values.senha,
-        }),
+      // Para NextAuth.js v4, use o signIn do next-auth/react
+      const { signIn } = await import("next-auth/react");
+
+      const result = await signIn("credentials", {
+        email: values.email,
+        senha: values.senha,
+        redirect: false,
       });
 
-      const data = await response.json();
-
-      if (data.error) {
-        toast.error("Oops! Algo deu errado! ", {
+      if (result?.error) {
+        toast.error("Credenciais inválidas", {
           position: "top-center",
         });
       } else {
