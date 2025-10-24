@@ -1,10 +1,10 @@
 import { obterEmpresa } from "@/actions/empresa";
-import { ensureEmpresaId } from "@/lib/auth-utils";
-import { formatCurrency } from "@/utils/currency";
 import { Orcamento } from "@/app/api/orcamento/types";
+import { ensureEmpresaId } from "@/lib/auth-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: string = "orcamento") {
   try {
@@ -21,71 +21,71 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
 
     const empresa = empresaResult.data;
 
-    // Cria o PDF diretamente com jsPDF (sem html2canvas)
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = 210;
-    const pageHeight = 297;
-    let yPosition = 20;
+    //const pdf = new jsPDF("p", "mm", "a4");
+    let pdf = new jsPDF({
+      unit: "mm",
+      format: "a4",
+      orientation: "portrait",
+      precision: 10,
+      compress: true,
+    });
 
-    // Cores
     const primaryColor = "#000000";
-    const textColor = "#000000";
     const lightGray = "#F5F5F5";
 
-    // Função para adicionar texto
-    const addText = (text: string, x: number, y: number, options: any = {}) => {
-      pdf.setFontSize(options.fontSize || 12);
-      pdf.setTextColor(options.color || textColor);
-      pdf.setFont(options.font || "helvetica", options.style || "normal");
-      pdf.text(text, x, y);
-      return (pdf.getTextWidth(text) * (options.fontSize || 12)) / 12;
-    };
+    autoTable(pdf, {
+      body: [
+        [{ content: `Empresa: ${empresa.nome ?? "Vinicius Ribiero Maschio"}`, colSpan: 3 }],
+        [{ content: `CNPJ: ${empresa.cnpj ?? ""}`, colSpan: 3 }],
+        [
+          { content: `Telefone: ${empresa.telefone ?? ""}`, colSpan: 1 },
+          { content: `Email: ${empresa.email ?? ""}`, colSpan: 2 },
+        ],
+        [
+          { content: `Rua: ${empresa.rua ?? ""}`, colSpan: 1 },
+          { content: `Numero: ${empresa.numero ?? ""}`, colSpan: 1 },
+          { content: `Bairro: ${empresa.bairro ?? ""}`, colSpan: 1 },
+        ],
+        [
+          { content: `Cidade: ${empresa.cidade ?? ""}`, colSpan: 1 },
+          { content: `Estado: ${empresa.estado ?? ""}`, colSpan: 1 },
+          { content: `CEP: ${empresa.cep ?? ""}`, colSpan: 1 },
+        ],
+      ],
 
-    // Função para adicionar linha
-    const addLine = (x1: number, y1: number, x2: number, y2: number, color: string = textColor) => {
-      pdf.setDrawColor(color);
-      pdf.line(x1, y1, x2, y2);
-    };
-
-    // Cabeçalho - Logo e dados da empresa
-    // Logo (simulado com texto estilizado)
-    addText("🏢", 20, yPosition, { fontSize: 24, color: primaryColor });
-    addText("Era uma vez...", 35, yPosition, {
-      fontSize: 14,
-      color: primaryColor,
-      style: "italic",
-    });
-    addText("Buffet e Eventos", 35, yPosition + 5, { fontSize: 12, color: primaryColor });
-
-    // Dados da empresa (lado direito)
-    const empresaData = [
-      empresa.email || "Email não informado",
-      `CNPJ ${empresa.cnpj || "CNPJ não informado"}`,
-      empresa.telefone ? `Tel: ${empresa.telefone}` : "Telefone não informado",
-      empresa.rua && empresa.numero
-        ? `${empresa.rua}, ${empresa.numero}`
-        : "Endereço não informado",
-      empresa.cidade && empresa.estado
-        ? `${empresa.cidade} - ${empresa.estado}`
-        : "Cidade não informada",
-      empresa.cep ? `CEP: ${empresa.cep}` : "CEP não informado",
-    ].filter(Boolean);
-
-    empresaData.forEach((line, index) => {
-      addText(line, 120, yPosition + index * 4, { fontSize: 10 });
+      theme: "grid",
+      styles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        cellPadding: 1,
+        valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+      },
+      // footStyles: { fillColor: [211, 211, 211], textColor: [64, 64, 64], fontSize: 9 },
+      // headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontSize: 12 },
     });
 
-    yPosition += 30;
-
-    // Título do orçamento
-    addText("ORÇAMENTO", pageWidth / 2, yPosition, {
-      fontSize: 18,
-      style: "bold",
-      color: primaryColor,
+    autoTable(pdf, {
+      body: [
+        [
+          {
+            content: `Orçamento gerado em ${format(new Date(), "dd/MM/yyyy", { locale: ptBR })}`,
+            colSpan: 2,
+            styles: { halign: "center", fontSize: 10 },
+          },
+        ],
+      ],
+      theme: "plain",
+      styles: {
+        fillColor: [211, 211, 211],
+        textColor: [64, 64, 64],
+        fontSize: 9,
+      },
+      startY: (pdf as any).lastAutoTable?.finalY + 10,
     });
-    yPosition += 15;
 
-    // Dados do cliente e evento
+    // === DADOS DO CLIENTE ===
     const clienteInfo = [
       `Cliente: ${orcamento.cliente?.nome || "Não informado"}`,
       orcamento.cliente?.telefone ? `Telefone: ${orcamento.cliente.telefone}` : null,
@@ -97,110 +97,41 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
         : null,
     ].filter(Boolean);
 
-    clienteInfo.forEach((line) => {
-      if (line) {
-        addText(line, 20, yPosition, { fontSize: 11 });
-        yPosition += 5;
-      }
+    const clienteStartY = (pdf as any).lastAutoTable.finalY + 10;
+
+    autoTable(pdf, {
+      head: [
+        [{ content: "Dados do Cliente", colSpan: 2, styles: { halign: "center", fontSize: 14 } }],
+      ],
+      body: clienteInfo.map((item) => [item]),
+      startY: clienteStartY,
+      styles: { fontSize: 11, cellPadding: 1.2 },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
     });
 
-    yPosition += 10;
-
-    // Tabela de itens
+    // === TABELA DE ITENS ===
     if (orcamento.itens && orcamento.itens.length > 0) {
-      // Cabeçalho da tabela
+      const itensStartY = (pdf as any).lastAutoTable.finalY + 10;
+
       const tableHeaders = ["Item", "Qtd", "Valor Unit.", "Desconto", "Total"];
-      const columnWidths = [80, 20, 30, 30, 30];
-      let xPosition = 20;
+      const tableData = orcamento.itens.map((item) => [
+        item.nome || "",
+        item.quantidade || 0,
+        `R$ ${(item.valorUnit || 0).toFixed(2)}`,
+        `${item.desconto ? item.desconto + "%" : "-"}`,
+        `R$ ${(item.valorTotal || 0).toFixed(2)}`,
+      ]);
 
-      // Linha de cabeçalho
-      addLine(20, yPosition - 2, 190, yPosition - 2, primaryColor);
-      addLine(20, yPosition + 8, 190, yPosition + 8, primaryColor);
-
-      tableHeaders.forEach((header, index) => {
-        addText(header, xPosition, yPosition + 5, {
-          fontSize: 10,
-          style: "bold",
-          color: primaryColor,
-        });
-        xPosition += columnWidths[index];
+      autoTable(pdf, {
+        head: [tableHeaders],
+        body: tableData,
+        startY: itensStartY,
+        styles: { fontSize: 10, cellPadding: 1 },
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+        theme: "grid",
       });
-
-      yPosition += 10;
-
-      // Itens da tabela
-      orcamento.itens.forEach((item, index) => {
-        if (yPosition > pageHeight - 40) {
-          pdf.addPage();
-          yPosition = 20;
-        }
-
-        xPosition = 20;
-        const itemData = [
-          item.nome,
-          item.quantidade.toString(),
-          formatCurrency(item.valorUnit),
-          formatCurrency(item.desconto),
-          formatCurrency(item.valorTotal),
-        ];
-
-        itemData.forEach((data, colIndex) => {
-          addText(data, xPosition, yPosition, { fontSize: 9 });
-          xPosition += columnWidths[colIndex];
-        });
-
-        // Linha separadora
-        if (orcamento.itens && index < orcamento.itens.length - 1) {
-          addLine(20, yPosition + 3, 190, yPosition + 3, "#E0E0E0");
-        }
-
-        yPosition += 6;
-      });
-
-      yPosition += 10;
     }
 
-    // Resumo financeiro
-    addLine(20, yPosition, 190, yPosition, primaryColor);
-    yPosition += 5;
-
-    addText("TOTAL DO ORÇAMENTO:", 20, yPosition, { fontSize: 12, style: "bold" });
-    addText(formatCurrency(orcamento.total), 150, yPosition, {
-      fontSize: 14,
-      style: "bold",
-      color: "#059669",
-    });
-    yPosition += 8;
-
-    if (orcamento.desconto && orcamento.desconto > 0) {
-      addText("Desconto adicional:", 20, yPosition, { fontSize: 10 });
-      addText(`-${formatCurrency(orcamento.desconto)}`, 150, yPosition, {
-        fontSize: 10,
-        color: "#dc2626",
-      });
-      yPosition += 5;
-    }
-
-    // Observações
-    if (orcamento.observacao) {
-      yPosition += 10;
-      addText("OBSERVAÇÕES:", 20, yPosition, { fontSize: 11, style: "bold" });
-      yPosition += 5;
-      addText(orcamento.observacao, 20, yPosition, { fontSize: 10 });
-    }
-
-    // Data e local
-    yPosition = pageHeight - 30;
-    const dataAtual = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
-    const local = empresa.cidade || "Local não informado";
-    addText(`${local} ${dataAtual}`, 20, yPosition, { fontSize: 10 });
-
-    // Assinatura
-    yPosition += 15;
-    addLine(20, yPosition, 100, yPosition, textColor);
-    addText("Assinatura", 20, yPosition + 5, { fontSize: 9 });
-
-    // Retorna o PDF como blob
     return pdf.output("blob");
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
