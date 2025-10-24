@@ -6,7 +6,7 @@ import { Orcamento } from "@/app/api/orcamento/types";
 import { orcamentoFilterCols } from "@/app/modules/orcamento/columns";
 import { OrcamentoDataTable } from "@/app/modules/orcamento/data-table";
 import { OrcamentoModal } from "@/app/modules/orcamento/modal";
-import { ViewItemsModal } from "@/app/modules/orcamento/view-items-modal";
+import { ViewItemsModal } from "@/app/modules/orcamento/view-modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
 

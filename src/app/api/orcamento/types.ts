@@ -1,4 +1,6 @@
-import { OrcamentoStatus } from "@/app/modules/orcamento/enum";
+import { StatusLabelEnum } from "@/app/modules/orcamento/enum";
+
+export type OrcamentoStatus = keyof typeof StatusLabelEnum;
 
 export interface Orcamento {
   id: number;

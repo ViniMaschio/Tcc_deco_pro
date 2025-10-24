@@ -5,54 +5,12 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Eye, PencilIcon, TrashIcon } from "@phosphor-icons/react";
 
-import { Orcamento } from "@/app/api/orcamento/types";
+import { Orcamento, OrcamentoStatus } from "@/app/api/orcamento/types";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ui/button-action";
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "RASCUNHO":
-      return "bg-gray-100 text-gray-800";
-    case "ENVIADO":
-      return "bg-blue-100 text-blue-800";
-    case "APROVADO":
-      return "bg-green-100 text-green-800";
-    case "REJEITADO":
-      return "bg-red-100 text-red-800";
-    case "VENCIDO":
-      return "bg-orange-100 text-orange-800";
-    case "CANCELADO":
-      return "bg-gray-100 text-gray-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "RASCUNHO":
-      return "Rascunho";
-    case "ENVIADO":
-      return "Enviado";
-    case "APROVADO":
-      return "Aprovado";
-    case "REJEITADO":
-      return "Rejeitado";
-    case "VENCIDO":
-      return "Vencido";
-    case "CANCELADO":
-      return "Cancelado";
-    default:
-      return status;
-  }
-};
+import { twMerge } from "tailwind-merge";
+import { formatCurrency } from "@/utils/currency";
+import { StatusLabelEnum, StatusColorEnum } from "./enum";
 
 export const orcamentoColumns: ColumnDef<Orcamento>[] = [
   {
@@ -67,12 +25,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     header: "Cliente",
     cell: ({ row }) => {
       const cliente = row.original.cliente;
-      return (
-        <div>
-          <div className="font-medium">{cliente?.nome}</div>
-          {cliente?.telefone && <div className="text-sm text-gray-500">{cliente.telefone}</div>}
-        </div>
-      );
+      return <span className="font-medium">{cliente?.nome}</span>;
     },
   },
   {
@@ -111,8 +64,12 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     accessorKey: "status",
     header: "Situação",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return <Badge className={getStatusColor(status)}>{getStatusLabel(status)}</Badge>;
+      const status = row.getValue("status") as OrcamentoStatus;
+      return (
+        <Badge className={twMerge("bg-gray-100 font-bold text-gray-800", StatusColorEnum[status])}>
+          {StatusLabelEnum[status]}
+        </Badge>
+      );
     },
   },
   {

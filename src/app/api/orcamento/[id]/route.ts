@@ -4,6 +4,90 @@ import { z } from "zod";
 import { auth } from "@/lib/auth-server";
 import { db as prisma } from "@/lib/prisma";
 
+// Função utilitária para buscar orçamento por ID
+export async function obterOrcamento(orcamentoId: number) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { ok: false, error: "Não autorizado" };
+    }
+
+    const orcamento = await prisma.orcamento.findFirst({
+      where: {
+        id: orcamentoId,
+        empresaId: parseInt(session.user.id),
+        deleted: false,
+      },
+      include: {
+        cliente: {
+          select: { id: true, nome: true, telefone: true, email: true },
+        },
+        local: {
+          select: { id: true, descricao: true },
+        },
+        categoriaFesta: {
+          select: { id: true, descricao: true },
+        },
+        itens: {
+          include: {
+            item: {
+              select: { id: true, nome: true, descricao: true, tipo: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!orcamento) {
+      return { ok: false, error: "Orçamento não encontrado" };
+    }
+
+    // Converter null para undefined para compatibilidade com o tipo Orcamento
+    const orcamentoFormatted = {
+      ...orcamento,
+      categoriaId: orcamento.categoriaId ?? undefined,
+      localId: orcamento.localId ?? undefined,
+      dataEvento: orcamento.dataEvento ?? undefined,
+      desconto: orcamento.desconto ?? undefined,
+      observacao: orcamento.observacao ?? undefined,
+      deletedAt: orcamento.deletedAt ?? undefined,
+      cliente: orcamento.cliente
+        ? {
+            ...orcamento.cliente,
+            telefone: orcamento.cliente.telefone ?? undefined,
+            email: orcamento.cliente.email ?? undefined,
+          }
+        : undefined,
+      local: orcamento.local
+        ? {
+            ...orcamento.local,
+          }
+        : undefined,
+      categoriaFesta: orcamento.categoriaFesta
+        ? {
+            ...orcamento.categoriaFesta,
+          }
+        : undefined,
+      itens: orcamento.itens?.map((item) => ({
+        ...item,
+        nome: item.item?.nome || "",
+        deletedAt: item.deletedAt ?? undefined,
+        item: item.item
+          ? {
+              ...item.item,
+              descricao: item.item.descricao ?? undefined,
+            }
+          : undefined,
+      })),
+    };
+
+    return { ok: true, data: orcamentoFormatted };
+  } catch (error) {
+    console.error("Erro ao buscar orçamento:", error);
+    return { ok: false, error: "Erro interno do servidor" };
+  }
+}
+
 const updateOrcamentoSchema = z.object({
   clienteId: z.number().optional(),
   categoriaId: z.number().optional(),

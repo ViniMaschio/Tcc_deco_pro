@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CreateOrcamentoData } from "@/app/api/orcamento/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatCurrency } from "@/utils/currency";
 
 import { Item, OrcamentoItensTableProps } from "../types";
 
@@ -16,13 +17,6 @@ export function OrcamentoItensTable({
   isViewMode = false,
 }: OrcamentoItensTableProps) {
   const [selectedItems] = useState<{ [key: number]: Item }>({});
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
 
   const calculateItemTotal = (item: CreateOrcamentoData["itens"][0]) => {
     return item.quantidade * item.valorUnit - (item.desconto || 0);

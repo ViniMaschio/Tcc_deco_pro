@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,25 +9,26 @@ import { z } from "zod";
 
 import { Cliente } from "@/app/api/cliente/types";
 import { Local as LocalAPI } from "@/app/api/local/types";
-import { CreateOrcamentoData, UpdateOrcamentoData } from "@/app/api/orcamento/types";
+import {
+  CreateOrcamentoData,
+  OrcamentoStatus,
+  UpdateOrcamentoData,
+} from "@/app/api/orcamento/types";
 
-import { OrcamentoStatus } from "../enum";
-import { Categoria, Item, Local, UseOrcamentoModalProps } from "../types";
+import { Categoria, Item, UseOrcamentoModalProps } from "../types";
 
 const orcamentoSchema = z.object({
   clienteId: z.number().min(1, "Cliente é obrigatório"),
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
   status: z
-    .enum(OrcamentoStatus)
+    .enum(["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "VENCIDO", "CANCELADO"])
     .optional(),
   dataEvento: z.string().optional(),
   observacao: z.string().optional(),
 });
 
 export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalProps) => {
-  const [locais, setLocais] = useState<Local[]>([]);
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [itens, setItens] = useState<CreateOrcamentoData["itens"]>([]);
   const [total, setTotal] = useState(0);
@@ -42,32 +43,10 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     defaultValues: {
       clienteId: data?.clienteId || 0,
       categoriaId: data?.categoriaId || undefined,
-      status: (data?.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO,
+      status: (data?.status as OrcamentoStatus) || "RASCUNHO",
       localId: data?.localId || undefined,
       dataEvento: data?.dataEvento ? new Date(data.dataEvento).toISOString().split("T")[0] : "",
       observacao: data?.observacao || "",
-    },
-  });
-
-  // Buscar dados necessários
-  const { isLoading } = useQuery({
-    queryKey: ["orcamento-modal-data"],
-    queryFn: async () => {
-      const locaisRes = await fetch("/api/local");
-      const locaisData = await locaisRes.json();
-
-      setLocais(locaisData.data || []);
-
-      // Buscar categorias se existirem
-      try {
-        const categoriasRes = await fetch("/api/categoria-festa");
-        const categoriasData = await categoriasRes.json();
-        setCategorias(categoriasData.data || []);
-      } catch {
-        console.log("Categorias não disponíveis");
-      }
-
-      return { locaisData };
     },
   });
 
@@ -76,20 +55,12 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     if (data && mode !== "create") {
       form.reset({
         clienteId: data.clienteId,
-          categoriaId: data.categoriaId || undefined,
-          status: (data.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO,
+        categoriaId: data.categoriaId || undefined,
+        status: (data.status as OrcamentoStatus) || "RASCUNHO",
         localId: data.localId || undefined,
         dataEvento: data.dataEvento ? new Date(data.dataEvento).toISOString().split("T")[0] : "",
         observacao: data.observacao || "",
       });
-
-      // Carregar categoria selecionada se existir
-      if (data.categoriaId && categorias.length > 0) {
-        const categoria = categorias.find((cat) => cat.id === data.categoriaId);
-        if (categoria) {
-          setCategoriaSelecionada(categoria);
-        }
-      }
 
       if (data.itens) {
         const itensData = data.itens.map((item) => ({
@@ -106,7 +77,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       form.reset({
         clienteId: 0,
         categoriaId: undefined,
-        status: OrcamentoStatus.RASCUNHO,
+        status: "RASCUNHO",
         localId: undefined,
         dataEvento: "",
         observacao: "",
@@ -115,7 +86,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       setTotal(0);
       setCategoriaSelecionada(undefined);
     }
-  }, [data, mode, form, categorias]);
+  }, [data, mode, form]);
 
   // Funções para gerenciar itens
   const calculateTotal = (itensList: CreateOrcamentoData["itens"]) => {
@@ -123,19 +94,6 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       return acc + (item.quantidade * item.valorUnit - (item.desconto || 0));
     }, 0);
     setTotal(total);
-  };
-
-  const addItem = () => {
-    const newItem = {
-      itemId: 0,
-      nome: "",
-      quantidade: 1,
-      valorUnit: 0,
-      desconto: 0,
-    };
-    const newItens = [...itens, newItem];
-    setItens(newItens);
-    calculateTotal(newItens);
   };
 
   const addItemFromAutocomplete = (item: Item) => {
@@ -280,21 +238,14 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     localSelecionado,
     categoriaSelecionada,
 
-    // Dados
-    locais,
-    categorias,
-
     // Estados de loading
-    isLoading,
     isSubmitting: createMutation.isPending || updateMutation.isPending,
 
     // Funções
-    addItem,
     addItemFromAutocomplete,
     updateItem,
     removeItem,
     onSubmit,
-    calculateTotal,
     handleClienteSelect,
     handleLocalSelect,
     handleCategoriaSelect,

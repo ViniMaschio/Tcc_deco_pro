@@ -1,13 +1,20 @@
 "use client";
 
-import { CheckCircle, FileText, Package } from "lucide-react";
+import { CheckCircle, FileText, Package, X } from "lucide-react";
 import moment from "moment";
 import { Controller } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -22,10 +29,10 @@ import { CategoriaAutocomplete } from "../../categoria-festa/auto-complete";
 import { ClienteAutocomplete } from "../../cliente/auto-complete";
 import { ItemAutocomplete } from "../../item/auto-complete";
 import { LocalAutocomplete } from "../../local/auto-complete";
-import { OrcamentoStatus } from "../enum";
 import { OrcamentoModalProps } from "../types";
 import { OrcamentoItensTable } from "./itens-table";
 import { useOrcamentoModal } from "./use-modal";
+import { OrcamentoStatus } from "@/app/api/orcamento/types";
 
 export const OrcamentoModal = ({
   open,
@@ -63,13 +70,19 @@ export const OrcamentoModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between overflow-hidden sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-semibold">
             {mode === "create" && "Criação do Orçamento"}
             {mode === "edit" && "Edição do Orçamento"}
-            {mode === "view" && "Visualizar Orçamento"}
           </DialogTitle>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="cursor-pointer rounded-md p-1 text-gray-600 transition-colors duration-500 hover:bg-red-100 hover:text-red-800"
+          >
+            <X size={25} />
+          </button>
         </DialogHeader>
+        <Separator />
 
         <Tabs
           value={activeTab}
@@ -123,9 +136,9 @@ export const OrcamentoModal = ({
                         if (date) {
                           // Usa moment para evitar problemas de timezone
                           const formattedDate = moment(date).format("YYYY-MM-DD");
-                          form.setValue("dataEvento", formattedDate);
+                          form.setValue("dataEvento", formattedDate as string);
                         } else {
-                          form.setValue("dataEvento", "");
+                          form.setValue("dataEvento", "" as string);
                         }
                       }}
                       disabled={isViewMode}
@@ -134,33 +147,33 @@ export const OrcamentoModal = ({
 
                   <div className="w-full space-y-2">
                     <Label htmlFor="status">Status</Label>
-                      <Controller
-                        control={form.control}
-                        name="status"
-                        defaultValue={(data?.status as OrcamentoStatus) || OrcamentoStatus.RASCUNHO}
-                        render={({ field }) => (
-                          <Select
-                            value={(field.value as OrcamentoStatus) || OrcamentoStatus.RASCUNHO}
-                            onValueChange={(val) => field.onChange(val as OrcamentoStatus)}
-                            disabled={isViewMode}
-                          >
-                            <SelectTrigger className="min-h-[2.5rem] w-full justify-between">
-                              <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-                                <CheckCircle className="text-primary h-4 w-4 flex-shrink-0" />
-                                <SelectValue />
-                              </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                              <SelectItem value="ENVIADO">Enviado</SelectItem>
-                              <SelectItem value="APROVADO">Aprovado</SelectItem>
-                              <SelectItem value="REJEITADO">Rejeitado</SelectItem>
-                              <SelectItem value="VENCIDO">Vencido</SelectItem>
-                              <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
-                      />
+                    <Controller
+                      control={form.control}
+                      name="status"
+                      defaultValue={(data?.status as OrcamentoStatus) || "RASCUNHO"}
+                      render={({ field }) => (
+                        <Select
+                          value={(field.value as OrcamentoStatus) || "RASCUNHO"}
+                          onValueChange={(val) => field.onChange(val as OrcamentoStatus)}
+                          disabled={isViewMode}
+                        >
+                          <SelectTrigger className="min-h-10 w-full justify-between">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
+                              <CheckCircle className="text-primary h-4 w-4 shrink-0" />
+                              <SelectValue />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="RASCUNHO">Rascunho</SelectItem>
+                            <SelectItem value="ENVIADO">Enviado</SelectItem>
+                            <SelectItem value="APROVADO">Aprovado</SelectItem>
+                            <SelectItem value="REJEITADO">Rejeitado</SelectItem>
+                            <SelectItem value="VENCIDO">Vencido</SelectItem>
+                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -237,7 +250,7 @@ export const OrcamentoModal = ({
           </TabsContent>
         </Tabs>
 
-        <div className="flex shrink-0 flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+        <DialogFooter className="flex flex-col gap-2 py-2 sm:flex-row sm:justify-end">
           {mode === "view" ? (
             <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
               Fechar
@@ -246,18 +259,31 @@ export const OrcamentoModal = ({
             <>
               <Button
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  if (activeTab === "itens") {
+                    setActiveTab("dados-gerais");
+                  } else {
+                    onOpenChange(false);
+                  }
+                }}
                 className="w-full sm:w-auto"
               >
-                {mode === "create" ? "Cancelar" : "Voltar"}
+                {activeTab === "itens" ? "Voltar" : mode === "create" ? "Cancelar" : "Voltar"}
               </Button>
               {mode === "create" && (
                 <Button
-                  onClick={() => form.handleSubmit(onSubmit)()}
+                  onClick={() => {
+                    if (activeTab === "dados-gerais") {
+                      setActiveTab("itens");
+                    } else {
+                      form.handleSubmit(onSubmit)();
+                    }
+                  }}
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
+                  loading={isSubmitting}
                 >
-                  {isSubmitting ? "Salvando..." : "Salvar"}
+                  {activeTab === "dados-gerais" ? "Avançar" : "Salvar"}
                 </Button>
               )}
               {mode === "edit" && (
@@ -271,7 +297,7 @@ export const OrcamentoModal = ({
               )}
             </>
           )}
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
