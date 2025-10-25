@@ -11,6 +11,7 @@ export const useFormCadastro = () => {
 
   const FormSchema = z
     .object({
+      nome: z.string().min(1, "Campo Obrigatório"),
       email: z.string().min(1, "Campo Obrigatório").email("Email inválido"),
       cnpj: z
         .string()
@@ -22,10 +23,7 @@ export const useFormCadastro = () => {
         .string()
         .min(8, "A senha deve ter no mínimo 8 caracteres")
         .regex(/[0-9]/, "A senha deve conter pelo menos um número")
-        .regex(
-          /[^A-Za-z0-9]/,
-          "A senha deve conter pelo menos um caractere especial",
-        ),
+        .regex(/[^A-Za-z0-9]/, "A senha deve conter pelo menos um caractere especial"),
       confirmarSenha: z.string().min(1, "Campo Obrigatório"),
     })
     .refine((data) => data.senha === data.confirmarSenha, {
@@ -36,6 +34,7 @@ export const useFormCadastro = () => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      nome: "",
       email: "",
       cnpj: "",
       senha: "",
@@ -51,6 +50,7 @@ export const useFormCadastro = () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        nome: values.nome,
         email: values.email,
         cnpj: values.cnpj,
         senha: values.senha,

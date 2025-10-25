@@ -22,10 +22,21 @@ export const FormCadastro = () => {
   return (
     <div className="w-full">
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex w-full flex-col gap-4"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="nome"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome da Empresa</FormLabel>
+                <FormControl>
+                  <Input placeholder="Insira o nome da empresa" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="email"
@@ -61,11 +72,7 @@ export const FormCadastro = () => {
               <FormItem>
                 <FormLabel>Senha</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Insira minha senha"
-                    type="password"
-                    {...field}
-                  />
+                  <Input placeholder="Insira minha senha" type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -79,11 +86,7 @@ export const FormCadastro = () => {
               <FormItem>
                 <FormLabel>Confirmar Senha</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Insira minha senha"
-                    type="password"
-                    {...field}
-                  />
+                  <Input placeholder="Insira minha senha" type="password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,13 +97,8 @@ export const FormCadastro = () => {
             Cadastrar-se
           </Button>
           <div className="flex justify-center gap-2">
-            <p className="max-w-[360px] text-center text-gray-600">
-              Já possui uma conta?
-            </p>
-            <Link
-              href="/login"
-              className="font-semibold text-gray-800 hover:underline"
-            >
+            <p className="max-w-[360px] text-center text-gray-600">Já possui uma conta?</p>
+            <Link href="/login" className="font-semibold text-gray-800 hover:underline">
               Entrar
             </Link>
           </div>

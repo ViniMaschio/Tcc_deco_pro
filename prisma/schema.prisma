@@ -59,7 +59,8 @@ enum TipoItem {
 model Empresa {
   id          Int     @id @default(autoincrement())
   uuid        String  @unique @default(uuid()) @db.Uuid
-  nome        String?
+  nome        String
+  razaoSocial String?
   email       String  @unique
   telefone    String?
   senha       String

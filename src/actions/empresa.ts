@@ -37,6 +37,7 @@ export async function criarEmpresa(empresa: Empresa) {
 
     const created = await prisma.empresa.create({
       data: {
+        nome: data.nome,
         email: data.email,
         senha: data.senha,
         cnpj: data.cnpj,
@@ -70,6 +71,7 @@ export async function listarEmpresas(q?: string) {
   const where = q
     ? {
         OR: [
+          { nome: { contains: q, mode: "insensitive" as const } },
           { email: { contains: q, mode: "insensitive" as const } },
           { cnpj: { contains: q, mode: "insensitive" as const } },
           { cidade: { contains: q, mode: "insensitive" as const } },
@@ -110,6 +112,7 @@ export async function atualizarEmpresa(id: string | number | bigint, input: unkn
     const updated = await prisma.empresa.update({
       where: { id: toNumber(id) },
       data: {
+        ...(data.nome !== undefined && { nome: data.nome }),
         ...(data.email !== undefined && { email: data.email }),
         ...(data.senha !== undefined && { senha: data.senha }),
         ...(data.cnpj !== undefined && { cnpj: data.cnpj }),

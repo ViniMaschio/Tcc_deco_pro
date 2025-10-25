@@ -6,6 +6,7 @@ import { db } from "@/lib/prisma";
 import { validarCNPJ } from "@/utils/functions/validations/functions";
 
 const empresaSchema = z.object({
+  nome: z.string().min(1, "Campo Obrigatório"),
   email: z.email("Email inválido"),
   cnpj: z
     .string()
@@ -17,16 +18,13 @@ const empresaSchema = z.object({
     .string()
     .min(8, "A senha deve ter no mínimo 8 caracteres")
     .regex(/[0-9]/, "A senha deve conter pelo menos um número")
-    .regex(
-      /[^A-Za-z0-9]/,
-      "A senha deve conter pelo menos um caractere especial",
-    ),
+    .regex(/[^A-Za-z0-9]/, "A senha deve conter pelo menos um caractere especial"),
 });
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, cnpj, senha } = empresaSchema.parse(body);
+    const { nome, email, cnpj, senha } = empresaSchema.parse(body);
 
     const existeEmpresaPorEmail = await db.empresa.findUnique({
       where: { email },
@@ -37,7 +35,7 @@ export async function POST(req: Request) {
           empresa: null,
           message: "Email já cadastrado",
         },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
@@ -50,13 +48,14 @@ export async function POST(req: Request) {
           empresa: null,
           message: "CNPJ já cadastrado",
         },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
     const hashedSenha = await hash(senha, 10);
     const novaEmpresa = await db.empresa.create({
       data: {
+        nome,
         email,
         cnpj,
         senha: hashedSenha,
@@ -64,6 +63,7 @@ export async function POST(req: Request) {
 
       select: {
         id: true,
+        nome: true,
         email: true,
         cnpj: true,
       },
@@ -71,17 +71,16 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       { empresa: novaEmpresa, message: "Empresa criada com sucesso!" },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Erro ao criar empresa:", error);
 
-    const errorMessage =
-      error instanceof Error ? error.message : JSON.stringify(error);
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
 
     return NextResponse.json(
       { message: "Erro ao criar empresa", error: errorMessage },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

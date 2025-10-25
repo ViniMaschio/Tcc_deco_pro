@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const empresaCreateSchema = z.object({
+  nome: z.string().min(1, "Campo Obrigatório"),
   email: z.email(),
   senha: z.string().min(6),
   cnpj: z.string().min(14).max(18),
