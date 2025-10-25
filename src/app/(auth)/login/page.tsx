@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { FormLogin } from "@/app/modules/auth/login/login-form";
+import { ClientLoginForm } from "@/app/modules/auth/login/client-login-form";
 
 export default function Login() {
   return (
@@ -21,7 +21,7 @@ export default function Login() {
         </div>
       </div>
 
-      <FormLogin />
+      <ClientLoginForm />
     </div>
   );
 }
