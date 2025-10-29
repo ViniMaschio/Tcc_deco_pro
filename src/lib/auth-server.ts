@@ -1,4 +1,3 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcrypt";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -6,7 +5,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "./prisma";
 
 export const authOptions = {
-  adapter: PrismaAdapter(db),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt" as const,
@@ -43,7 +41,6 @@ export const authOptions = {
           id: existeEmpresa.id.toString(),
           email: existeEmpresa.email,
           name: existeEmpresa.nome,
-          empresaId: existeEmpresa.id,
         };
       },
     }),
@@ -73,7 +70,6 @@ export const authOptions = {
 
 export default NextAuth(authOptions);
 
-// Exportar funções para compatibilidade com NextAuth.js v4
 export const auth = async () => {
   const { getServerSession } = await import("next-auth");
   return await getServerSession(authOptions);

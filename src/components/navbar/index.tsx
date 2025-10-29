@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { IconButton } from "@radix-ui/themes";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { FaUserAlt } from "react-icons/fa";
 import { IoIosMenu, IoMdNotifications, IoMdSettings } from "react-icons/io";
@@ -15,46 +17,16 @@ import {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/menubar";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { useEmpresa } from "@/hooks/use-empresa";
 import { useSidebarStore } from "@/store/sidebar";
+import { useEmpresa } from "@/hooks/use-empresa";
+import { ConfiguracoesModal } from "./configuracao/modal";
+import { useNavBar } from "./use-index";
 
 export const NavBar = () => {
   const [open, setOpen] = useSidebarStore(useShallow((state) => [state.open, state.setOpen]));
   const { empresa, loading: empresaLoading } = useEmpresa();
 
-  const pathname = usePathname();
-
-  // Função para obter o título da página baseado na rota
-  const getPageTitle = () => {
-    switch (pathname) {
-      case "/":
-        return "Dashboard";
-      case "/agenda":
-        return "Agenda";
-      case "/contrato":
-        return "Contratos";
-      case "/orcamento":
-        return "Orçamentos";
-      case "/financeiro":
-        return "Financeiro";
-      case "/fornecedor":
-        return "Fornecedores";
-      case "/local":
-        return "Locais";
-      case "/cliente":
-        return "Clientes";
-      default:
-        return "";
-    }
-  };
+  const { showState, changeShowState, getPageTitle } = useNavBar();
 
   return (
     <>
@@ -78,80 +50,11 @@ export const NavBar = () => {
           </IconButton>
         </div>
 
-        {/* Título da página no centro */}
         <div className="flex flex-1 justify-center">
           <h1 className="text-xl font-semibold text-gray-900">{getPageTitle()}</h1>
         </div>
 
         <div className="ml-auto flex w-fit items-center justify-center gap-4">
-          <Sheet>
-            <SheetTrigger asChild>
-              <div>
-                <IconButton variant="ghost" color="gray">
-                  <IoMdNotifications size={24} color="black" />
-                </IconButton>
-              </div>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-3">
-                  Notificações
-                  {/* <Popover>
-                  <PopoverTrigger asChild>
-                    <Button className="m-0 h-8 w-8 rounded-lg bg-transparent p-0 transition-all duration-300 hover:bg-slate-500/15">
-                      <Filter size={16} className="text-primary-500" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="animate-slideDownAndFade flex w-56 flex-col justify-center gap-2 bg-white px-0 py-2">
-                    <div className="w-full p-2">
-                      <InputSelectForm
-                        name="modulo"
-                        label="Módulo"
-                        value={
-                          module === undefined
-                            ? "0"
-                            : typeEnum
-                                .find((t) => t.description === module)
-                                ?.id.toString()
-                        }
-                        items={[...typeEnum]}
-                        onChange={(value: {
-                          id: number;
-                          description: string;
-                        }) => handleChangeModule(value)}
-                      />
-                    </div>
-                  </PopoverContent>
-                </Popover> */}
-                </SheetTitle>
-                <SheetDescription />
-              </SheetHeader>
-              {/* <Notification
-              read={{
-                data: dataRead?.notificationPaginated,
-                loading: loadingRead,
-                refetch: getReadNotifications,
-                pagination: notificationPagination.read,
-                setPagination: (value) =>
-                  setNotificationPagination((prev) => ({
-                    ...prev,
-                    read: value,
-                  })),
-              }}
-              unread={{
-                data: data?.notificationPaginated,
-                loading,
-                refetch: getUnreadNotifications,
-                pagination: notificationPagination.unread,
-                setPagination: (value) =>
-                  setNotificationPagination((prev) => ({
-                    ...prev,
-                    unread: value,
-                  })),
-              }}
-            /> */}
-            </SheetContent>
-          </Sheet>
           <Menubar className="flex h-[3em] w-[3em] items-center justify-center border-0 hover:bg-none">
             <MenubarMenu>
               <MenubarTrigger>
@@ -184,7 +87,10 @@ export const NavBar = () => {
                   </div>
                 </div>
                 <MenubarSeparator />
-                <MenubarItem className="gap-4 text-sm">
+                <MenubarItem
+                  className="cursor-pointer gap-4 text-sm"
+                  onClick={() => changeShowState("showModal", true)}
+                >
                   <IoMdSettings color="black" />
                   Configurações
                 </MenubarItem>
@@ -193,6 +99,16 @@ export const NavBar = () => {
           </Menubar>
         </div>
       </div>
+
+      {/* Modal de Configurações */}
+      {showState.showModal ? (
+        <ConfiguracoesModal
+          open={showState.showModal}
+          changeOpen={(value) => {
+            changeShowState("showModal", value);
+          }}
+        />
+      ) : null}
     </>
   );
 };

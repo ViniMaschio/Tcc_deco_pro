@@ -89,6 +89,9 @@ model Empresa {
   CategoriaFesta CategoriaFesta[]
   caixaEntradas  CaixaEntrada[]
   caixaSaidas    CaixaSaida[]
+
+  // Templates de contrato por empresa
+  contratoTemplates ContratoTemplate[]
 }
 
 model Cliente {
@@ -173,7 +176,7 @@ model Item {
   nome      String
   descricao String?
   tipo      TipoItem @default(PRO)
-  precoBase Int      // Valor em centavos
+  precoBase Int // Valor em centavos
   empresaId Int
 
   createdAt DateTime  @default(now())
@@ -211,8 +214,8 @@ model Orcamento {
   localId     Int?
   dataEvento  DateTime?
   status      StatusOrcamento @default(RASCUNHO)
-  desconto    Int?            // Valor em centavos
-  total       Int             // Valor em centavos
+  desconto    Int? // Valor em centavos
+  total       Int // Valor em centavos
   observacao  String?
 
   createdAt DateTime  @default(now())
@@ -230,14 +233,14 @@ model Orcamento {
 }
 
 model OrcamentoItem {
-  id          Int     @id @default(autoincrement())
-  uuid        String  @unique @default(uuid()) @db.Uuid
+  id          Int    @id @default(autoincrement())
+  uuid        String @unique @default(uuid()) @db.Uuid
   orcamentoId Int
   itemId      Int
-  quantidade  Int     // Quantidade em milésimos (ex: 1.500 = 1,5)
-  desconto    Int     // Valor em centavos
-  valorUnit   Int     // Valor em centavos
-  valorTotal  Int     // Valor em centavos
+  quantidade  Int // Quantidade em milésimos (ex: 1.500 = 1,5)
+  desconto    Int // Valor em centavos
+  valorUnit   Int // Valor em centavos
+  valorTotal  Int // Valor em centavos
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -261,8 +264,8 @@ model Contrato {
   dataEvento  DateTime
   horaInicio  DateTime
   status      StatusContrato @default(ATIVO)
-  desconto    Int?           // Valor em centavos
-  total       Int            // Valor em centavos
+  desconto    Int? // Valor em centavos
+  total       Int // Valor em centavos
   observacao  String?
 
   createdAt DateTime  @default(now())
@@ -278,17 +281,20 @@ model Contrato {
   itens          ContratoItem[]
   contasReceber  ContaReceber[]
   categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
+
+  // Snapshot de cláusulas por contrato
+  clausulas ContratoClausula[]
 }
 
 model ContratoItem {
-  id         Int     @id @default(autoincrement())
-  uuid       String  @unique @default(uuid()) @db.Uuid
+  id         Int    @id @default(autoincrement())
+  uuid       String @unique @default(uuid()) @db.Uuid
   contratoId Int
   itemId     Int
-  quantidade Int     // Quantidade em milésimos (ex: 1.500 = 1,5)
-  desconto   Int     // Valor em centavos
-  valorUnit  Int     // Valor em centavos
-  valorTotal Int     // Valor em centavos
+  quantidade Int // Quantidade em milésimos (ex: 1.500 = 1,5)
+  desconto   Int // Valor em centavos
+  valorUnit  Int // Valor em centavos
+  valorTotal Int // Valor em centavos
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -311,8 +317,8 @@ model ContaPagar {
   dataVencimento DateTime?
   dataPagamento  DateTime?
   valorPago      Int          @default(0) // Valor em centavos
-  valorRestante  Int?         // Valor em centavos
-  valorTotal     Int          // Valor em centavos
+  valorRestante  Int? // Valor em centavos
+  valorTotal     Int // Valor em centavos
   status         StatusTitulo @default(PENDENTE)
 
   createdAt DateTime  @default(now())
@@ -334,8 +340,8 @@ model ContaReceber {
   dataVencimento DateTime?
   dataPagamento  DateTime?
   valorPago      Int          @default(0) // Valor em centavos
-  valorRestante  Int?         // Valor em centavos
-  valorTotal     Int          // Valor em centavos
+  valorRestante  Int? // Valor em centavos
+  valorTotal     Int // Valor em centavos
   status         StatusTitulo @default(PENDENTE)
 
   createdAt DateTime  @default(now())
@@ -355,7 +361,7 @@ model CaixaEntrada {
   empresaId       Int
   contasReceberId Int
   descricao       String?
-  valor           Int             // Valor em centavos
+  valor           Int // Valor em centavos
   dataRecebimento DateTime
   metodo          MetodoPagamento
   parcela         Int?
@@ -376,7 +382,7 @@ model CaixaSaida {
   empresaId     Int
   contasPagarId Int
   descricao     String?
-  valor         Int             // Valor em centavos
+  valor         Int // Valor em centavos
   dataPagamento DateTime
   metodo        MetodoPagamento
   parcela       Int?
@@ -389,4 +395,54 @@ model CaixaSaida {
 
   empresa     Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   contasPagar ContaPagar @relation(fields: [contasPagarId], references: [id], onDelete: Restrict)
+}
+
+// ========================= Contratos - Templates & Cláusulas =========================
+model ContratoTemplate {
+  id        Int    @id @default(autoincrement())
+  uuid      String @unique @default(uuid()) @db.Uuid
+  empresaId Int
+  titulo    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa   Empresa            @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  clausulas ClausulaTemplate[]
+}
+
+model ClausulaTemplate {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  templateId  Int
+  ordem       Int
+  titulo      String
+  conteudo    String
+  editavel    Boolean @default(true)
+  obrigatoria Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  template ContratoTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId, ordem])
+}
+
+model ContratoClausula {
+  id                  Int     @id @default(autoincrement())
+  uuid                String  @unique @default(uuid()) @db.Uuid
+  contratoId          Int
+  ordem               Int
+  titulo              String
+  conteudo            String
+  templateClausulaId  Int?
+  alteradaPeloUsuario Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+
+  @@index([contratoId, ordem])
 }
