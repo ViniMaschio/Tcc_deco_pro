@@ -42,6 +42,7 @@ export const authOptions = {
         return {
           id: existeEmpresa.id.toString(),
           email: existeEmpresa.email,
+          name: existeEmpresa.nome,
           empresaId: existeEmpresa.id,
         };
       },
@@ -52,6 +53,7 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
@@ -62,6 +64,7 @@ export const authOptions = {
           ...session.user,
           id: token.id as string,
           email: token.email as string,
+          name: token.name as string,
         },
       };
     },

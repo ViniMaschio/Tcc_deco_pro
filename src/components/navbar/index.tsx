@@ -23,10 +23,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useEmpresa } from "@/hooks/use-empresa";
 import { useSidebarStore } from "@/store/sidebar";
 
 export const NavBar = () => {
   const [open, setOpen] = useSidebarStore(useShallow((state) => [state.open, state.setOpen]));
+  const { empresa, loading: empresaLoading } = useEmpresa();
 
   const pathname = usePathname();
 
@@ -58,7 +60,7 @@ export const NavBar = () => {
     <>
       <div
         data-open={open}
-        className="mx-1 mt-2 flex h-16 w-[100%_-_80px] items-center gap-2 rounded-t-md border-b bg-white px-3 data-[open=true]:w-[100%_-_288px]"
+        className="mx-1 mt-2 flex h-16 w-[100%-80px] items-center gap-2 rounded-t-md border-b bg-white px-3 data-[open=true]:w-[100%-288px]"
       >
         <div className="hidden w-fit px-2 xl:flex">
           <IconButton onClick={() => setOpen(!open)} variant="ghost" color="gray">
@@ -81,7 +83,7 @@ export const NavBar = () => {
           <h1 className="text-xl font-semibold text-gray-900">{getPageTitle()}</h1>
         </div>
 
-        <div className="ml-[auto] flex w-fit items-center justify-center gap-4">
+        <div className="ml-auto flex w-fit items-center justify-center gap-4">
           <Sheet>
             <SheetTrigger asChild>
               <div>
@@ -153,18 +155,32 @@ export const NavBar = () => {
           <Menubar className="flex h-[3em] w-[3em] items-center justify-center border-0 hover:bg-none">
             <MenubarMenu>
               <MenubarTrigger>
-                <div className="relative flex h-[2em] w-[2em] cursor-pointer items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
+                <div className="relative flex h-[2em] w-[2em] cursor-pointer items-end justify-center overflow-hidden rounded-[50%] border bg-gray-300">
                   <FaUserAlt className="text-center text-gray-700" size={20} />
                 </div>
               </MenubarTrigger>
               <MenubarContent className="mr-[0.5em] w-72 p-2 xl:w-fit">
                 <div className="flex items-center pb-1">
-                  <div className="relative flex h-[2em] w-[2em] items-end justify-center overflow-hidden rounded-[50%] border-[1px] bg-gray-300">
+                  <div className="relative flex h-[2em] w-[2em] items-end justify-center overflow-hidden rounded-[50%] border bg-gray-300">
                     <FaUserAlt className="text-center text-gray-700" size={20} />
                   </div>
                   <div className="flex flex-col pl-2">
-                    <span className="text-sm font-semibold">Gabriel</span>
-                    <span className="text-xs text-black">gabrielribeiromaschio@hotmail.com</span>
+                    {empresaLoading ? (
+                      <>
+                        <div className="h-4 w-20 animate-pulse rounded bg-gray-300"></div>
+                        <div className="mt-1 h-3 w-32 animate-pulse rounded bg-gray-300"></div>
+                      </>
+                    ) : empresa ? (
+                      <>
+                        <span className="text-sm font-semibold">{empresa.name}</span>
+                        <span className="text-xs text-black">{empresa.email}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-sm font-semibold">Usuário</span>
+                        <span className="text-xs text-black">Não logado</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <MenubarSeparator />
