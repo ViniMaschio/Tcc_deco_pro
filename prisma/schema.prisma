@@ -9,344 +9,29 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model CaixaEntrada {
-  id              Int             @id @default(autoincrement())
-  uuid            String          @unique @db.Uuid
-  empresaId       Int
-  contasReceberId Int
-  descricao       String?
-  valor           Int
-  dataRecebimento DateTime
-  metodo          MetodoPagamento
-  parcela         Int?
-  totalParcelas   Int?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime
-  deleted_at      DateTime?
-  deleted         Boolean         @default(false)
-  ContaReceber    ContaReceber    @relation(fields: [contasReceberId], references: [id])
-  Empresa         Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+// ========================= Enums =========================
+enum StatusOrcamento {
+  RASCUNHO
+  ENVIADO
+  APROVADO
+  REJEITADO
+  VENCIDO
+  CANCELADO
 }
 
-model CaixaSaida {
-  id            Int             @id @default(autoincrement())
-  uuid          String          @unique @db.Uuid
-  empresaId     Int
-  contasPagarId Int
-  descricao     String?
-  valor         Int
-  dataPagamento DateTime
-  metodo        MetodoPagamento
-  parcela       Int?
-  totalParcelas Int?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  deleted_at    DateTime?
-  deleted       Boolean         @default(false)
-  ContaPagar    ContaPagar      @relation(fields: [contasPagarId], references: [id])
-  Empresa       Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+enum StatusContrato {
+  RASCUNHO
+  ATIVO
+  CONCLUIDO
+  CANCELADO
 }
 
-model CategoriaFesta {
-  id         Int         @id @default(autoincrement())
-  uuid       String      @unique @db.Uuid
-  descricao  String
-  empresaId  Int
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime
-  deleted_at DateTime?
-  deleted    Boolean     @default(false)
-  Empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  Contrato   Contrato[]
-  Orcamento  Orcamento[]
-}
-
-model ClausulaTemplate {
-  id          Int      @id @default(autoincrement())
-  uuid        String   @unique @default(uuid()) @db.Uuid
-  ordem       Int
-  titulo      String
-  conteudo    String
-  editavel    Boolean  @default(true)
-  obrigatoria Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  empresaId   Int
-  Empresa     Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-
-  @@index([empresaId, ordem])
-}
-
-model Cliente {
-  id           Int            @id @default(autoincrement())
-  uuid         String         @unique @db.Uuid
-  nome         String
-  cpf          String?
-  telefone     String?
-  email        String?
-  rua          String?
-  numero       String?
-  complemento  String?
-  bairro       String?
-  cidade       String?
-  estado       String?
-  cep          String?
-  empresaId    Int
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  deleted_at   DateTime?
-  deleted      Boolean        @default(false)
-  Empresa      Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  ContaReceber ContaReceber[]
-  Contrato     Contrato[]
-  Orcamento    Orcamento[]
-}
-
-model ContaPagar {
-  id             Int          @id @default(autoincrement())
-  uuid           String       @unique @db.Uuid
-  empresaId      Int
-  fornecedorId   Int
-  descricao      String?
-  dataVencimento DateTime?
-  dataPagamento  DateTime?
-  valorPago      Int          @default(0)
-  valorTotal     Int
-  status         StatusTitulo @default(PENDENTE)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime
-  deleted_at     DateTime?
-  deleted        Boolean      @default(false)
-  valorRestante  Int?
-  CaixaSaida     CaixaSaida[]
-  Empresa        Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  Fornecedor     Fornecedor   @relation(fields: [fornecedorId], references: [id])
-}
-
-model ContaReceber {
-  id             Int            @id @default(autoincrement())
-  uuid           String         @unique @db.Uuid
-  empresaId      Int
-  clienteId      Int
-  contratoId     Int?
-  dataVencimento DateTime?
-  dataPagamento  DateTime?
-  valorPago      Int            @default(0)
-  valorTotal     Int
-  status         StatusTitulo   @default(PENDENTE)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime
-  deleted_at     DateTime?
-  deleted        Boolean        @default(false)
-  valorRestante  Int?
-  CaixaEntrada   CaixaEntrada[]
-  Cliente        Cliente        @relation(fields: [clienteId], references: [id])
-  Contrato       Contrato?      @relation(fields: [contratoId], references: [id])
-  Empresa        Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-}
-
-model Contrato {
-  id               Int                @id @default(autoincrement())
-  uuid             String             @unique @db.Uuid
-  empresaId        Int
-  clienteId        Int
-  localId          Int?
-  categoriaId      Int?
-  orcamentoId      Int?               @unique
-  dataEvento       DateTime
-  horaInicio       DateTime
-  status           StatusContrato     @default(ATIVO)
-  desconto         Int?
-  total            Int
-  observacao       String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime
-  deleted_at       DateTime?
-  deleted          Boolean            @default(false)
-  ContaReceber     ContaReceber[]
-  CategoriaFesta   CategoriaFesta?    @relation(fields: [categoriaId], references: [id])
-  Cliente          Cliente            @relation(fields: [clienteId], references: [id])
-  Empresa          Empresa            @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  LocalEvento      LocalEvento?       @relation(fields: [localId], references: [id])
-  Orcamento        Orcamento?         @relation(fields: [orcamentoId], references: [id])
-  ContratoClausula ContratoClausula[]
-  ContratoItem     ContratoItem[]
-}
-
-model ContratoClausula {
-  id                  Int      @id @default(autoincrement())
-  uuid                String   @unique @db.Uuid
-  contratoId          Int
-  ordem               Int
-  titulo              String
-  conteudo            String
-  templateClausulaId  Int?
-  alteradaPeloUsuario Boolean  @default(false)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime
-  Contrato            Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
-
-  @@index([contratoId, ordem])
-}
-
-model ContratoItem {
-  id         Int       @id @default(autoincrement())
-  uuid       String    @unique @db.Uuid
-  contratoId Int
-  itemId     Int
-  quantidade Int
-  desconto   Int
-  valorUnit  Int
-  valorTotal Int
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime
-  deleted_at DateTime?
-  deleted    Boolean   @default(false)
-  Contrato   Contrato  @relation(fields: [contratoId], references: [id], onDelete: Cascade)
-  Item       Item      @relation(fields: [itemId], references: [id])
-
-  @@unique([contratoId, itemId])
-}
-
-model Empresa {
-  id               Int                @id @default(autoincrement())
-  uuid             String             @unique @db.Uuid
-  nome             String
-  email            String             @unique
-  telefone         String?
-  senha            String
-  cnpj             String             @unique
-  rua              String?
-  numero           String?
-  complemento      String?
-  bairro           String?
-  cidade           String?
-  estado           String?
-  cep              String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime
-  deleted_at       DateTime?
-  deleted          Boolean            @default(false)
-  razaoSocial      String?
-  CaixaEntrada     CaixaEntrada[]
-  CaixaSaida       CaixaSaida[]
-  CategoriaFesta   CategoriaFesta[]
-  ClausulaTemplate ClausulaTemplate[]
-  Cliente          Cliente[]
-  ContaPagar       ContaPagar[]
-  ContaReceber     ContaReceber[]
-  Contrato         Contrato[]
-  Fornecedor       Fornecedor[]
-  Item             Item[]
-  LocalEvento      LocalEvento[]
-  Orcamento        Orcamento[]
-}
-
-model Fornecedor {
-  id          Int          @id @default(autoincrement())
-  uuid        String       @unique @db.Uuid
-  nome        String
-  cnpj        String?
-  telefone    String?
-  email       String?
-  rua         String?
-  numero      String?
-  complemento String?
-  bairro      String?
-  cidade      String?
-  estado      String?
-  cep         String?
-  empresaId   Int
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime
-  deleted_at  DateTime?
-  deleted     Boolean      @default(false)
-  ContaPagar  ContaPagar[]
-  Empresa     Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-}
-
-model Item {
-  id            Int             @id @default(autoincrement())
-  uuid          String          @unique @db.Uuid
-  descricao     String?
-  precoBase     Int
-  empresaId     Int
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime
-  deleted_at    DateTime?
-  deleted       Boolean         @default(false)
-  nome          String
-  tipo          TipoItem        @default(PRO)
-  ContratoItem  ContratoItem[]
-  Empresa       Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  OrcamentoItem OrcamentoItem[]
-}
-
-model LocalEvento {
-  id          Int         @id @default(autoincrement())
-  uuid        String      @unique @db.Uuid
-  descricao   String
-  rua         String?
-  numero      String?
-  complemento String?
-  bairro      String?
-  cidade      String?
-  estado      String?
-  cep         String?
-  telefone    String?
-  empresaId   Int
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime
-  deleted_at  DateTime?
-  deleted     Boolean     @default(false)
-  Contrato    Contrato[]
-  Empresa     Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  Orcamento   Orcamento[]
-}
-
-model Orcamento {
-  id          Int             @id @default(autoincrement())
-  uuid        String          @unique @db.Uuid
-  empresaId   Int
-  clienteId   Int
-  categoriaId Int?
-  localId     Int?
-  dataEvento  DateTime?
-  status      StatusOrcamento @default(RASCUNHO)
-  desconto    Int?
-  total       Int
-  observacao  String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  deletedAt   DateTime?       @map("deleted_at")
-  deleted     Boolean         @default(false)
-
-  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  cliente        Cliente         @relation(fields: [clienteId], references: [id], onDelete: Restrict)
-  local          LocalEvento?    @relation(fields: [localId], references: [id], onDelete: SetNull)
-  itens          OrcamentoItem[]
-  contrato       Contrato?
-  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
-}
-
-model OrcamentoItem {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @db.Uuid
-  orcamentoId Int
-  itemId      Int
-  quantidade  Int       // Quantidade em milésimos (ex: 1.500 = 1,5)
-  desconto    Int       // Valor em centavos
-  valorUnit   Int       // Valor em centavos
-  valorTotal  Int       // Valor em centavos
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? @map("deleted_at")
-  deleted     Boolean   @default(false)
-
-  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
-  item      Item      @relation(fields: [itemId], references: [id], onDelete: Restrict)
-
-  @@unique([orcamentoId, itemId])
+enum StatusTitulo {
+  PENDENTE
+  PARCIAL
+  PAGO
+  VENCIDO
+  CANCELADO
 }
 
 enum MetodoPagamento {
@@ -360,30 +45,6 @@ enum MetodoPagamento {
   OUTRO
 }
 
-enum StatusContrato {
-  RASCUNHO
-  ATIVO
-  CONCLUIDO
-  CANCELADO
-}
-
-enum StatusOrcamento {
-  RASCUNHO
-  ENVIADO
-  APROVADO
-  REJEITADO
-  VENCIDO
-  CANCELADO
-}
-
-enum StatusTitulo {
-  PENDENTE
-  PARCIAL
-  PAGO
-  VENCIDO
-  CANCELADO
-}
-
 enum TipoCaixa {
   ENTRADA
   SAIDA
@@ -392,4 +53,377 @@ enum TipoCaixa {
 enum TipoItem {
   PRO
   SER
+}
+
+// ========================= Núcleo =========================
+model Empresa {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  razaoSocial String?
+  email       String  @unique
+  telefone    String?
+  senha       String
+  cnpj        String  @unique
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  clientes          Cliente[]
+  fornecedores      Fornecedor[]
+  locais            LocalEvento[]
+  itens             Item[]
+  orcamentos        Orcamento[]
+  contratos         Contrato[]
+  contasPagar       ContaPagar[]
+  contasReceber     ContaReceber[]
+  categoriasFesta   CategoriaFesta[]
+  caixaEntradas     CaixaEntrada[]
+  caixaSaidas       CaixaSaida[]
+  clausulasTemplate ClausulaTemplate[]
+}
+
+model Cliente {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  cpf         String?
+  telefone    String?
+  email       String?
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa       Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentos    Orcamento[]
+  contratos     Contrato[]
+  contasReceber ContaReceber[]
+}
+
+model Fornecedor {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  nome        String
+  cnpj        String?
+  telefone    String?
+  email       String?
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa     Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contasPagar ContaPagar[]
+}
+
+model LocalEvento {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  descricao   String
+  rua         String?
+  numero      String?
+  complemento String?
+  bairro      String?
+  cidade      String?
+  estado      String?
+  cep         String?
+  telefone    String?
+  empresaId   Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentos Orcamento[]
+  contratos  Contrato[]
+}
+
+model Item {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Uuid
+  nome      String
+  descricao String?
+  tipo      TipoItem @default(PRO)
+  precoBase Int      // Valor em centavos
+  empresaId Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  orcamentoItens OrcamentoItem[]
+  contratoItens  ContratoItem[]
+}
+
+model CategoriaFesta {
+  id        Int    @id @default(autoincrement())
+  uuid      String @unique @default(uuid()) @db.Uuid
+  descricao String
+  empresaId Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contratos  Contrato[]
+  orcamentos Orcamento[]
+}
+
+model Orcamento {
+  id          Int             @id @default(autoincrement())
+  uuid        String          @unique @default(uuid()) @db.Uuid
+  empresaId   Int
+  clienteId   Int
+  categoriaId Int?
+  localId     Int?
+  dataEvento  DateTime?
+  status      StatusOrcamento @default(RASCUNHO)
+  desconto    Int?            // Valor em centavos
+  total       Int             // Valor em centavos
+  observacao  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente        Cliente         @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  local          LocalEvento?    @relation(fields: [localId], references: [id], onDelete: SetNull)
+  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
+  itens          OrcamentoItem[]
+  contrato       Contrato?
+}
+
+model OrcamentoItem {
+  id          Int    @id @default(autoincrement())
+  uuid        String @unique @default(uuid()) @db.Uuid
+  orcamentoId Int
+  itemId      Int
+  quantidade  Int    // Quantidade em milésimos (ex: 1.500 = 1,5)
+  desconto    Int    // Valor em centavos
+  valorUnit   Int    // Valor em centavos
+  valorTotal  Int    // Valor em centavos
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  item      Item      @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([orcamentoId, itemId])
+}
+
+model Contrato {
+  id          Int            @id @default(autoincrement())
+  uuid        String         @unique @default(uuid()) @db.Uuid
+  empresaId   Int
+  clienteId   Int
+  localId     Int?
+  categoriaId Int?
+  orcamentoId Int?           @unique
+  dataEvento  DateTime
+  horaInicio  DateTime
+  status      StatusContrato @default(ATIVO)
+  desconto    Int?           // Valor em centavos
+  total       Int            // Valor em centavos
+  observacao  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente        Cliente         @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  local          LocalEvento?    @relation(fields: [localId], references: [id], onDelete: SetNull)
+  orcamento      Orcamento?      @relation(fields: [orcamentoId], references: [id], onDelete: SetNull)
+  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
+  itens          ContratoItem[]
+  contasReceber  ContaReceber[]
+  clausulas      ContratoClausula[]
+}
+
+model ContratoItem {
+  id         Int    @id @default(autoincrement())
+  uuid       String @unique @default(uuid()) @db.Uuid
+  contratoId Int
+  itemId     Int
+  quantidade Int    // Quantidade em milésimos (ex: 1.500 = 1,5)
+  desconto   Int    // Valor em centavos
+  valorUnit  Int    // Valor em centavos
+  valorTotal Int    // Valor em centavos
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([contratoId, itemId])
+}
+
+// ========================= Financeiro =========================
+model ContaPagar {
+  id             Int          @id @default(autoincrement())
+  uuid           String       @unique @default(uuid()) @db.Uuid
+  empresaId      Int
+  fornecedorId   Int
+  descricao      String?
+  dataVencimento DateTime?
+  dataPagamento  DateTime?
+  valorPago      Int          @default(0) // Valor em centavos
+  valorRestante  Int?         // Valor em centavos
+  valorTotal     Int          // Valor em centavos
+  status         StatusTitulo @default(PENDENTE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa     Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  fornecedor  Fornecedor   @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  caixaSaidas CaixaSaida[]
+}
+
+model ContaReceber {
+  id             Int          @id @default(autoincrement())
+  uuid           String       @unique @default(uuid()) @db.Uuid
+  empresaId      Int
+  clienteId      Int
+  contratoId     Int?
+  dataVencimento DateTime?
+  dataPagamento  DateTime?
+  valorPago      Int          @default(0) // Valor em centavos
+  valorRestante  Int?         // Valor em centavos
+  valorTotal     Int          // Valor em centavos
+  status         StatusTitulo @default(PENDENTE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa       Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente       Cliente        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  contrato      Contrato?      @relation(fields: [contratoId], references: [id], onDelete: SetNull)
+  caixaEntradas CaixaEntrada[]
+}
+
+model CaixaEntrada {
+  id              Int             @id @default(autoincrement())
+  uuid            String          @unique @default(uuid()) @db.Uuid
+  empresaId       Int
+  contasReceberId Int
+  descricao       String?
+  valor           Int             // Valor em centavos
+  dataRecebimento DateTime
+  metodo          MetodoPagamento
+  parcela         Int?
+  totalParcelas   Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa       Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contaReceber ContaReceber @relation(fields: [contasReceberId], references: [id], onDelete: Restrict)
+}
+
+model CaixaSaida {
+  id            Int             @id @default(autoincrement())
+  uuid          String          @unique @default(uuid()) @db.Uuid
+  empresaId     Int
+  contasPagarId Int
+  descricao     String?
+  valor         Int             // Valor em centavos
+  dataPagamento DateTime
+  metodo        MetodoPagamento
+  parcela       Int?
+  totalParcelas Int?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? @map("deleted_at")
+  deleted   Boolean   @default(false)
+
+  empresa    Empresa    @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  contaPagar ContaPagar @relation(fields: [contasPagarId], references: [id], onDelete: Restrict)
+}
+
+// ========================= Contratos - Cláusulas Templates =========================
+model ClausulaTemplate {
+  id          Int     @id @default(autoincrement())
+  uuid        String  @unique @default(uuid()) @db.Uuid
+  empresaId   Int
+  ordem       Int
+  titulo      String
+  conteudo    String
+  editavel    Boolean @default(true)
+  obrigatoria Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  empresa Empresa @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+
+  @@index([empresaId, ordem])
+}
+
+model ContratoClausula {
+  id                  Int     @id @default(autoincrement())
+  uuid                String  @unique @default(uuid()) @db.Uuid
+  contratoId          Int
+  ordem               Int
+  titulo              String
+  conteudo            String
+  templateClausulaId  Int?
+  alteradaPeloUsuario Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
+
+  @@index([contratoId, ordem])
 }
