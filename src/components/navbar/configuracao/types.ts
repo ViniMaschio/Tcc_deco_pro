@@ -29,9 +29,6 @@ export type ConfiguracoesUsuario = {
   };
   contrato: {
     titulo: string;
-    valorBase: number;
-    prazoEntrega: number;
-    descontoMaximo: number;
     observacoes?: string;
     clausulas: Clausula[];
   };
@@ -44,7 +41,6 @@ export interface ConfiguracoesState {
 
 export type ConfiguracoesTabs = "tema" | "empresa" | "contrato";
 
-// Tipo para cláusulas do contrato
 export interface Clausula {
   id: string;
   titulo: string;
@@ -52,7 +48,35 @@ export interface Clausula {
   ordem: number;
 }
 
-// Schemas de validação
+export interface ConfiguracoesModalProps {
+  open: boolean;
+  changeOpen: (open: boolean) => void;
+}
+
+export interface MountTabsProps {
+  onClose?: () => void;
+}
+
+export interface EmpresaTabProps {
+  onClose?: () => void;
+}
+
+export interface ContratoTabProps {
+  onClose?: () => void;
+}
+
+export interface TemaTabProps {
+  onClose?: () => void;
+}
+
+export interface ZipCodeResponse {
+  logradouro?: string;
+  bairro?: string;
+  localidade?: string;
+  uf?: string;
+  erro?: boolean;
+}
+
 export const perfilSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido"),
@@ -83,9 +107,6 @@ export const clausulaSchema = z.object({
 
 export const contratoSchema = z.object({
   titulo: z.string().min(1, "Título do contrato é obrigatório"),
-  valorBase: z.number().min(0, "Valor base deve ser maior ou igual a zero"),
-  prazoEntrega: z.number().min(1, "Prazo de entrega deve ser pelo menos 1 dia"),
-  descontoMaximo: z.number().min(0).max(100, "Desconto máximo deve estar entre 0 e 100%"),
   observacoes: z.string().optional(),
   clausulas: z.array(clausulaSchema),
 });

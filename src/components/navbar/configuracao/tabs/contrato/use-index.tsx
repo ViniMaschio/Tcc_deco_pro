@@ -3,52 +3,113 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { contratoSchema, ContratoData, Clausula } from "@/components/navbar/configuracao/types";
 import { useConfiguracoes } from "@/components/navbar/configuracao/use-modal";
 
 export const useContrato = () => {
+  const { data: session } = useSession();
   const { configuracoes, handleChangeConfiguracao } = useConfiguracoes();
-  const [clausulas, setClausulas] = useState<Clausula[]>(configuracoes.contrato?.clausulas || []);
+  const [clausulas, setClausulas] = useState<Clausula[]>([]);
 
-  // Formulário do contrato
   const contratoForm = useForm<ContratoData>({
     resolver: zodResolver(contratoSchema),
     defaultValues: {
-      titulo: configuracoes.contrato?.titulo || "",
-      valorBase: configuracoes.contrato?.valorBase || 0,
-      prazoEntrega: configuracoes.contrato?.prazoEntrega || 30,
-      descontoMaximo: configuracoes.contrato?.descontoMaximo || 0,
-      observacoes: configuracoes.contrato?.observacoes || "",
-      clausulas: configuracoes.contrato?.clausulas || [],
+      titulo: "Contrato de Prestação de Serviços",
+      observacoes: "",
+      clausulas: [],
     },
   });
 
-  // Resetar formulário e cláusulas quando configuracoes mudarem
-  useEffect(() => {
-    const novasClausulas = configuracoes.contrato?.clausulas || [];
-    setClausulas(novasClausulas);
-    contratoForm.reset({
-      titulo: configuracoes.contrato?.titulo || "",
-      valorBase: configuracoes.contrato?.valorBase || 0,
-      prazoEntrega: configuracoes.contrato?.prazoEntrega || 30,
-      descontoMaximo: configuracoes.contrato?.descontoMaximo || 0,
-      observacoes: configuracoes.contrato?.observacoes || "",
-      clausulas: novasClausulas,
-    });
-  }, [configuracoes.contrato]);
+  // Buscar cláusulas template do banco de dados
+  const getClausulasTemplate = async () => {
+    if (!session?.user?.id) {
+      throw new Error("Sessão não encontrada");
+    }
 
-  const handleContratoSubmit = (data: ContratoData) => {
+    const response = await fetch("/api/contrato-template");
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao carregar cláusulas template");
+    }
+
+    return data.clausulas;
+  };
+
+  const {
+    data: clausulasData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["clausulas-template", session?.user?.id],
+    queryFn: getClausulasTemplate,
+    enabled: !!session?.user?.id,
+  });
+
+  // Salvar cláusulas template
+  const saveClausulasTemplate = async (data: ContratoData) => {
+    if (!session?.user?.id) {
+      throw new Error("Sessão não encontrada");
+    }
+
+    const response = await fetch("/api/contrato-template", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        clausulas: clausulas.map((clausula) => ({
+          titulo: clausula.titulo,
+          conteudo: clausula.conteudo,
+          ordem: clausula.ordem,
+          editavel: true,
+          obrigatoria: false,
+        })),
+      }),
+    });
+
+    const resultado = await response.json();
+
+    if (!response.ok) {
+      throw new Error(resultado.message || "Erro ao salvar cláusulas template");
+    }
+
+    refetch();
+    return resultado.clausulas;
+  };
+
+  const { mutateAsync: saveTemplateMutation, isPending: isSaving } = useMutation({
+    mutationFn: saveClausulasTemplate,
+    mutationKey: ["saveClausulasTemplate"],
+  });
+
+  const handleContratoSubmit = async (data: ContratoData) => {
+    // Atualizar configurações locais
     const dataWithClausulas = { ...data, clausulas };
     Object.entries(dataWithClausulas).forEach(([key, value]) => {
       handleChangeConfiguracao(`contrato.${key}`, value);
     });
+
+    // Salvar no banco de dados
+    try {
+      await saveTemplateMutation(data);
+      return { ok: true };
+    } catch (error) {
+      console.error("Erro ao salvar template de contrato:", error);
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : "Erro ao salvar template de contrato",
+      };
+    }
   };
 
-  // Funções para gerenciar cláusulas
   const adicionarClausula = () => {
     const novaClausula: Clausula = {
       id: Date.now().toString(),
-      titulo: "",
+      titulo: `Cláusula ${clausulas.length + 1}`,
       conteudo: "",
       ordem: clausulas.length,
     };
@@ -67,7 +128,6 @@ export const useContrato = () => {
 
   const removerClausula = (id: string) => {
     const novasClausulas = clausulas.filter((clausula) => clausula.id !== id);
-    // Reordenar as cláusulas restantes
     const clausulasReordenadas = novasClausulas.map((clausula, index) => ({
       ...clausula,
       ordem: index,
@@ -77,7 +137,6 @@ export const useContrato = () => {
   };
 
   const moverClausula = (id: string, direcao: "up" | "down") => {
-    // Ordenar as cláusulas primeiro para encontrar o índice correto
     const clausulasOrdenadas = [...clausulas].sort((a, b) => a.ordem - b.ordem);
     const index = clausulasOrdenadas.findIndex((clausula) => clausula.id === id);
 
@@ -90,13 +149,11 @@ export const useContrato = () => {
 
     const novoIndex = direcao === "up" ? index - 1 : index + 1;
 
-    // Trocar posições no array ordenado
     [clausulasOrdenadas[index], clausulasOrdenadas[novoIndex]] = [
       clausulasOrdenadas[novoIndex],
       clausulasOrdenadas[index],
     ];
 
-    // Atualizar ordens baseado na nova posição
     const clausulasReordenadas = clausulasOrdenadas.map((clausula, i) => ({
       ...clausula,
       ordem: i,
@@ -106,6 +163,43 @@ export const useContrato = () => {
     contratoForm.setValue("clausulas", clausulasReordenadas);
   };
 
+  // Carregar dados das cláusulas quando disponível
+  useEffect(() => {
+    if (clausulasData && Array.isArray(clausulasData)) {
+      const clausulasCarregadas: Clausula[] = clausulasData.map((c: any) => ({
+        id: c.uuid || c.id.toString(),
+        titulo: c.titulo,
+        conteudo: c.conteudo,
+        ordem: c.ordem,
+      }));
+
+      setClausulas(clausulasCarregadas);
+      contratoForm.reset({
+        titulo: configuracoes.contrato?.titulo || "Contrato de Prestação de Serviços",
+        observacoes: configuracoes.contrato?.observacoes || "",
+        clausulas: clausulasCarregadas,
+      });
+
+      // Atualizar configurações locais
+      handleChangeConfiguracao("contrato.clausulas", clausulasCarregadas);
+    }
+  }, [clausulasData]);
+
+  // Sincronizar com configurações locais (fallback)
+  useEffect(() => {
+    if (!clausulasData && configuracoes.contrato) {
+      const novasClausulas = configuracoes.contrato.clausulas || [];
+      if (novasClausulas.length > 0) {
+        setClausulas(novasClausulas);
+        contratoForm.reset({
+          titulo: configuracoes.contrato.titulo || "Contrato de Prestação de Serviços",
+          observacoes: configuracoes.contrato.observacoes || "",
+          clausulas: novasClausulas,
+        });
+      }
+    }
+  }, [configuracoes.contrato, clausulasData]);
+
   return {
     contratoForm,
     handleContratoSubmit,
@@ -114,5 +208,7 @@ export const useContrato = () => {
     atualizarClausula,
     removerClausula,
     moverClausula,
+    isLoading: isLoading || isFetching,
+    isSaving,
   };
 };

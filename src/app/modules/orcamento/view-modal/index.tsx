@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/currency";
 import { usePdfGenerator } from "./use-pdf-generator";
-import { useOrcamentoById } from "../modal/use-orcamento-by-id";
+import { useQuery } from "@tanstack/react-query";
+import { Orcamento } from "@/app/api/orcamento/types";
 
 interface ViewItemsModalProps {
   open: boolean;
@@ -32,8 +33,31 @@ interface ViewItemsModalProps {
 }
 
 export const ViewItemsModal = ({ open, onOpenChange, orcamentoId }: ViewItemsModalProps) => {
-  const { orcamento, isLoading, isError } = useOrcamentoById({
-    orcamentoId,
+  const getOrcamento = async () => {
+    if (!orcamentoId) {
+      throw new Error("ID do orçamento é obrigatório");
+    }
+
+    const response = await fetch(`/api/orcamento/${orcamentoId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "Erro ao buscar orçamento");
+    }
+
+    return response.json() as Promise<Orcamento>;
+  };
+
+  const {
+    data: orcamento,
+    isLoading,
+    isError,
+  } = useQuery<Orcamento>({
+    queryKey: ["orcamento", orcamentoId],
+    queryFn: () => getOrcamento(),
     enabled: open && !!orcamentoId,
   });
 

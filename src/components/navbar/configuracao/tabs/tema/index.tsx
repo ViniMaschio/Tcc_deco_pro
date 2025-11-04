@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -9,8 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTema } from "./use-index";
+import { TemaTabProps } from "../../types";
 
-export const TemaTab = () => {
+export const TemaTab = ({ onClose }: TemaTabProps) => {
   const { configuracoes, handleChangeConfiguracao } = useTema();
 
   return (
@@ -50,6 +52,12 @@ export const TemaTab = () => {
           </SelectContent>
         </Select>
         <p className="text-muted-foreground text-sm">Idioma da interface do sistema</p>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
       </div>
     </div>
   );

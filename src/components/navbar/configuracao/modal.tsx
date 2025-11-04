@@ -13,12 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConfiguracoes } from "@/components/navbar/configuracao/use-modal";
 import { twMerge } from "tailwind-merge";
 import { MountTabs } from "./tabs";
-import { ConfiguracoesTabs } from "./types";
-
-interface ConfiguracoesModalProps {
-  open: boolean;
-  changeOpen: (open: boolean) => void;
-}
+import { ConfiguracoesTabs, ConfiguracoesModalProps } from "./types";
 
 export const ConfiguracoesModal = ({ open, changeOpen }: ConfiguracoesModalProps) => {
   const { configuracoes, activeTab, setActiveTab, handleChangeConfiguracao } =

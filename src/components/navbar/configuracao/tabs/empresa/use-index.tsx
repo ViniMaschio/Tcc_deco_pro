@@ -5,25 +5,20 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { empresaSchema, EmpresaData } from "@/components/navbar/configuracao/types";
+import {
+  empresaSchema,
+  EmpresaData,
+  ZipCodeResponse,
+} from "@/components/navbar/configuracao/types";
 import { useConfiguracoes } from "@/components/navbar/configuracao/use-modal";
 import { obterEmpresa } from "@/actions/empresa";
 import { formatCEPCodeNumber } from "@/utils/mask";
-
-interface ZipCodeResponse {
-  logradouro?: string;
-  bairro?: string;
-  localidade?: string;
-  uf?: string;
-  erro?: boolean;
-}
 
 export const useEmpresa = () => {
   const { data: session } = useSession();
   const { handleChangeConfiguracao } = useConfiguracoes();
   const [zipCodeLoading, setZipCodeLoading] = useState(false);
 
-  // Formulário da empresa
   const empresaForm = useForm<EmpresaData>({
     resolver: zodResolver(empresaSchema),
     defaultValues: {
@@ -67,47 +62,6 @@ export const useEmpresa = () => {
     queryFn: getEmpresa,
     enabled: !!session?.user?.id,
   });
-
-  useEffect(() => {
-    if (empresaData) {
-      const formData = {
-        nome: empresaData.nome || "",
-        razaoSocial: empresaData.razaoSocial || "",
-        email: empresaData.email || "",
-        telefone: empresaData.telefone || "",
-        cnpj: empresaData.cnpj || "",
-        rua: empresaData.rua || "",
-        numero: empresaData.numero || "",
-        complemento: empresaData.complemento || "",
-        bairro: empresaData.bairro || "",
-        cidade: empresaData.cidade || "",
-        estado: empresaData.estado || "",
-        cep: empresaData.cep || "",
-      };
-
-      const currentValues = empresaForm.getValues();
-      const hasChanges = Object.keys(formData).some(
-        (key) => currentValues[key as keyof EmpresaData] !== formData[key as keyof EmpresaData]
-      );
-
-      if (hasChanges) {
-        empresaForm.reset(formData, { keepDefaultValues: false });
-      }
-    }
-  }, [empresaData]);
-
-  // Sincronizar mudanças do formulário com o estado quando o usuário edita os campos
-  useEffect(() => {
-    const subscription = empresaForm.watch((data, { name }) => {
-      if (data && name) {
-        // Atualizar apenas o campo que mudou
-        const value = data[name as keyof EmpresaData];
-        handleChangeConfiguracao(`empresa.${name}`, value || "");
-      }
-    });
-    return () => subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const searchForZipCode = async (value: string) => {
     try {
@@ -193,7 +147,6 @@ export const useEmpresa = () => {
   });
 
   const handleEmpresaSubmit = async (data: EmpresaData) => {
-    // Sincronizar com o estado
     Object.entries(data).forEach(([key, value]) => {
       handleChangeConfiguracao(`empresa.${key}`, value);
     });
@@ -209,6 +162,44 @@ export const useEmpresa = () => {
       };
     }
   };
+
+  useEffect(() => {
+    if (empresaData) {
+      const formData = {
+        nome: empresaData.nome || "",
+        razaoSocial: empresaData.razaoSocial || "",
+        email: empresaData.email || "",
+        telefone: empresaData.telefone || "",
+        cnpj: empresaData.cnpj || "",
+        rua: empresaData.rua || "",
+        numero: empresaData.numero || "",
+        complemento: empresaData.complemento || "",
+        bairro: empresaData.bairro || "",
+        cidade: empresaData.cidade || "",
+        estado: empresaData.estado || "",
+        cep: empresaData.cep || "",
+      };
+
+      const currentValues = empresaForm.getValues();
+      const hasChanges = Object.keys(formData).some(
+        (key) => currentValues[key as keyof EmpresaData] !== formData[key as keyof EmpresaData]
+      );
+
+      if (hasChanges) {
+        empresaForm.reset(formData, { keepDefaultValues: false });
+      }
+    }
+  }, [empresaData]);
+
+  useEffect(() => {
+    const subscription = empresaForm.watch((data, { name }) => {
+      if (data && name) {
+        const value = data[name as keyof EmpresaData];
+        handleChangeConfiguracao(`empresa.${name}`, value || "");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   return {
     empresaForm,

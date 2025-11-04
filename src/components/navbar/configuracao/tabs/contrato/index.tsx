@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { FileText, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { FileText, Plus, Trash2, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,10 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useContrato } from "./use-index";
-
-interface ContratoTabProps {
-  onClose?: () => void;
-}
+import { ContratoTabProps } from "../../types";
 
 export const ContratoTab = ({ onClose }: ContratoTabProps) => {
   const {
@@ -23,8 +19,9 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
     atualizarClausula,
     removerClausula,
     moverClausula,
+    isLoading,
+    isSaving,
   } = useContrato();
-  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     const isValid = await contratoForm.trigger();
@@ -33,19 +30,30 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
       return;
     }
 
-    setSaving(true);
     try {
       const formData = contratoForm.getValues();
-      handleContratoSubmit({ ...formData, clausulas });
-      toast.success("Configurações do contrato salvas com sucesso!");
-      onClose?.();
+      const result = await handleContratoSubmit({ ...formData, clausulas });
+
+      if (result.ok) {
+        toast.success("Template de contrato salvo com sucesso!");
+        onClose?.();
+      } else {
+        toast.error(result.error || "Erro ao salvar template de contrato!");
+      }
     } catch (error) {
       console.error("Erro ao salvar:", error);
-      toast.error("Erro ao salvar configurações do contrato!");
-    } finally {
-      setSaving(false);
+      toast.error("Erro ao salvar template de contrato!");
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+        <span className="text-muted-foreground ml-2">Carregando template de contrato...</span>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -56,6 +64,21 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
       className="space-y-6"
     >
       <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="contrato-titulo">Título do Contrato</Label>
+          <Input
+            id="contrato-titulo"
+            {...contratoForm.register("titulo")}
+            placeholder="Ex: Contrato de Prestação de Serviços"
+            disabled={isSaving}
+          />
+          {contratoForm.formState.errors.titulo && (
+            <p className="text-sm text-red-500">{contratoForm.formState.errors.titulo.message}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Cláusulas do Contrato</h3>
           <Button
@@ -64,6 +87,7 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
             variant="outline"
             size="sm"
             className="flex items-center gap-2"
+            disabled={isSaving}
           >
             <Plus className="h-4 w-4" />
             Adicionar Cláusula
@@ -167,17 +191,17 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
       </div>
 
       <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+        <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
           Cancelar
         </Button>
         <Button
           type="button"
           onClick={handleSave}
-          disabled={saving}
-          loading={saving}
+          disabled={isSaving}
+          loading={isSaving}
           className="min-w-[100px]"
         >
-          Salvar
+          {isSaving ? "Salvando..." : "Salvar"}
         </Button>
       </div>
     </form>

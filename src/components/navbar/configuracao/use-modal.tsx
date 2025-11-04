@@ -14,6 +14,7 @@ import { obterEmpresa } from "@/actions/empresa";
 
 export const useConfiguracoes = (open?: boolean) => {
   const { data: session, update } = useSession();
+
   const [configuracoes, setConfiguracoes] = useState<ConfiguracoesUsuario>({
     tema: "system",
     idioma: "pt-BR",
@@ -43,9 +44,6 @@ export const useConfiguracoes = (open?: boolean) => {
     },
     contrato: {
       titulo: "Contrato de Prestação de Serviços",
-      valorBase: 0,
-      prazoEntrega: 30,
-      descontoMaximo: 0,
       observacoes: "",
       clausulas: [],
     },
@@ -79,29 +77,6 @@ export const useConfiguracoes = (open?: boolean) => {
     enabled: !!open && !!session?.user?.id,
   });
 
-  // Atualizar configurações quando os dados da empresa forem carregados
-  useEffect(() => {
-    if (empresaData) {
-      setConfiguracoes((prev) => ({
-        ...prev,
-        empresa: {
-          nome: empresaData.nome || "",
-          razaoSocial: empresaData.razaoSocial || "",
-          email: empresaData.email || "",
-          telefone: empresaData.telefone || "",
-          cnpj: empresaData.cnpj || "",
-          rua: empresaData.rua || "",
-          numero: empresaData.numero || "",
-          complemento: empresaData.complemento || "",
-          bairro: empresaData.bairro || "",
-          cidade: empresaData.cidade || "",
-          estado: empresaData.estado || "",
-          cep: empresaData.cep || "",
-        },
-      }));
-    }
-  }, [empresaData]);
-
   const handleChangeConfiguracao = (path: string, value: any) => {
     setConfiguracoes((prev) => {
       const keys = path.split(".");
@@ -125,14 +100,12 @@ export const useConfiguracoes = (open?: boolean) => {
     const empresaId = Number(session.user.id);
     const empresaData = configuracoes.empresa;
 
-    // Validar dados da empresa antes de salvar
     const validationResult = empresaSchema.safeParse(empresaData);
     if (!validationResult.success) {
       const firstError = validationResult.error.issues[0];
       throw new Error(firstError?.message || "Dados inválidos. Verifique os campos.");
     }
 
-    // Atualizar dados da empresa no banco via API
     const response = await fetch(`/api/empresa/${empresaId}`, {
       method: "PUT",
       headers: {
@@ -162,7 +135,6 @@ export const useConfiguracoes = (open?: boolean) => {
       throw new Error(errorMessage);
     }
 
-    // Atualizar sessão se necessário
     if (resultado.empresa?.nome && resultado.empresa.nome !== session?.user?.name) {
       await update({
         ...session,
@@ -192,6 +164,28 @@ export const useConfiguracoes = (open?: boolean) => {
       console.error("Erro ao salvar configurações:", error);
     }
   };
+
+  useEffect(() => {
+    if (empresaData) {
+      setConfiguracoes((prev) => ({
+        ...prev,
+        empresa: {
+          nome: empresaData.nome || "",
+          razaoSocial: empresaData.razaoSocial || "",
+          email: empresaData.email || "",
+          telefone: empresaData.telefone || "",
+          cnpj: empresaData.cnpj || "",
+          rua: empresaData.rua || "",
+          numero: empresaData.numero || "",
+          complemento: empresaData.complemento || "",
+          bairro: empresaData.bairro || "",
+          cidade: empresaData.cidade || "",
+          estado: empresaData.estado || "",
+          cep: empresaData.cep || "",
+        },
+      }));
+    }
+  }, [empresaData]);
 
   return {
     configuracoes,

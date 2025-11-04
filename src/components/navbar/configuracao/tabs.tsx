@@ -2,16 +2,12 @@ import { Building2, FileText, Palette } from "lucide-react";
 import { EmpresaTab } from "./tabs/empresa";
 import { ContratoTab } from "./tabs/contrato";
 import { TemaTab } from "./tabs/tema";
-
-interface MountTabsProps {
-  onClose?: () => void;
-}
+import { MountTabsProps } from "./types";
 
 export const MountTabs = ({ onClose }: MountTabsProps) => {
   const style = "text-[24px] text-disabled data-[selected=true]:text-primary-500";
 
   const tabs = {
-    // Opções de seleção
     trigger: [
       {
         name: "empresa",
@@ -30,7 +26,6 @@ export const MountTabs = ({ onClose }: MountTabsProps) => {
       },
     ],
 
-    // Telas que serão exibidas em cada Tab
     content: [
       {
         name: "empresa",
@@ -44,7 +39,7 @@ export const MountTabs = ({ onClose }: MountTabsProps) => {
       },
       {
         name: "tema",
-        render: <TemaTab />,
+        render: <TemaTab onClose={onClose} />,
       },
     ],
   };

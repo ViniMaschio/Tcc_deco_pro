@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,12 +11,12 @@ import { Cliente } from "@/app/api/cliente/types";
 import { Local as LocalAPI } from "@/app/api/local/types";
 import {
   CreateOrcamentoData,
+  Orcamento,
   OrcamentoStatus,
   UpdateOrcamentoData,
 } from "@/app/api/orcamento/types";
 
 import { Categoria, Item, UseOrcamentoModalProps } from "../types";
-import { useOrcamentoById } from "./use-orcamento-by-id";
 
 const orcamentoSchema = z.object({
   clienteId: z.number().min(1, "Cliente é obrigatório"),
@@ -39,9 +39,27 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     undefined
   );
 
-  // Buscar dados do orçamento por ID quando estiver em modo de edição
-  const { orcamento: orcamentoData, isLoading: isLoadingOrcamento } = useOrcamentoById({
-    orcamentoId: mode === "edit" && data?.id ? data.id : null,
+  const getOrcamento = async () => {
+    if (!data?.id) {
+      throw new Error("ID do orçamento é obrigatório");
+    }
+
+    const response = await fetch(`/api/orcamento/${data.id}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const msg = await response.text();
+      throw new Error(msg || "Erro ao buscar orçamento");
+    }
+
+    return response.json() as Promise<Orcamento>;
+  };
+
+  const { data: orcamentoData, isLoading: isLoadingOrcamento } = useQuery<Orcamento>({
+    queryKey: ["orcamento", data?.id],
+    queryFn: () => getOrcamento(),
     enabled: mode === "edit" && !!data?.id,
   });
 
@@ -98,16 +116,101 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
         });
       }
 
-      if (currentData.itens) {
-        const itensData = currentData.itens.map((item) => ({
-          itemId: item.itemId,
-          nome: item.nome,
-          quantidade: item.quantidade,
-          valorUnit: item.valorUnit,
-          desconto: item.desconto,
-        }));
-        setItens(itensData);
-        calculateTotal(itensData);
+      if (currentData.itens && currentData.itens.length > 0) {
+        // Limpar itens antes de adicionar novos
+        setItens([]);
+
+        // Buscar cada item completo e adicionar usando addItemFromAutocomplete
+        const loadItems = async () => {
+          for (const orcamentoItem of currentData.itens || []) {
+            try {
+              // Buscar item completo da API
+              const itemResponse = await fetch(`/api/item/${orcamentoItem.itemId}`, {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+              });
+
+              if (itemResponse.ok) {
+                const itemData = await itemResponse.json();
+
+                // Criar objeto Item compatível com addItemFromAutocomplete
+                const item: Item = {
+                  id: itemData.id,
+                  nome: itemData.nome,
+                  descricao: itemData.descricao,
+                  precoBase: itemData.precoBase,
+                  tipo: itemData.tipo,
+                };
+
+                // Usar addItemFromAutocomplete para adicionar o item
+                // Primeiro obter o estado atual dos itens
+                let currentItensState: CreateOrcamentoData["itens"] = [];
+                await new Promise<void>((resolve) => {
+                  setItens((prevItens) => {
+                    currentItensState = [...prevItens];
+                    resolve();
+                    return prevItens;
+                  });
+                });
+
+                // Criar objeto Item e usar addItemFromAutocomplete
+                // A função adiciona com quantidade 1, valorUnit = precoBase, desconto 0
+                addItemFromAutocomplete(item);
+
+                // Aguardar um tick para garantir que o estado foi atualizado
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                // Atualizar quantidade, valorUnit e desconto do último item adicionado
+                setItens((prevItens) => {
+                  if (prevItens.length === 0) return prevItens;
+
+                  const newItens = [...prevItens];
+                  const lastIndex = newItens.length - 1;
+                  newItens[lastIndex] = {
+                    ...newItens[lastIndex],
+                    quantidade: orcamentoItem.quantidade,
+                    valorUnit: orcamentoItem.valorUnit,
+                    desconto: orcamentoItem.desconto || 0,
+                  };
+
+                  calculateTotal(newItens);
+                  return newItens;
+                });
+              } else {
+                // Se não conseguir buscar o item completo, criar item com dados do orçamento
+                setItens((prevItens) => {
+                  const fallbackItem = {
+                    itemId: orcamentoItem.itemId,
+                    nome: orcamentoItem.nome,
+                    quantidade: orcamentoItem.quantidade,
+                    valorUnit: orcamentoItem.valorUnit,
+                    desconto: orcamentoItem.desconto || 0,
+                  };
+                  const newItens = [...prevItens, fallbackItem];
+                  calculateTotal(newItens);
+                  return newItens;
+                });
+              }
+            } catch (error) {
+              console.error(`Erro ao buscar item ${orcamentoItem.itemId}:`, error);
+              // Em caso de erro, criar item com dados do orçamento
+              setItens((prevItens) => {
+                const fallbackItem = {
+                  itemId: orcamentoItem.itemId,
+                  nome: orcamentoItem.nome,
+                  quantidade: orcamentoItem.quantidade,
+                  valorUnit: orcamentoItem.valorUnit,
+                  desconto: orcamentoItem.desconto || 0,
+                };
+                const newItens = [...prevItens, fallbackItem];
+                calculateTotal(newItens);
+                return newItens;
+              });
+            }
+          }
+        };
+
+        loadItems();
       }
     } else {
       form.reset({
