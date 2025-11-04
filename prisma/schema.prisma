@@ -334,16 +334,17 @@ model OrcamentoItem {
   uuid        String    @unique @db.Uuid
   orcamentoId Int
   itemId      Int
-  quantidade  Int
-  desconto    Int
-  valorUnit   Int
-  valorTotal  Int
+  quantidade  Int       // Quantidade em milésimos (ex: 1.500 = 1,5)
+  desconto    Int       // Valor em centavos
+  valorUnit   Int       // Valor em centavos
+  valorTotal  Int       // Valor em centavos
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  deleted_at  DateTime?
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? @map("deleted_at")
   deleted     Boolean   @default(false)
-  Item        Item      @relation(fields: [itemId], references: [id])
-  Orcamento   Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+
+  orcamento Orcamento @relation(fields: [orcamentoId], references: [id], onDelete: Cascade)
+  item      Item      @relation(fields: [itemId], references: [id], onDelete: Restrict)
 
   @@unique([orcamentoId, itemId])
 }
