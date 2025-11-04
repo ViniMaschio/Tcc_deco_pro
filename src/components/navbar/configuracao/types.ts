@@ -15,9 +15,14 @@ export type ConfiguracoesUsuario = {
   };
   empresa: {
     nome: string;
+    razaoSocial?: string;
     email: string;
     telefone?: string;
-    endereco?: string;
+    cnpj?: string;
+    rua?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
     cidade?: string;
     estado?: string;
     cep?: string;
@@ -27,7 +32,6 @@ export type ConfiguracoesUsuario = {
     valorBase: number;
     prazoEntrega: number;
     descontoMaximo: number;
-    termos: string;
     observacoes?: string;
     clausulas: Clausula[];
   };
@@ -57,9 +61,14 @@ export const perfilSchema = z.object({
 
 export const empresaSchema = z.object({
   nome: z.string().min(1, "Nome da empresa é obrigatório"),
+  razaoSocial: z.string().optional(),
   email: z.string().email("Email inválido"),
   telefone: z.string().optional(),
-  endereco: z.string().optional(),
+  cnpj: z.string().optional(),
+  rua: z.string().optional(),
+  numero: z.string().optional(),
+  complemento: z.string().optional(),
+  bairro: z.string().optional(),
   cidade: z.string().optional(),
   estado: z.string().optional(),
   cep: z.string().optional(),
@@ -77,7 +86,6 @@ export const contratoSchema = z.object({
   valorBase: z.number().min(0, "Valor base deve ser maior ou igual a zero"),
   prazoEntrega: z.number().min(1, "Prazo de entrega deve ser pelo menos 1 dia"),
   descontoMaximo: z.number().min(0).max(100, "Desconto máximo deve estar entre 0 e 100%"),
-  termos: z.string().min(1, "Termos e condições são obrigatórios"),
   observacoes: z.string().optional(),
   clausulas: z.array(clausulaSchema),
 });

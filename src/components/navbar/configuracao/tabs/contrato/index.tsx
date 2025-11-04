@@ -1,14 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { FileText, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 import { useContrato } from "./use-index";
 
-export const ContratoTab = () => {
+interface ContratoTabProps {
+  onClose?: () => void;
+}
+
+export const ContratoTab = ({ onClose }: ContratoTabProps) => {
   const {
     contratoForm,
     handleContratoSubmit,
@@ -18,9 +24,37 @@ export const ContratoTab = () => {
     removerClausula,
     moverClausula,
   } = useContrato();
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    const isValid = await contratoForm.trigger();
+    if (!isValid) {
+      toast.error("Por favor, corrija os erros no formulário");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const formData = contratoForm.getValues();
+      handleContratoSubmit({ ...formData, clausulas });
+      toast.success("Configurações do contrato salvas com sucesso!");
+      onClose?.();
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar configurações do contrato!");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <form onSubmit={contratoForm.handleSubmit(handleContratoSubmit as any)} className="space-y-6">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSave();
+      }}
+      className="space-y-6"
+    >
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Cláusulas do Contrato</h3>
@@ -122,19 +156,6 @@ export const ContratoTab = () => {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="contrato-termos">Termos e Condições</Label>
-          <Textarea
-            id="contrato-termos"
-            {...contratoForm.register("termos")}
-            placeholder="Digite os termos e condições do contrato"
-            rows={6}
-          />
-          {contratoForm.formState.errors.termos && (
-            <p className="text-sm text-red-500">{contratoForm.formState.errors.termos.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2 md:col-span-2">
           <Label htmlFor="contrato-observacoes">Observações</Label>
           <Textarea
             id="contrato-observacoes"
@@ -143,6 +164,21 @@ export const ContratoTab = () => {
             rows={3}
           />
         </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+          Cancelar
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          loading={saving}
+          className="min-w-[100px]"
+        >
+          Salvar
+        </Button>
       </div>
     </form>
   );

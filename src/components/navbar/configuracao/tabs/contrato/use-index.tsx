@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { contratoSchema, ContratoData, Clausula } from "@/components/navbar/configuracao/types";
 import { useConfiguracoes } from "@/components/navbar/configuracao/use-modal";
 
@@ -18,11 +18,24 @@ export const useContrato = () => {
       valorBase: configuracoes.contrato?.valorBase || 0,
       prazoEntrega: configuracoes.contrato?.prazoEntrega || 30,
       descontoMaximo: configuracoes.contrato?.descontoMaximo || 0,
-      termos: configuracoes.contrato?.termos || "",
       observacoes: configuracoes.contrato?.observacoes || "",
       clausulas: configuracoes.contrato?.clausulas || [],
     },
   });
+
+  // Resetar formulário e cláusulas quando configuracoes mudarem
+  useEffect(() => {
+    const novasClausulas = configuracoes.contrato?.clausulas || [];
+    setClausulas(novasClausulas);
+    contratoForm.reset({
+      titulo: configuracoes.contrato?.titulo || "",
+      valorBase: configuracoes.contrato?.valorBase || 0,
+      prazoEntrega: configuracoes.contrato?.prazoEntrega || 30,
+      descontoMaximo: configuracoes.contrato?.descontoMaximo || 0,
+      observacoes: configuracoes.contrato?.observacoes || "",
+      clausulas: novasClausulas,
+    });
+  }, [configuracoes.contrato]);
 
   const handleContratoSubmit = (data: ContratoData) => {
     const dataWithClausulas = { ...data, clausulas };

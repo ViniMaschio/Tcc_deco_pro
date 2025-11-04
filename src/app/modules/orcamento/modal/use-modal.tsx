@@ -16,6 +16,7 @@ import {
 } from "@/app/api/orcamento/types";
 
 import { Categoria, Item, UseOrcamentoModalProps } from "../types";
+import { useOrcamentoById } from "./use-orcamento-by-id";
 
 const orcamentoSchema = z.object({
   clienteId: z.number().min(1, "Cliente é obrigatório"),
@@ -38,6 +39,12 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
     undefined
   );
 
+  // Buscar dados do orçamento por ID quando estiver em modo de edição
+  const { orcamento: orcamentoData, isLoading: isLoadingOrcamento } = useOrcamentoById({
+    orcamentoId: mode === "edit" && data?.id ? data.id : null,
+    enabled: mode === "edit" && !!data?.id,
+  });
+
   const form = useForm<z.infer<typeof orcamentoSchema>>({
     resolver: zodResolver(orcamentoSchema),
     defaultValues: {
@@ -52,18 +59,47 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
 
   // Efeito para resetar o formulário quando os dados mudam
   useEffect(() => {
-    if (data && mode !== "create") {
+    // Usar dados carregados da API quando disponível, senão usar dados passados como prop
+    const currentData = orcamentoData || data;
+
+    if (currentData && mode !== "create") {
       form.reset({
-        clienteId: data.clienteId,
-        categoriaId: data.categoriaId || undefined,
-        status: (data.status as OrcamentoStatus) || "RASCUNHO",
-        localId: data.localId || undefined,
-        dataEvento: data.dataEvento ? new Date(data.dataEvento).toISOString().split("T")[0] : "",
-        observacao: data.observacao || "",
+        clienteId: currentData.clienteId,
+        categoriaId: currentData.categoriaId || undefined,
+        status: (currentData.status as OrcamentoStatus) || "RASCUNHO",
+        localId: currentData.localId || undefined,
+        dataEvento: currentData.dataEvento
+          ? new Date(currentData.dataEvento).toISOString().split("T")[0]
+          : "",
+        observacao: currentData.observacao || "",
       });
 
-      if (data.itens) {
-        const itensData = data.itens.map((item) => ({
+      // Carregar dados relacionados para os autocompletes
+      if (currentData.cliente) {
+        setClienteSelecionado({
+          id: currentData.cliente.id,
+          nome: currentData.cliente.nome,
+          telefone: currentData.cliente.telefone,
+          email: currentData.cliente.email,
+        });
+      }
+
+      if (currentData.local) {
+        setLocalSelecionado({
+          id: currentData.local.id,
+          descricao: currentData.local.descricao,
+        });
+      }
+
+      if (currentData.categoriaFesta) {
+        setCategoriaSelecionada({
+          id: currentData.categoriaFesta.id,
+          descricao: currentData.categoriaFesta.descricao,
+        });
+      }
+
+      if (currentData.itens) {
+        const itensData = currentData.itens.map((item) => ({
           itemId: item.itemId,
           nome: item.nome,
           quantidade: item.quantidade,
@@ -84,9 +120,11 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
       });
       setItens([]);
       setTotal(0);
+      setClienteSelecionado(undefined);
+      setLocalSelecionado(undefined);
       setCategoriaSelecionada(undefined);
     }
-  }, [data, mode, form]);
+  }, [data, orcamentoData, mode, form]);
 
   // Funções para gerenciar itens
   const calculateTotal = (itensList: CreateOrcamentoData["itens"]) => {
@@ -240,6 +278,7 @@ export const useOrcamentoModal = ({ mode, data, onSuccess }: UseOrcamentoModalPr
 
     // Estados de loading
     isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isLoadingOrcamento,
 
     // Funções
     addItemFromAutocomplete,

@@ -41,6 +41,18 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     },
   },
   {
+    accessorKey: "categoriaFesta",
+    header: "Categoria",
+    cell: ({ row }) => {
+      const categoriaFesta = row.original.categoriaFesta;
+      return categoriaFesta ? (
+        <span>{categoriaFesta.descricao}</span>
+      ) : (
+        <span className="text-gray-400">Não informado</span>
+      );
+    },
+  },
+  {
     accessorKey: "dataEvento",
     header: "Data do Evento",
     cell: ({ row }) => {

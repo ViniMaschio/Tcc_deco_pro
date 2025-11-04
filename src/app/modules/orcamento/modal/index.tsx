@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, FileText, Package, X } from "lucide-react";
+import { CheckCircle, FileText, Package, X, Loader2 } from "lucide-react";
 import moment from "moment";
 import { Controller } from "react-hook-form";
 
@@ -54,6 +54,7 @@ export const OrcamentoModal = ({
 
     // Estados de loading
     isSubmitting,
+    isLoadingOrcamento,
 
     // Funções
     addItemFromAutocomplete,
@@ -66,6 +67,28 @@ export const OrcamentoModal = ({
   } = useOrcamentoModal({ mode, data, onSuccess });
 
   const isViewMode = mode === "view";
+
+  // Mostrar loading quando estiver carregando dados do orçamento
+  if (isLoadingOrcamento && mode === "edit") {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between overflow-hidden sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="text-xl font-semibold">Carregando orçamento...</DialogTitle>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="cursor-pointer rounded-md p-1 text-gray-600 transition-colors duration-500 hover:bg-red-100 hover:text-red-800"
+            >
+              <X size={25} />
+            </button>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -239,7 +262,7 @@ export const OrcamentoModal = ({
             <div className="flex justify-end">
               <div className="text-right">
                 <div className="text-lg font-semibold">
-                  Total do Contrato:{" "}
+                  Total do Orçamento:{" "}
                   {new Intl.NumberFormat("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -291,8 +314,9 @@ export const OrcamentoModal = ({
                   onClick={() => form.handleSubmit(onSubmit)()}
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
+                  loading={isSubmitting}
                 >
-                  {isSubmitting ? "Salvando..." : "Salvar"}
+                  Salvar
                 </Button>
               )}
             </>

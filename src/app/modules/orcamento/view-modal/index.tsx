@@ -2,9 +2,8 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { X, FileDown } from "lucide-react";
+import { X, FileDown, Loader2 } from "lucide-react";
 
-import { Orcamento } from "@/app/api/orcamento/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,18 +23,71 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/currency";
 import { usePdfGenerator } from "./use-pdf-generator";
+import { useOrcamentoById } from "../modal/use-orcamento-by-id";
 
 interface ViewItemsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  orcamento: Orcamento;
+  orcamentoId: number | null;
 }
 
-export const ViewItemsModal = ({ open, onOpenChange, orcamento }: ViewItemsModalProps) => {
-  const { pdfRef, generatePDF } = usePdfGenerator({
-    fileName: `orcamento-${orcamento.id}`,
-    orcamento,
+export const ViewItemsModal = ({ open, onOpenChange, orcamentoId }: ViewItemsModalProps) => {
+  const { orcamento, isLoading, isError } = useOrcamentoById({
+    orcamentoId,
+    enabled: open && !!orcamentoId,
   });
+
+  const { pdfRef, generatePDF } = usePdfGenerator({
+    fileName: `orcamento-${orcamentoId}`,
+    orcamento: orcamento!,
+  });
+
+  if (isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between overflow-hidden sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="text-xl font-semibold">Carregando orçamento...</DialogTitle>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="cursor-pointer rounded-md p-1 text-gray-600 transition-colors duration-500 hover:bg-red-100 hover:text-red-800"
+            >
+              <X size={25} />
+            </button>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (isError || !orcamento) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between overflow-hidden sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="text-xl font-semibold">Erro ao carregar orçamento</DialogTitle>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="cursor-pointer rounded-md p-1 text-gray-600 transition-colors duration-500 hover:bg-red-100 hover:text-red-800"
+            >
+              <X size={25} />
+            </button>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <p className="text-red-600">Não foi possível carregar os dados do orçamento.</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -53,7 +105,7 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamento }: ViewItemsModal
         </DialogHeader>
         <Separator />
 
-        <div ref={pdfRef} className="w-full space-y-6">
+        <div ref={pdfRef} className="w-full space-y-4">
           <div className="grid w-full grid-cols-1 gap-4 rounded-lg bg-gray-50 p-4 md:grid-cols-2">
             <div>
               <h3 className="mb-2 font-medium text-gray-900">Informações do Cliente</h3>
@@ -122,12 +174,7 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamento }: ViewItemsModal
                         <TableCell>
                           <div>
                             <div className="font-medium">{item.nome}</div>
-                            {item.item?.descricao && (
-                              <div className="text-sm text-gray-500">{item.item.descricao}</div>
-                            )}
-                            <div className="mt-1 text-xs text-gray-400">
-                              Tipo: {item.item?.tipo === "PRO" ? "Produto" : "Serviço"}
-                            </div>
+                            {item.item?.nome && <div className="text-sm">{item.item.nome}</div>}
                           </div>
                         </TableCell>
                         <TableCell className="text-center">{item.quantidade}</TableCell>
@@ -154,18 +201,17 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamento }: ViewItemsModal
             </div>
           </div>
 
-          {/* Resumo Financeiro */}
-          <div className="rounded-lg bg-gray-50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-lg font-semibold">Total do Orçamento:</span>
-              <span className="text-xl font-bold text-green-600">
-                {formatCurrency(orcamento.total)}
-              </span>
+          <div className="p-4">
+            <div className="flex items-center justify-end gap-1">
+              <span className="text-lg font-medium">Total do Orçamento:</span>
+              <span className="text-xl font-bold">{formatCurrency(orcamento.total)}</span>
             </div>
             {orcamento.desconto && orcamento.desconto > 0 && (
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm text-gray-600">Desconto adicional:</span>
-                <span className="text-sm text-red-600">-{formatCurrency(orcamento.desconto)}</span>
+              <div className="mt-2 flex items-center justify-end gap-1">
+                <span className="text-lg font-medium">Desconto adicional:</span>
+                <span className="text-xl font-bold text-red-600">
+                  -{formatCurrency(orcamento.desconto)}
+                </span>
               </div>
             )}
           </div>

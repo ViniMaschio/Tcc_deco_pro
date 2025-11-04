@@ -86,13 +86,6 @@ export async function GET(request: NextRequest) {
           categoriaFesta: {
             select: { descricao: true },
           },
-          itens: {
-            include: {
-              item: {
-                select: { nome: true },
-              },
-            },
-          },
         },
         orderBy: { createdAt: "desc" },
         skip,

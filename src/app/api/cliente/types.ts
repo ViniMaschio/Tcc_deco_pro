@@ -7,14 +7,14 @@ export type Cliente = {
   cpf?: string;
   telefone?: string;
   email?: string;
-  rua: string;
-  numero: string;
+  rua?: string;
+  numero?: string;
   complemento?: string;
   bairro?: string;
   cidade?: string;
   estado?: string;
   cep?: string;
-  empresaId: number;
+  empresaId?: number;
 };
 
 export const clienteSchema = z.object({

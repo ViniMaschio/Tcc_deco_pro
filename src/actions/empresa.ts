@@ -3,7 +3,6 @@
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { revalidatePath } from "next/cache";
 
-import { Prisma } from "@/generated/prisma";
 import { Empresa } from "@/generated/prisma";
 import { db as prisma } from "@/lib/prisma";
 import {
@@ -116,6 +115,7 @@ export async function atualizarEmpresa(id: string | number | bigint, input: unkn
         ...(data.email !== undefined && { email: data.email }),
         ...(data.senha !== undefined && { senha: data.senha }),
         ...(data.cnpj !== undefined && { cnpj: data.cnpj }),
+        ...(data.razaoSocial !== undefined && { razaoSocial: data.razaoSocial }),
         ...(data.rua !== undefined && { rua: data.rua }),
         ...(data.numero !== undefined && { numero: data.numero }),
         ...(data.complemento !== undefined && {

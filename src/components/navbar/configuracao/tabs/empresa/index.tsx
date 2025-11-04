@@ -1,82 +1,417 @@
 "use client";
 
-import { Building2 } from "lucide-react";
+import { useState } from "react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { InputCnpj } from "@/components/input/input-cnpj";
+import { InputWithSearch } from "@/components/input-search";
+import { formatCEPCodeNumber } from "@/utils/mask";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useEmpresa } from "./use-index";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+import { obterEmpresa } from "@/actions/empresa";
+import { useConfiguracoes } from "../../use-modal";
 
-export const EmpresaTab = () => {
-  const { empresaForm, handleEmpresaSubmit } = useEmpresa();
+interface EmpresaTabProps {
+  onClose?: () => void;
+}
 
-  return (
-    <form onSubmit={empresaForm.handleSubmit(handleEmpresaSubmit)} className="w-full space-y-4">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="empresa-nome">Nome da Empresa</Label>
-          <Input
-            id="empresa-nome"
-            {...empresaForm.register("nome")}
-            placeholder="Digite o nome da empresa"
-          />
-          {empresaForm.formState.errors.nome && (
-            <p className="text-sm text-red-500">{empresaForm.formState.errors.nome.message}</p>
-          )}
+export const EmpresaTab = ({ onClose }: EmpresaTabProps) => {
+  const { empresaForm, handleEmpresaSubmit, searchZipCode, zipCodeLoading, isLoading } =
+    useEmpresa();
+  const [saving, setSaving] = useState(false);
+  const { data: session, update } = useSession();
+  const { handleChangeConfiguracao } = useConfiguracoes();
+
+  const handleSave = async () => {
+    const isValid = await empresaForm.trigger();
+    if (!isValid) {
+      toast.error("Por favor, corrija os erros no formulário");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const formData = empresaForm.getValues();
+      const resultado = await handleEmpresaSubmit(formData);
+
+      if (!resultado.ok) {
+        toast.error(resultado.error || "Erro ao salvar dados da empresa!");
+        return;
+      }
+
+      // Recarregar dados atualizados
+      if (session?.user?.id) {
+        const empresaId = Number(session.user.id);
+        const empresaAtualizada = await obterEmpresa(empresaId);
+        if (empresaAtualizada.ok && empresaAtualizada.data) {
+          const empresa = empresaAtualizada.data;
+          handleChangeConfiguracao("empresa.nome", empresa.nome || "");
+          handleChangeConfiguracao("empresa.razaoSocial", empresa.razaoSocial || "");
+          handleChangeConfiguracao("empresa.email", empresa.email || "");
+          handleChangeConfiguracao("empresa.telefone", empresa.telefone || "");
+          handleChangeConfiguracao("empresa.cnpj", empresa.cnpj || "");
+          handleChangeConfiguracao("empresa.rua", empresa.rua || "");
+          handleChangeConfiguracao("empresa.numero", empresa.numero || "");
+          handleChangeConfiguracao("empresa.complemento", empresa.complemento || "");
+          handleChangeConfiguracao("empresa.bairro", empresa.bairro || "");
+          handleChangeConfiguracao("empresa.cidade", empresa.cidade || "");
+          handleChangeConfiguracao("empresa.estado", empresa.estado || "");
+          handleChangeConfiguracao("empresa.cep", empresa.cep || "");
+
+          // Atualizar sessão se necessário
+          if (empresa.nome !== session?.user?.name) {
+            await update({
+              ...session,
+              user: {
+                ...session?.user,
+                name: empresa.nome,
+              },
+            });
+          }
+        }
+      }
+
+      toast.success("Dados da empresa salvos com sucesso!");
+      onClose?.();
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar dados da empresa!");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full space-y-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5 lg:gap-5">
+          {/* Skeleton para Nome da Empresa */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Razão Social */}
+          <div className="col-span-1 space-y-2 sm:col-span-2 lg:col-span-3">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para CNPJ */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para E-mail */}
+          <div className="col-span-1 space-y-2 sm:col-span-2 lg:col-span-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Telefone */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-1">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para CEP */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Cidade */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para UF */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-1">
+            <Skeleton className="h-4 w-8" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Rua */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Bairro */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Número */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-1">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          {/* Skeleton para Complemento */}
+          <div className="col-span-1 space-y-2 sm:col-span-1 lg:col-span-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-10 w-full" />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="empresa-email">Email da Empresa</Label>
-          <Input
-            id="empresa-email"
-            type="email"
-            {...empresaForm.register("email")}
-            placeholder="Digite o email da empresa"
-          />
-          {empresaForm.formState.errors.email && (
-            <p className="text-sm text-red-500">{empresaForm.formState.errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="empresa-telefone">Telefone</Label>
-          <Input
-            id="empresa-telefone"
-            {...empresaForm.register("telefone")}
-            placeholder="(11) 99999-9999"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="empresa-cep">CEP</Label>
-          <Input id="empresa-cep" {...empresaForm.register("cep")} placeholder="00000-000" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="empresa-endereco">Endereço</Label>
-          <Input
-            id="empresa-endereco"
-            {...empresaForm.register("endereco")}
-            placeholder="Rua, número, bairro"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="empresa-cidade">Cidade</Label>
-          <Input
-            id="empresa-cidade"
-            {...empresaForm.register("cidade")}
-            placeholder="Digite a cidade"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="empresa-estado">Estado</Label>
-          <Input
-            id="empresa-estado"
-            {...empresaForm.register("estado")}
-            placeholder="Digite o estado"
-          />
+        {/* Skeleton para botões */}
+        <div className="flex justify-end gap-2 pt-4">
+          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-10 w-24" />
         </div>
       </div>
-    </form>
+    );
+  }
+
+  return (
+    <Form {...empresaForm}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSave();
+        }}
+        className="w-full space-y-4"
+      >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5 lg:gap-5">
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="nome"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome da Empresa</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nome da Empresa" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+            <FormField
+              control={empresaForm.control}
+              name="razaoSocial"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Razão Social</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Razão Social" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="cnpj"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CNPJ</FormLabel>
+                  <FormControl>
+                    <InputCnpj {...field} placeholder="00.000.000/0000-00" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>E-mail</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="E-mail" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+            <FormField
+              control={empresaForm.control}
+              name="telefone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Telefone" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="cep"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-our-text-gray font-bold">CEP</FormLabel>
+                  <FormControl>
+                    <InputWithSearch
+                      onSearch={(value) => searchZipCode(value?.toString() || "")}
+                      searching={zipCodeLoading}
+                      placeholder="CEP"
+                      {...field}
+                      onChange={(e) => {
+                        const formattedValue = formatCEPCodeNumber(e.target.value);
+                        field.onChange(formattedValue);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="cidade"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cidade</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Cidade" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+            <FormField
+              control={empresaForm.control}
+              name="estado"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>UF</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="UF"
+                      maxLength={2}
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+                        field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="rua"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rua</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Rua" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="bairro"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bairro</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Bairro" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+            <FormField
+              control={empresaForm.control}
+              name="numero"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Numero</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Numero" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="col-span-1 sm:col-span-1 lg:col-span-2">
+            <FormField
+              control={empresaForm.control}
+              name="complemento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Complemento</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Complemento" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            loading={saving}
+            className="min-w-[100px]"
+          >
+            Salvar
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };

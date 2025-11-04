@@ -3,7 +3,11 @@ import { EmpresaTab } from "./tabs/empresa";
 import { ContratoTab } from "./tabs/contrato";
 import { TemaTab } from "./tabs/tema";
 
-export const MountTabs = () => {
+interface MountTabsProps {
+  onClose?: () => void;
+}
+
+export const MountTabs = ({ onClose }: MountTabsProps) => {
   const style = "text-[24px] text-disabled data-[selected=true]:text-primary-500";
 
   const tabs = {
@@ -31,12 +35,12 @@ export const MountTabs = () => {
       {
         name: "empresa",
         forceMount: true,
-        render: <EmpresaTab />,
+        render: <EmpresaTab onClose={onClose} />,
       },
       {
         name: "contrato",
         forceMount: true,
-        render: <ContratoTab />,
+        render: <ContratoTab onClose={onClose} />,
       },
       {
         name: "tema",

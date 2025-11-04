@@ -32,6 +32,8 @@ export default function Page() {
     handleViewOrcamento,
     handleEdit,
     handleShowDelete,
+    showEditModal,
+    setShowEditModal,
   } = usePage();
 
   return (
@@ -91,6 +93,19 @@ export default function Page() {
         />
       ) : null}
 
+      {showEditModal ? (
+        <OrcamentoModal
+          open={showEditModal}
+          onOpenChange={(value: boolean) => {
+            setShowEditModal(value);
+            setOrcamento({} as Orcamento);
+          }}
+          mode="edit"
+          data={orcamento}
+          onSuccess={afterSubmit}
+        />
+      ) : null}
+
       {showState.showViewModal ? (
         <ViewItemsModal
           open={showState.showViewModal}
@@ -98,7 +113,7 @@ export default function Page() {
             changeShowState("showViewModal", value);
             setOrcamento({} as Orcamento);
           }}
-          orcamento={orcamento}
+          orcamentoId={orcamento?.id}
         />
       ) : null}
     </>

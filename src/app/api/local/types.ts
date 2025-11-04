@@ -12,7 +12,7 @@ export type Local = {
   estado?: string;
   cep?: string;
   telefone?: string;
-  empresaId: number;
+  empresaId?: number;
 };
 
 export const localSchema = z.object({

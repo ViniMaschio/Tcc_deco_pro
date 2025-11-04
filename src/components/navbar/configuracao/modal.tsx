@@ -1,21 +1,16 @@
 "use client";
 
-import { Loader2, Building2, FileText, Palette } from "lucide-react";
+import { Building2, FileText, Palette } from "lucide-react";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useConfiguracoes } from "@/components/navbar/configuracao/use-modal";
-import { TemaTab } from "./tabs/tema";
-import { EmpresaTab } from "./tabs/empresa";
-import { ContratoTab } from "./tabs/contrato";
 import { twMerge } from "tailwind-merge";
 import { MountTabs } from "./tabs";
 import { ConfiguracoesTabs } from "./types";
@@ -26,20 +21,14 @@ interface ConfiguracoesModalProps {
 }
 
 export const ConfiguracoesModal = ({ open, changeOpen }: ConfiguracoesModalProps) => {
-  const {
-    configuracoes,
-    showState,
-    activeTab,
-    setActiveTab,
-    handleChangeConfiguracao,
-    handleSaveConfiguracoes,
-  } = useConfiguracoes();
+  const { configuracoes, activeTab, setActiveTab, handleChangeConfiguracao } =
+    useConfiguracoes(open);
 
   const handleCloseModal = () => {
     changeOpen(false);
   };
 
-  const { tabs } = MountTabs();
+  const { tabs } = MountTabs({ onClose: handleCloseModal });
 
   return (
     <Dialog open={open} onOpenChange={handleCloseModal}>
@@ -85,26 +74,6 @@ export const ConfiguracoesModal = ({ open, changeOpen }: ConfiguracoesModalProps
             ))}
           </div>
         </Tabs>
-
-        <DialogFooter className="flex gap-2">
-          <Button variant="outline" onClick={handleCloseModal} disabled={showState.saving}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveConfiguracoes}
-            disabled={showState.saving}
-            className="min-w-[100px]"
-          >
-            {showState.saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              "Salvar"
-            )}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

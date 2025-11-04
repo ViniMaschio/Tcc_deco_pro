@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 import {
   ConfiguracoesUsuario,
-  ConfiguracoesState,
   ConfiguracoesTabs,
+  empresaSchema,
 } from "@/components/navbar/configuracao/types";
+import { obterEmpresa } from "@/actions/empresa";
 
-export const useConfiguracoes = () => {
+export const useConfiguracoes = (open?: boolean) => {
   const { data: session, update } = useSession();
   const [configuracoes, setConfiguracoes] = useState<ConfiguracoesUsuario>({
     tema: "system",
@@ -26,10 +28,15 @@ export const useConfiguracoes = () => {
       mostrarTelefone: false,
     },
     empresa: {
-      nome: session?.user?.name || "",
-      email: session?.user?.email || "",
+      nome: "",
+      razaoSocial: "",
+      email: "",
       telefone: "",
-      endereco: "",
+      cnpj: "",
+      rua: "",
+      numero: "",
+      complemento: "",
+      bairro: "",
       cidade: "",
       estado: "",
       cep: "",
@@ -39,26 +46,61 @@ export const useConfiguracoes = () => {
       valorBase: 0,
       prazoEntrega: 30,
       descontoMaximo: 0,
-      termos: "",
       observacoes: "",
       clausulas: [],
     },
   });
 
-  const [showState, setShowState] = useState<ConfiguracoesState>({
-    loading: false,
-    saving: false,
+  const [activeTab, setActiveTab] = useState<ConfiguracoesTabs>("empresa");
+
+  const getEmpresa = async () => {
+    if (!session?.user?.id) {
+      throw new Error("Sessão não encontrada");
+    }
+
+    const empresaId = Number(session.user.id);
+    const resultado = await obterEmpresa(empresaId);
+
+    if (!resultado.ok || !resultado.data) {
+      throw new Error(resultado.error || "Erro ao carregar dados da empresa");
+    }
+
+    return resultado.data;
+  };
+
+  const {
+    data: empresaData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ["empresa", session?.user?.id],
+    queryFn: getEmpresa,
+    enabled: !!open && !!session?.user?.id,
   });
 
-  const [activeTab, setActiveTab] = useState<ConfiguracoesTabs>("tema");
-
-  // Funções de mudança de estado
-  const changeShowState = (name: keyof ConfiguracoesState, value: boolean) => {
-    setShowState((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // Atualizar configurações quando os dados da empresa forem carregados
+  useEffect(() => {
+    if (empresaData) {
+      setConfiguracoes((prev) => ({
+        ...prev,
+        empresa: {
+          nome: empresaData.nome || "",
+          razaoSocial: empresaData.razaoSocial || "",
+          email: empresaData.email || "",
+          telefone: empresaData.telefone || "",
+          cnpj: empresaData.cnpj || "",
+          rua: empresaData.rua || "",
+          numero: empresaData.numero || "",
+          complemento: empresaData.complemento || "",
+          bairro: empresaData.bairro || "",
+          cidade: empresaData.cidade || "",
+          estado: empresaData.estado || "",
+          cep: empresaData.cep || "",
+        },
+      }));
+    }
+  }, [empresaData]);
 
   const handleChangeConfiguracao = (path: string, value: any) => {
     setConfiguracoes((prev) => {
@@ -75,40 +117,89 @@ export const useConfiguracoes = () => {
     });
   };
 
+  const handleSaveEmpresa = async () => {
+    if (!session?.user?.id) {
+      throw new Error("Sessão não encontrada!");
+    }
+
+    const empresaId = Number(session.user.id);
+    const empresaData = configuracoes.empresa;
+
+    // Validar dados da empresa antes de salvar
+    const validationResult = empresaSchema.safeParse(empresaData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0];
+      throw new Error(firstError?.message || "Dados inválidos. Verifique os campos.");
+    }
+
+    // Atualizar dados da empresa no banco via API
+    const response = await fetch(`/api/empresa/${empresaId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome: empresaData.nome,
+        email: empresaData.email,
+        telefone: empresaData.telefone,
+        cnpj: empresaData.cnpj,
+        rua: empresaData.rua,
+        numero: empresaData.numero,
+        complemento: empresaData.complemento || null,
+        bairro: empresaData.bairro,
+        cidade: empresaData.cidade,
+        cep: empresaData.cep,
+        estado: empresaData.estado,
+        razaoSocial: empresaData.razaoSocial,
+      }),
+    });
+
+    const resultado = await response.json();
+
+    if (!response.ok) {
+      const errorMessage =
+        resultado.message || resultado.errors?.[0]?.message || "Erro ao salvar dados da empresa!";
+      throw new Error(errorMessage);
+    }
+
+    // Atualizar sessão se necessário
+    if (resultado.empresa?.nome && resultado.empresa.nome !== session?.user?.name) {
+      await update({
+        ...session,
+        user: {
+          ...session?.user,
+          name: resultado.empresa.nome,
+        },
+      });
+    }
+
+    toast.success("Configurações salvas com sucesso!", {
+      position: "top-center",
+    });
+
+    refetch();
+  };
+
+  const { mutateAsync: saveEmpresa, isPending: isSavingEmpresa } = useMutation({
+    mutationFn: handleSaveEmpresa,
+    mutationKey: ["saveEmpresa"],
+  });
+
   const handleSaveConfiguracoes = async () => {
     try {
-      changeShowState("saving", true);
-
-      // Simular salvamento das configurações
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Atualizar sessão se necessário
-      if (configuracoes.empresa.nome !== session?.user?.name) {
-        await update({
-          ...session,
-          user: {
-            ...session?.user,
-            name: configuracoes.empresa.nome,
-          },
-        });
-      }
-
-      toast.success("Configurações salvas com sucesso!");
+      await saveEmpresa();
     } catch (error) {
       console.error("Erro ao salvar configurações:", error);
-      toast.error("Erro ao salvar configurações!");
-    } finally {
-      changeShowState("saving", false);
     }
   };
 
   return {
     configuracoes,
-    showState,
     activeTab,
     setActiveTab,
-    changeShowState,
     handleChangeConfiguracao,
     handleSaveConfiguracoes,
+    isLoading: isLoading || isFetching,
+    isSaving: isSavingEmpresa,
   };
 };

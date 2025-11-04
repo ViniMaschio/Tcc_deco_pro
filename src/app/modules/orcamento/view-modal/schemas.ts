@@ -5,6 +5,7 @@ export const empresaCreateSchema = z.object({
   email: z.email(),
   senha: z.string().min(6),
   cnpj: z.string().min(14).max(18),
+  razaoSocial: z.string().optional(),
   rua: z.string().optional(),
   numero: z.string().optional(),
   complemento: z.string().optional().nullable(),
