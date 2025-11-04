@@ -16,7 +16,6 @@ export const useContrato = () => {
   const contratoForm = useForm<ContratoData>({
     resolver: zodResolver(contratoSchema),
     defaultValues: {
-      titulo: "Contrato de Prestação de Serviços",
       observacoes: "",
       clausulas: [],
     },
@@ -175,7 +174,6 @@ export const useContrato = () => {
 
       setClausulas(clausulasCarregadas);
       contratoForm.reset({
-        titulo: configuracoes.contrato?.titulo || "Contrato de Prestação de Serviços",
         observacoes: configuracoes.contrato?.observacoes || "",
         clausulas: clausulasCarregadas,
       });
@@ -192,7 +190,6 @@ export const useContrato = () => {
       if (novasClausulas.length > 0) {
         setClausulas(novasClausulas);
         contratoForm.reset({
-          titulo: configuracoes.contrato.titulo || "Contrato de Prestação de Serviços",
           observacoes: configuracoes.contrato.observacoes || "",
           clausulas: novasClausulas,
         });

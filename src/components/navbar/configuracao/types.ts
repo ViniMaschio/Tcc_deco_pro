@@ -28,7 +28,6 @@ export type ConfiguracoesUsuario = {
     cep?: string;
   };
   contrato: {
-    titulo: string;
     observacoes?: string;
     clausulas: Clausula[];
   };
@@ -106,7 +105,6 @@ export const clausulaSchema = z.object({
 });
 
 export const contratoSchema = z.object({
-  titulo: z.string().min(1, "Título do contrato é obrigatório"),
   observacoes: z.string().optional(),
   clausulas: z.array(clausulaSchema),
 });

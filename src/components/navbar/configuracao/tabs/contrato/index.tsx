@@ -64,21 +64,6 @@ export const ContratoTab = ({ onClose }: ContratoTabProps) => {
       className="space-y-6"
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="contrato-titulo">Título do Contrato</Label>
-          <Input
-            id="contrato-titulo"
-            {...contratoForm.register("titulo")}
-            placeholder="Ex: Contrato de Prestação de Serviços"
-            disabled={isSaving}
-          />
-          {contratoForm.formState.errors.titulo && (
-            <p className="text-sm text-red-500">{contratoForm.formState.errors.titulo.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Cláusulas do Contrato</h3>
           <Button

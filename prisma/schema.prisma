@@ -305,27 +305,28 @@ model LocalEvento {
 }
 
 model Orcamento {
-  id             Int             @id @default(autoincrement())
-  uuid           String          @unique @db.Uuid
-  empresaId      Int
-  clienteId      Int
-  categoriaId    Int?
-  localId        Int?
-  dataEvento     DateTime?
-  status         StatusOrcamento @default(RASCUNHO)
-  desconto       Int?
-  total          Int
-  observacao     String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime
-  deleted_at     DateTime?
-  deleted        Boolean         @default(false)
-  Contrato       Contrato?
-  CategoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
-  Cliente        Cliente         @relation(fields: [clienteId], references: [id])
-  Empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  LocalEvento    LocalEvento?    @relation(fields: [localId], references: [id])
-  OrcamentoItem  OrcamentoItem[]
+  id          Int             @id @default(autoincrement())
+  uuid        String          @unique @db.Uuid
+  empresaId   Int
+  clienteId   Int
+  categoriaId Int?
+  localId     Int?
+  dataEvento  DateTime?
+  status      StatusOrcamento @default(RASCUNHO)
+  desconto    Int?
+  total       Int
+  observacao  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?       @map("deleted_at")
+  deleted     Boolean         @default(false)
+
+  empresa        Empresa         @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  cliente        Cliente         @relation(fields: [clienteId], references: [id], onDelete: Restrict)
+  local          LocalEvento?    @relation(fields: [localId], references: [id], onDelete: SetNull)
+  itens          OrcamentoItem[]
+  contrato       Contrato?
+  categoriaFesta CategoriaFesta? @relation(fields: [categoriaId], references: [id])
 }
 
 model OrcamentoItem {

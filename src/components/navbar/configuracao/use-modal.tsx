@@ -43,7 +43,6 @@ export const useConfiguracoes = (open?: boolean) => {
       cep: "",
     },
     contrato: {
-      titulo: "Contrato de Prestação de Serviços",
       observacoes: "",
       clausulas: [],
     },
