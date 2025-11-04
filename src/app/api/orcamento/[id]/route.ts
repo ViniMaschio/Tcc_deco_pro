@@ -20,7 +20,19 @@ export async function obterOrcamento(orcamentoId: number) {
       },
       include: {
         cliente: {
-          select: { id: true, nome: true, telefone: true, email: true },
+          select: {
+            id: true,
+            nome: true,
+            telefone: true,
+            email: true,
+            cpf: true,
+            rua: true,
+            numero: true,
+            bairro: true,
+            cidade: true,
+            estado: true,
+            cep: true,
+          },
         },
         local: {
           select: { id: true, descricao: true },

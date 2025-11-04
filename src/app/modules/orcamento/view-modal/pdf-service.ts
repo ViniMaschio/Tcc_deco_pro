@@ -21,7 +21,6 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
 
     const empresa = empresaResult.data;
 
-    //const pdf = new jsPDF("p", "mm", "a4");
     let pdf = new jsPDF({
       unit: "mm",
       format: "a4",
@@ -32,6 +31,14 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
 
     const primaryColor = "#000000";
     const lightGray = "#F5F5F5";
+
+    const logoBase64 = "data:image/png;base64,iVBORw0K...";
+
+    const logoX = 10;
+    const logoY = 10;
+    const logoWidth = 30;
+    const logoHeight = 30;
+    //pdf.addImage(logoBase64, "PNG", logoX, logoY, logoWidth, logoHeight);
 
     autoTable(pdf, {
       body: [
@@ -55,13 +62,16 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
 
       theme: "grid",
       styles: {
+        fontSize: 12,
         fillColor: [255, 255, 255],
         textColor: [0, 0, 0],
-        cellPadding: 1,
+        cellPadding: 0.3,
         valign: "middle",
         overflow: "linebreak",
-        lineWidth: 0.1,
+        lineWidth: 0,
       },
+      margin: { top: 10, left: 45 },
+      startY: 10,
       // footStyles: { fillColor: [211, 211, 211], textColor: [64, 64, 64], fontSize: 9 },
       // headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontSize: 12 },
     });
@@ -85,52 +95,167 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
       startY: (pdf as any).lastAutoTable?.finalY + 10,
     });
 
-    // === DADOS DO CLIENTE ===
-    const clienteInfo = [
-      `Cliente: ${orcamento.cliente?.nome || "Não informado"}`,
-      orcamento.cliente?.telefone ? `Telefone: ${orcamento.cliente.telefone}` : null,
-      orcamento.cliente?.email ? `Email: ${orcamento.cliente.email}` : null,
-      orcamento.local ? `Local: ${orcamento.local.descricao}` : null,
-      orcamento.categoriaFesta ? `Categoria: ${orcamento.categoriaFesta.descricao}` : null,
-      orcamento.dataEvento
-        ? `Data do Evento: ${format(new Date(orcamento.dataEvento), "dd/MM/yyyy", { locale: ptBR })}`
-        : null,
-    ].filter(Boolean);
-
-    const clienteStartY = (pdf as any).lastAutoTable.finalY + 10;
+    autoTable(pdf, {
+      head: [
+        [{ content: "Dados do Cliente", colSpan: 3, styles: { halign: "center", fontSize: 14 } }],
+      ],
+      body: [
+        [
+          { content: `Nome: ${orcamento.cliente?.nome}`, colSpan: 2 },
+          { content: `CPF: ${orcamento.cliente?.cpf ?? ""}`, colSpan: 1 },
+        ],
+        [
+          { content: `Telefone: ${orcamento.cliente?.telefone ?? ""}`, colSpan: 1 },
+          { content: `Email: ${orcamento.cliente?.email ?? ""}`, colSpan: 2 },
+        ],
+        [
+          { content: `Rua: ${orcamento.cliente?.rua ?? ""}`, colSpan: 1 },
+          { content: `Numero: ${orcamento.cliente?.numero ?? ""}`, colSpan: 1 },
+          { content: `Bairro: ${orcamento.cliente?.bairro ?? ""}`, colSpan: 1 },
+        ],
+        [
+          { content: `Cidade: ${orcamento.cliente?.cidade ?? ""}`, colSpan: 1 },
+          { content: `Estado: ${orcamento.cliente?.estado ?? ""}`, colSpan: 1 },
+          { content: `CEP: ${orcamento.cliente?.cep ?? ""}`, colSpan: 1 },
+        ],
+      ],
+      startY: (pdf as any).lastAutoTable.finalY + 5,
+      theme: "grid",
+      styles: {
+        fontSize: 12,
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        cellPadding: 0.3,
+        valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+      },
+      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
+    });
 
     autoTable(pdf, {
       head: [
-        [{ content: "Dados do Cliente", colSpan: 2, styles: { halign: "center", fontSize: 14 } }],
+        [{ content: "Dados do Evento", colSpan: 2, styles: { halign: "center", fontSize: 14 } }],
       ],
-      body: clienteInfo.map((item) => [item]),
-      startY: clienteStartY,
-      styles: { fontSize: 11, cellPadding: 1.2 },
+      body: [
+        [
+          { content: `Local: ${orcamento.local?.descricao ?? ""}`, colSpan: 1 },
+          { content: `Categoria Festa: ${orcamento.categoriaFesta?.descricao ?? ""}`, colSpan: 1 },
+        ],
+        [
+          {
+            content: `Data do Evento: ${orcamento.dataEvento}`,
+            colSpan: 2,
+          },
+        ],
+      ],
+      startY: (pdf as any).lastAutoTable.finalY + 5,
+      theme: "grid",
+      styles: {
+        fontSize: 12,
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        cellPadding: 0.3,
+        valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+      },
       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
     });
 
     // === TABELA DE ITENS ===
+
+    const produtos: any[] = [];
+    const servicos: any[] = [];
+    let total = 0;
     if (orcamento.itens && orcamento.itens.length > 0) {
-      const itensStartY = (pdf as any).lastAutoTable.finalY + 10;
-
-      const tableHeaders = ["Item", "Qtd", "Valor Unit.", "Desconto", "Total"];
-      const tableData = orcamento.itens.map((item) => [
-        item.nome || "",
-        item.quantidade || 0,
-        `R$ ${(item.valorUnit || 0).toFixed(2)}`,
-        `${item.desconto ? item.desconto + "%" : "-"}`,
-        `R$ ${(item.valorTotal || 0).toFixed(2)}`,
-      ]);
-
-      autoTable(pdf, {
-        head: [tableHeaders],
-        body: tableData,
-        startY: itensStartY,
-        styles: { fontSize: 10, cellPadding: 1 },
-        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
-        theme: "grid",
+      orcamento.itens.forEach((item) => {
+        total += item.valorTotal;
+        if (item.item?.tipo == "PRO") {
+          produtos.push([
+            item.nome || "",
+            item.quantidade || 0,
+            `R$ ${(item.valorUnit || 0).toFixed(2)}`,
+            `${item.desconto ? item.desconto + "%" : "R$ 0.00"}`,
+            `R$ ${(item.valorTotal || 0).toFixed(2)}`,
+          ]);
+        } else {
+          servicos.push([
+            item.nome || "",
+            item.quantidade || 0,
+            `R$ ${(item.valorUnit || 0).toFixed(2)}`,
+            `${item.desconto ? item.desconto + "%" : "R$ 0.00"}`,
+            `R$ ${(item.valorTotal || 0).toFixed(2)}`,
+          ]);
+        }
       });
     }
+    const columnStyles = {
+      0: { cellWidth: 100, halign: "left" as const },
+      1: { cellWidth: 10, halign: "right" as const },
+      2: { cellWidth: 24, halign: "right" as const },
+      3: { cellWidth: 24, halign: "right" as const },
+      4: { cellWidth: 24, halign: "right" as const },
+    };
+
+    autoTable(pdf, {
+      head: [
+        [
+          {
+            content: "Produtos",
+            colSpan: 5,
+            styles: { halign: "center" },
+          },
+        ],
+        ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
+      ],
+      body: produtos,
+      startY: (pdf as any).lastAutoTable.finalY + 10,
+      styles: {
+        fontSize: 10,
+        cellPadding: 0.3,
+        valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+      },
+      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+      columnStyles,
+      theme: "grid",
+    });
+    autoTable(pdf, {
+      head: [
+        [
+          {
+            content: "Servicos",
+            colSpan: 5,
+            styles: { halign: "center" },
+          },
+        ],
+        ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
+      ],
+      body: servicos,
+      foot: [
+        [
+          {
+            content: `Total Geral: R$ ${total.toFixed(2)}`,
+            colSpan: 5,
+            styles: { halign: "right" },
+          },
+        ],
+      ],
+      startY: (pdf as any).lastAutoTable.finalY,
+      styles: {
+        fontSize: 10,
+        cellPadding: 0.3,
+        valign: "middle",
+        overflow: "linebreak",
+        lineWidth: 0.1,
+      },
+      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+      footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0] },
+      columnStyles,
+      theme: "grid",
+    });
 
     return pdf.output("blob");
   } catch (error) {
