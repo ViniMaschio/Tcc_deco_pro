@@ -27,7 +27,7 @@ export const useContrato = () => {
       throw new Error("Sessão não encontrada");
     }
 
-    const response = await fetch("/api/contrato-template");
+    const response = await fetch("/api/clausulas");
     const data = await response.json();
 
     if (!response.ok) {
@@ -54,7 +54,7 @@ export const useContrato = () => {
       throw new Error("Sessão não encontrada");
     }
 
-    const response = await fetch("/api/contrato-template", {
+    const response = await fetch("/api/clausulas", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
