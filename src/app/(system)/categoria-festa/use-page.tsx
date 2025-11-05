@@ -81,7 +81,7 @@ export const usePage = () => {
   const handleDelete = async () => {
     try {
       await fetch(`/api/categoria-festa/${categoriaFesta.id}`, {
-        method: "DELETE",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
       });
 

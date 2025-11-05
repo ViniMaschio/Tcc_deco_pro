@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -29,17 +30,12 @@ import { CategoriaAutocomplete } from "../../categoria-festa/auto-complete";
 import { ClienteAutocomplete } from "../../cliente/auto-complete";
 import { ItemAutocomplete } from "../../item/auto-complete";
 import { LocalAutocomplete } from "../../local/auto-complete";
-import { OrcamentoModalProps } from "../types";
-import { OrcamentoItensTable } from "./itens-table";
-import { useOrcamentoModal } from "./use-modal";
-import { OrcamentoStatus } from "@/app/api/orcamento/types";
+import { ContratoModalProps } from "../types";
+import { ContratoItensTable } from "./itens-table";
+import { useContratoModal } from "./use-modal";
+import { ContratoStatus } from "@/app/api/contrato/types";
 
-export const OrcamentoModal = ({
-  open,
-  onOpenChange,
-  orcamento,
-  onSuccess,
-}: OrcamentoModalProps) => {
+export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: ContratoModalProps) => {
   const {
     activeTab,
     setActiveTab,
@@ -60,14 +56,14 @@ export const OrcamentoModal = ({
     handleClienteSelect,
     handleLocalSelect,
     handleCategoriaSelect,
-  } = useOrcamentoModal({ orcamento, onSuccess, open });
+  } = useContratoModal({ contrato, onSuccess, open });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[95vh] w-[95vw] max-w-[95vw] flex-col justify-between overflow-hidden sm:max-h-[90vh] sm:w-[90vw] sm:max-w-[90vw] md:w-[80vw] md:max-w-[80vw] lg:w-[70vw] lg:max-w-[70vw] xl:w-[60vw] xl:max-w-[60vw]">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-semibold">
-            {orcamento?.id ? "Edição do Orçamento" : "Criação do Orçamento"}
+            {contrato?.id ? "Edição do Contrato" : "Criação do Contrato"}
           </DialogTitle>
           <button
             onClick={() => onOpenChange(false)}
@@ -99,7 +95,7 @@ export const OrcamentoModal = ({
               </TabsTrigger>
               <TabsTrigger value="itens" className="flex items-center gap-2 text-xs sm:text-sm">
                 <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Itens do Orçamento</span>
+                <span className="hidden sm:inline">Itens do Contrato</span>
                 <span className="sm:hidden">Itens</span>
               </TabsTrigger>
             </TabsList>
@@ -113,7 +109,7 @@ export const OrcamentoModal = ({
                       onSelect={handleClienteSelect}
                       cliente={clienteSelecionado}
                       placeholder="Buscar cliente..."
-                      disabled={!!orcamento?.id}
+                      disabled={!!contrato?.id}
                     />
                     {form.formState.errors.clienteId && (
                       <p className="text-sm text-red-600">
@@ -124,7 +120,7 @@ export const OrcamentoModal = ({
 
                   <div className="w-full gap-2 md:flex">
                     <div className="w-full space-y-2">
-                      <Label htmlFor="dataEvento">Data do Evento</Label>
+                      <Label htmlFor="dataEvento">Data do Evento *</Label>
                       <DatePicker
                         value={
                           form.watch("dataEvento")
@@ -140,37 +136,54 @@ export const OrcamentoModal = ({
                           }
                         }}
                       />
+                      {form.formState.errors.dataEvento && (
+                        <p className="text-sm text-red-600">
+                          {form.formState.errors.dataEvento.message}
+                        </p>
+                      )}
                     </div>
 
                     <div className="w-full space-y-2">
-                      <Label htmlFor="status">Status</Label>
-                      <Controller
-                        control={form.control}
-                        name="status"
-                        defaultValue={(orcamento?.status as OrcamentoStatus) || "RASCUNHO"}
-                        render={({ field }) => (
-                          <Select
-                            value={(field.value as OrcamentoStatus) || "RASCUNHO"}
-                            onValueChange={(val) => field.onChange(val as OrcamentoStatus)}
-                          >
-                            <SelectTrigger className="min-h-10 w-full justify-between">
-                              <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-                                <CheckCircle className="text-primary h-4 w-4 shrink-0" />
-                                <SelectValue />
-                              </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                              <SelectItem value="ENVIADO">Enviado</SelectItem>
-                              <SelectItem value="APROVADO">Aprovado</SelectItem>
-                              <SelectItem value="REJEITADO">Rejeitado</SelectItem>
-                              <SelectItem value="VENCIDO">Vencido</SelectItem>
-                              <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        )}
+                      <Label htmlFor="horaInicio">Hora de Início *</Label>
+                      <Input
+                        type="time"
+                        value={form.watch("horaInicio")}
+                        onChange={(e) => form.setValue("horaInicio", e.target.value)}
                       />
+                      {form.formState.errors.horaInicio && (
+                        <p className="text-sm text-red-600">
+                          {form.formState.errors.horaInicio.message}
+                        </p>
+                      )}
                     </div>
+                  </div>
+
+                  <div className="w-full space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Controller
+                      control={form.control}
+                      name="status"
+                      defaultValue={(contrato?.status as ContratoStatus) || "RASCUNHO"}
+                      render={({ field }) => (
+                        <Select
+                          value={(field.value as ContratoStatus) || "RASCUNHO"}
+                          onValueChange={(val) => field.onChange(val as ContratoStatus)}
+                        >
+                          <SelectTrigger className="min-h-10 w-full justify-between">
+                            <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
+                              <CheckCircle className="text-primary h-4 w-4 shrink-0" />
+                              <SelectValue />
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="RASCUNHO">Rascunho</SelectItem>
+                            <SelectItem value="ATIVO">Ativo</SelectItem>
+                            <SelectItem value="CONCLUIDO">Concluído</SelectItem>
+                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -207,7 +220,7 @@ export const OrcamentoModal = ({
             <TabsContent value="itens" className="flex-1 space-y-4 overflow-auto">
               <div className="space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="text-lg font-medium">Itens do Orçamento</h3>
+                  <h3 className="text-lg font-medium">Itens do Contrato</h3>
                 </div>
 
                 <div className="">
@@ -220,7 +233,7 @@ export const OrcamentoModal = ({
                 </div>
               </div>
 
-              <OrcamentoItensTable
+              <ContratoItensTable
                 itens={itens}
                 onUpdateItem={updateItem}
                 onRemoveItem={removeItem}
@@ -229,7 +242,7 @@ export const OrcamentoModal = ({
               <div className="flex justify-end">
                 <div className="text-right">
                   <div className="text-lg font-semibold">
-                    Total do Orçamento:{" "}
+                    Total do Contrato:{" "}
                     {new Intl.NumberFormat("pt-BR", {
                       style: "currency",
                       currency: "BRL",
@@ -255,7 +268,7 @@ export const OrcamentoModal = ({
           >
             Cancelar
           </Button>
-          {!orcamento?.id && (
+          {!contrato?.id && (
             <Button
               onClick={() => {
                 if (activeTab === "dados-gerais") {
@@ -271,7 +284,7 @@ export const OrcamentoModal = ({
               {activeTab === "dados-gerais" ? "Avançar" : "Salvar"}
             </Button>
           )}
-          {orcamento?.id && (
+          {contrato?.id && (
             <Button
               onClick={() => form.handleSubmit(onSubmit)()}
               disabled={isSubmitting}

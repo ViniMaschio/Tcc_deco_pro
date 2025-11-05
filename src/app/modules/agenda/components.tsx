@@ -1,27 +1,15 @@
 "use client";
 
 import { IconButton } from "@radix-ui/themes";
-import { ChevronLeft, ChevronRight, Info, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMemo } from "react";
 
-import type {
-  CalendarDayCell,
-  CalendarEvent,
-  CalendarLocale,
-  CalendarProps,
-} from "./types";
+import type { CalendarDayCell, CalendarEvent, CalendarLocale, CalendarProps } from "./types";
+import { CalendarLegend } from "./legend";
 
 const PT_BR_LOCALE: CalendarLocale = {
   weekStart: 0,
-  weekdaysShort: [
-    "Domingo",
-    "Segunda",
-    "Terça",
-    "Quarta",
-    "Quinta",
-    "Sexta",
-    "Sábado",
-  ],
+  weekdaysShort: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"],
   months: [
     "janeiro",
     "fevereiro",
@@ -55,17 +43,13 @@ function endOfMonth(date: Date): Date {
 }
 
 function addMonths(date: Date, count: number): Date {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth() + count,
-    Math.min(date.getDate(), 28),
-  );
+  return new Date(date.getFullYear(), date.getMonth() + count, Math.min(date.getDate(), 28));
 }
 
 function buildMonthGrid(
   date: Date,
   events: CalendarEvent[],
-  locale: CalendarLocale,
+  locale: CalendarLocale
 ): CalendarDayCell[] {
   const firstDay = startOfMonth(date);
   const lastDay = endOfMonth(date);
@@ -130,11 +114,12 @@ export function Calendar({
   locale = PT_BR_LOCALE,
   onDateChange,
   onSelectEvent,
+  onSelectDay,
 }: CalendarProps) {
   const currentDate = useMemo(() => date ?? new Date(), [date]);
   const cells = useMemo(
     () => buildMonthGrid(currentDate, events, locale),
-    [currentDate, events, locale],
+    [currentDate, events, locale]
   );
   const headerMonth = `${locale.months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -162,18 +147,10 @@ export function Calendar({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            className="cursor-pointer rounded-md border p-2"
-            aria-label="Novo evento"
-          >
+          {/* <button className="cursor-pointer rounded-md border p-2" aria-label="Novo evento">
             <Plus size={18} />
-          </button>
-          <button
-            className="cursor-pointer rounded-md border p-2"
-            aria-label="Ajuda"
-          >
-            <Info size={18} />
-          </button>
+          </button> */}
+          <CalendarLegend />
         </div>
       </div>
 
@@ -195,28 +172,29 @@ export function Calendar({
                 (cell.isCurrentMonth
                   ? " bg-white"
                   : " border-transparent bg-transparent text-gray-400") +
-                (cell.isToday && "border-b-[20px] border-b-blue-500")
+                (cell.isToday && "border-b-20 border-b-blue-500") +
+                (onSelectDay ? " cursor-pointer" : "")
               }
+              onClick={() => onSelectDay?.(cell.date)}
             >
               <div className="py-2 text-sm font-semibold">
                 {cell.date.getDate().toString().padStart(2, "0")}
               </div>
-              {/* <div className="flex flex-wrap gap-1">
-                  {cell.events?.slice(0, 3).map((ev) => (
-                    <button
+              {cell.events && cell.events.length > 0 && (
+                <div className="mt-2 flex flex-wrap justify-center gap-1">
+                  {cell.events.slice(0, 3).map((ev) => (
+                    <div
                       key={ev.id}
-                      className="h-1.5 w-1.5 rounded-full"
+                      className="h-2 w-2 rounded-full"
                       style={{ backgroundColor: ev.color ?? "#6b7280" }}
-                      onClick={() => onSelectEvent?.(ev)}
-                      aria-label={ev.title}
+                      title={ev.title}
                     />
                   ))}
-                  {(cell.events?.length ?? 0) > 3 && (
-                    <span className="text-[10px] text-gray-500">
-                      +{(cell.events?.length ?? 0) - 3}
-                    </span>
+                  {cell.events.length > 3 && (
+                    <span className="text-[10px] text-gray-500">+{cell.events.length - 3}</span>
                   )}
-                </div> */}
+                </div>
+              )}
             </li>
           ))}
         </ul>

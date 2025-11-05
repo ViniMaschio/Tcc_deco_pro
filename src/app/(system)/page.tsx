@@ -1,5 +1,6 @@
-"use server";
+"use client";
 
+import { useSession } from "next-auth/react";
 import {
   MdAttachMoney,
   MdCalendarToday,
@@ -9,74 +10,71 @@ import {
   MdPeople,
 } from "react-icons/md";
 
-import { auth } from "@/lib/auth-server";
+import { usePage } from "./use-page";
 
-export default async function Home() {
-  const session = await auth();
+export default function Home() {
+  const { data: session } = useSession();
+  const { data, isLoading } = usePage();
 
-  const metrics = [
-    {
-      title: "Clientes",
-      value: "+2,350",
-      change: "+12% este mês",
-      icon: <MdPeople size={24} />,
-      color: "text-blue-600",
-    },
-    {
-      title: "Contratos Ativos",
-      value: "123",
-      change: "3 eventos esta semana",
-      icon: <MdDescription size={24} />,
-      color: "text-green-600",
-    },
-    {
-      title: "Receita Mensal",
-      value: "R$45,231.89",
-      change: "+8% vs mês anterior",
-      icon: <MdAttachMoney size={24} />,
-      color: "text-purple-600",
-    },
-    {
-      title: "Contas Pendentes",
-      value: "5",
-      change: "Próximos 7 dias",
-      icon: <MdInfo size={24} />,
-      color: "text-orange-600",
-    },
-  ];
+  const metrics = data
+    ? [
+        {
+          title: "Clientes",
+          value: data.metrics.clientes.total.toLocaleString("pt-BR"),
+          change: data.metrics.clientes.variacao,
+          icon: <MdPeople size={24} />,
+          color: "text-blue-600",
+        },
+        {
+          title: "Contratos Ativos",
+          value: data.metrics.contratosAtivos.total.toString(),
+          change: data.metrics.contratosAtivos.label,
+          icon: <MdDescription size={24} />,
+          color: "text-green-600",
+        },
+        {
+          title: "Receita Mensal",
+          value: data.metrics.receita.valor,
+          change: data.metrics.receita.variacao,
+          icon: <MdAttachMoney size={24} />,
+          color: "text-purple-600",
+        },
+        {
+          title: "Contas Pendentes",
+          value: data.metrics.contasPendentes.total.toString(),
+          change: data.metrics.contasPendentes.label,
+          icon: <MdInfo size={24} />,
+          color: "text-orange-600",
+        },
+      ]
+    : [];
 
-  const orcamentos = [
-    {
-      cliente: "Maria Silva",
-      valor: "R$ 3.500",
-      status: "ENVIADO",
-    },
-    {
-      cliente: "João Santos",
-      valor: "R$ 7.200",
-      status: "ENVIADO",
-    },
-  ];
+  const orcamentos = data?.orcamentos || [];
+  const eventos = data?.eventos || [];
+  const cards = data
+    ? [
+        { title: "Itens", value: data.cards.itens.toString() },
+        { title: "Locais", value: data.cards.locais.toString() },
+        { title: "Fornecedores", value: data.cards.fornecedores.toString() },
+        {
+          title: "Orçamentos Pendentes",
+          value: data.cards.orcamentosPendentes.toString(),
+        },
+      ]
+    : [];
 
-  const eventos = [
-    {
-      titulo: "Casamento - Maria & João",
-      local: "Clube Recreativo",
-      data: "24/08/2024",
-    },
-    {
-      titulo: "Aniversário - Empresa XYZ",
-      local: "Salão de Festas",
-      data: "27/08/2024",
-    },
-  ];
-
-  const cards = [
-    { title: "Itens", value: "289" },
-    { title: "Locais", value: "18" },
-    { title: "Fornecedores", value: "32" },
-    { title: "Orçamentos Pendentes", value: "8" },
-  ];
+  if (isLoading) {
+    return (
+      <div className="mx-1 mb-2 overflow-auto rounded-b-md bg-white p-6">
+        <div className="flex h-64 items-center justify-center">
+          <div className="text-center">
+            <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+            <p className="text-gray-600">Carregando dados do dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-1 mb-2 overflow-auto rounded-b-md bg-white p-6">
@@ -90,56 +88,67 @@ export default async function Home() {
           </p>
         </div>
 
-        <div className="m-auto flex h-fit max-w-full gap-2 overflow-x-auto rounded-xl bg-gray-200 p-2 text-nowrap xl:m-0">
-          <button className="h-8 w-40 rounded-xl bg-white px-4 text-sm font-medium text-black">
-            Últimos 7 dias
-          </button>
-          <button className="h-8 w-40 rounded-xl px-4 text-sm font-medium text-gray-700 hover:bg-gray-300">
-            Últimos 30 dias
-          </button>
-          <button className="h-8 w-40 rounded-xl px-4 text-sm font-medium text-gray-700 hover:bg-gray-300">
-            Últimos 3 meses
-          </button>
-        </div>
       </div>
 
       {/* Métricas Principais */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {metrics.map((metric, index) => (
-          <div key={index} className="rounded-lg border bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className={`rounded-lg bg-gray-100 p-2 ${metric.color}`}>{metric.icon}</div>
+      {metrics.length > 0 && (
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {metrics.map((metric, index) => (
+            <div key={index} className="rounded-lg border bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <div className={`rounded-lg bg-gray-100 p-2 ${metric.color}`}>{metric.icon}</div>
+              </div>
+              <h3 className="mb-1 text-sm font-medium text-gray-600">{metric.title}</h3>
+              <p className="mb-1 text-2xl font-bold text-gray-900">{metric.value}</p>
+              <p className="text-sm text-gray-500">{metric.change}</p>
             </div>
-            <h3 className="mb-1 text-sm font-medium text-gray-600">{metric.title}</h3>
-            <p className="mb-1 text-2xl font-bold text-gray-900">{metric.value}</p>
-            <p className="text-sm text-gray-500">{metric.change}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Seções de Orçamentos e Eventos */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Orçamentos */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Orçamentos</h3>
-            <p className="text-sm text-gray-600">You made 265 sales this month.</p>
+            <h3 className="text-lg font-semibold text-gray-900">Orçamentos Recentes</h3>
+            <p className="text-sm text-gray-600">
+              {orcamentos.length > 0
+                ? `${orcamentos.length} orçamentos encontrados`
+                : "Nenhum orçamento encontrado"}
+            </p>
           </div>
           <div className="space-y-3">
-            {orcamentos.map((orcamento, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{orcamento.cliente}</p>
-                  <p className="text-sm text-gray-600">{orcamento.valor}</p>
+            {orcamentos.length > 0 ? (
+              orcamentos.map((orcamento) => (
+                <div
+                  key={orcamento.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{orcamento.cliente}</p>
+                    <p className="text-sm text-gray-600">{orcamento.valor}</p>
+                  </div>
+                  <span
+                    className={`rounded px-3 py-1 text-xs font-medium text-white ${
+                      orcamento.status === "APROVADO"
+                        ? "bg-green-600"
+                        : orcamento.status === "ENVIADO"
+                          ? "bg-blue-600"
+                          : orcamento.status === "REJEITADO"
+                            ? "bg-red-600"
+                            : "bg-gray-600"
+                    }`}
+                  >
+                    {orcamento.status}
+                  </span>
                 </div>
-                <button className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white">
-                  {orcamento.status}
-                </button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="py-4 text-center text-sm text-gray-500">
+                Nenhum orçamento recente
+              </p>
+            )}
           </div>
         </div>
 
@@ -150,40 +159,48 @@ export default async function Home() {
             <p className="text-sm text-gray-600">Eventos agendados para os próximos dias</p>
           </div>
           <div className="space-y-3">
-            {eventos.map((evento, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <MdCalendarToday size={20} className="text-blue-600" />
-                  <div>
-                    <p className="font-medium text-gray-900">{evento.titulo}</p>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <MdLocationOn size={14} />
-                      <span>{evento.local}</span>
+            {eventos.length > 0 ? (
+              eventos.map((evento) => (
+                <div
+                  key={evento.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <MdCalendarToday size={20} className="text-blue-600" />
+                    <div>
+                      <p className="font-medium text-gray-900">{evento.titulo}</p>
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <MdLocationOn size={14} />
+                        <span>{evento.local}</span>
+                      </div>
                     </div>
                   </div>
+                  <span className="text-sm font-medium text-gray-700">{evento.data}</span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">{evento.data}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="py-4 text-center text-sm text-gray-500">
+                Nenhum evento próximo
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       {/* Cards Inferiores */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {cards.map((card, index) => (
-          <div key={index} className="rounded-lg border bg-white p-6 text-center shadow-sm">
-            <div className="mb-3 flex justify-center">
-              <MdPeople size={24} className="text-gray-600" />
+      {cards.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {cards.map((card, index) => (
+            <div key={index} className="rounded-lg border bg-white p-6 text-center shadow-sm">
+              <div className="mb-3 flex justify-center">
+                <MdPeople size={24} className="text-gray-600" />
+              </div>
+              <p className="mb-1 text-2xl font-bold text-gray-900">{card.value}</p>
+              <p className="text-sm text-gray-600">{card.title}</p>
             </div>
-            <p className="mb-1 text-2xl font-bold text-gray-900">{card.value}</p>
-            <p className="text-sm text-gray-600">{card.title}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

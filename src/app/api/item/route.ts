@@ -109,16 +109,13 @@ export async function POST(request: NextRequest) {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
     const body = await request.json();
-    console.log("Dados recebidos:", body);
-
     const { nome, descricao, tipo, precoBase } = createItemSchema.parse(body);
-    console.log("Dados validados:", { nome, descricao, tipo, precoBase });
 
     const item = await prisma.item.create({
       data: {

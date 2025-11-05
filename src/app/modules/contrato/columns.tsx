@@ -5,19 +5,19 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Eye, PencilIcon, TrashIcon } from "@phosphor-icons/react";
 
-import { Orcamento, OrcamentoStatus } from "@/app/api/orcamento/types";
+import { Contrato, ContratoStatus } from "@/app/api/contrato/types";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ui/button-action";
 import { twMerge } from "tailwind-merge";
 import { formatCurrency } from "@/utils/currency";
 import { StatusLabelEnum, StatusColorEnum } from "./enum";
 
-export const orcamentoColumns: ColumnDef<Orcamento>[] = [
+export const contratoColumns: ColumnDef<Contrato>[] = [
   {
     accessorKey: "id",
     header: "Doc",
     cell: ({ row }) => {
-      return <span className="font-medium">O{row.getValue("id")}</span>;
+      return <span className="font-medium">C{row.getValue("id")}</span>;
     },
   },
   {
@@ -65,6 +65,18 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     },
   },
   {
+    accessorKey: "horaInicio",
+    header: "Hora Início",
+    cell: ({ row }) => {
+      const horaInicio = row.original.horaInicio;
+      return horaInicio ? (
+        <span>{format(new Date(horaInicio), "HH:mm", { locale: ptBR })}</span>
+      ) : (
+        <span className="text-gray-400">Não informado</span>
+      );
+    },
+  },
+  {
     accessorKey: "total",
     header: "Total",
     cell: ({ row }) => {
@@ -76,7 +88,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     accessorKey: "status",
     header: "Situação",
     cell: ({ row }) => {
-      const status = row.getValue("status") as OrcamentoStatus;
+      const status = row.getValue("status") as ContratoStatus;
       return (
         <Badge className={twMerge("bg-gray-100 font-bold text-gray-800", StatusColorEnum[status])}>
           {StatusLabelEnum[status]}
@@ -88,7 +100,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
     id: "actions",
     header: "Ações",
     cell: ({ row }) => {
-      const orcamento = row.original;
+      const contrato = row.original;
 
       return (
         <div className="flex items-center gap-1">
@@ -97,7 +109,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
             variant="outline"
             tooltip="Visualizar"
             onClick={() => {
-              const event = new CustomEvent("viewOrcamento", { detail: orcamento });
+              const event = new CustomEvent("viewContrato", { detail: contrato });
               window.dispatchEvent(event);
             }}
           >
@@ -108,7 +120,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
             variant="outline"
             tooltip="Editar"
             onClick={() => {
-              const event = new CustomEvent("editOrcamento", { detail: orcamento });
+              const event = new CustomEvent("editContrato", { detail: contrato });
               window.dispatchEvent(event);
             }}
           >
@@ -119,7 +131,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
             variant="outline"
             tooltip="Excluir"
             onClick={() => {
-              const event = new CustomEvent("deleteOrcamento", { detail: orcamento });
+              const event = new CustomEvent("deleteContrato", { detail: contrato });
               window.dispatchEvent(event);
             }}
           >
@@ -131,7 +143,7 @@ export const orcamentoColumns: ColumnDef<Orcamento>[] = [
   },
 ];
 
-export const orcamentoFilterCols = {
+export const contratoFilterCols = {
   search: {
     name: "search",
     sortName: "search",
@@ -148,10 +160,8 @@ export const orcamentoFilterCols = {
     options: [
       { value: "TODOS", label: "Todos os status" },
       { value: "RASCUNHO", label: "Rascunho" },
-      { value: "ENVIADO", label: "Enviado" },
-      { value: "APROVADO", label: "Aprovado" },
-      { value: "REJEITADO", label: "Rejeitado" },
-      { value: "VENCIDO", label: "Vencido" },
+      { value: "ATIVO", label: "Ativo" },
+      { value: "CONCLUIDO", label: "Concluído" },
       { value: "CANCELADO", label: "Cancelado" },
     ],
   },
@@ -164,9 +174,9 @@ export const orcamentoFilterCols = {
   },
 };
 
-type Filters = keyof typeof orcamentoFilterCols;
+type Filters = keyof typeof contratoFilterCols;
 
-export type OrcamentoFilterType = {
+export type ContratoFilterType = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key in Filters]: any;
 } & {

@@ -188,7 +188,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Orçamento não encontrado" }, { status: 404 });
     }
 
-    const updateData: any = { ...validatedData };
+    // Construir objeto de atualização removendo propriedades undefined
+    const updateData: any = {};
+
+    if (validatedData.clienteId !== undefined) {
+      updateData.clienteId = validatedData.clienteId;
+    }
+    if (validatedData.categoriaId !== undefined) {
+      updateData.categoriaId = validatedData.categoriaId;
+    }
+    if (validatedData.localId !== undefined) {
+      updateData.localId = validatedData.localId;
+    }
+    if (validatedData.status !== undefined) {
+      updateData.status = validatedData.status;
+    }
+    if (validatedData.observacao !== undefined) {
+      updateData.observacao = validatedData.observacao;
+    }
 
     // Se dataEvento foi fornecida, converter para Date
     if (validatedData.dataEvento) {
@@ -205,7 +222,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       // Calcular novo total
       let total = 0;
       for (const item of validatedData.itens) {
-        const valorTotal = item.quantidade * item.valorUnit - item.desconto;
+        const valorTotal = item.quantidade * item.valorUnit - (item.desconto || 0);
         total += valorTotal;
       }
 
@@ -215,8 +232,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           itemId: item.itemId,
           quantidade: item.quantidade,
           valorUnit: item.valorUnit,
-          desconto: item.desconto,
-          valorTotal: item.quantidade * item.valorUnit - item.desconto,
+          desconto: item.desconto || 0,
+          valorTotal: item.quantidade * item.valorUnit - (item.desconto || 0),
         })),
       };
     }
@@ -258,39 +275,49 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// DELETAR ORÇAMENTO
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const resolvedParams = await params;
+    const empresaId = parseInt(session.user.id);
+    const id = parseInt(resolvedParams.id);
+
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID inválido" }, { status: 400 });
+    }
+
     const orcamento = await prisma.orcamento.findFirst({
       where: {
-        id: parseInt((await params).id),
-        empresaId: parseInt(session.user.id),
-        deleted: false,
+        id,
+        empresaId,
       },
+      select: { id: true, deleted: true },
     });
 
     if (!orcamento) {
       return NextResponse.json({ error: "Orçamento não encontrado" }, { status: 404 });
     }
 
+    if (orcamento.deleted) {
+      return NextResponse.json({ error: "Orçamento já deletado" }, { status: 400 });
+    }
+
     await prisma.orcamento.update({
-      where: { id: parseInt((await params).id) },
+      where: { id },
       data: {
         deleted: true,
         deletedAt: new Date(),
       },
     });
 
-    return NextResponse.json({ message: "Orçamento excluído com sucesso" });
+    return NextResponse.json({ id }, { status: 200 });
   } catch (error) {
-    console.error("Erro ao excluir orçamento:", error);
+    console.error("PATCH /api/orcamento/:id error:", error);
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

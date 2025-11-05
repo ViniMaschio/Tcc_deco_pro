@@ -2,11 +2,10 @@
 
 import { PlusCircle } from "lucide-react";
 
-import { Orcamento } from "@/app/api/orcamento/types";
-import { orcamentoFilterCols } from "@/app/modules/orcamento/columns";
-import { OrcamentoDataTable } from "@/app/modules/orcamento/data-table";
-import { OrcamentoModal } from "@/app/modules/orcamento/modal";
-import { ViewItemsModal } from "@/app/modules/orcamento/view-modal";
+import { Contrato } from "@/app/api/contrato/types";
+import { contratoFilterCols } from "@/app/modules/contrato/columns";
+import { ContratoDataTable } from "@/app/modules/contrato/data-table";
+import { ContratoModal } from "@/app/modules/contrato/modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
 
@@ -15,21 +14,21 @@ import { usePage } from "./use-page";
 export default function Page() {
   const {
     filters,
-    orcamento,
+    contrato,
     isLoading,
     showState,
     pagination,
     isDeleting,
-    setOrcamento,
-    orcamentoData,
+    setContrato,
+    contratoData,
     afterSubmit,
     columns,
-    removeOrcamento,
+    removeContrato,
     changeShowState,
     changePagination,
     handleClearFilters,
     handleChangeFilters,
-    handleViewOrcamento,
+    handleViewContrato,
     handleEdit,
     handleShowDelete,
   } = usePage();
@@ -44,14 +43,14 @@ export default function Page() {
                 <PageFilter
                   changeFilter={handleChangeFilters}
                   clearFilters={handleClearFilters}
-                  filterCols={orcamentoFilterCols}
+                  filterCols={contratoFilterCols}
                   filters={filters}
                 />
 
                 <IconButton
                   icon={<PlusCircle size={20} />}
                   onClick={() => {
-                    setOrcamento({} as Orcamento);
+                    setContrato({} as Contrato);
                     changeShowState("showModal", true);
                   }}
                   tooltip="Adicionar"
@@ -62,9 +61,9 @@ export default function Page() {
           </div>
         </div>
 
-        <OrcamentoDataTable
+        <ContratoDataTable
           columns={columns}
-          data={orcamentoData || []}
+          data={contratoData || []}
           pagination={pagination}
           setPagination={changePagination}
           changeFilters={handleChangeFilters}
@@ -73,36 +72,25 @@ export default function Page() {
           isLoading={isLoading}
           showState={showState}
           changeShowState={changeShowState}
-          removeOrcamento={removeOrcamento}
+          removeContrato={removeContrato}
           isDeleting={isDeleting}
-          onViewOrcamento={handleViewOrcamento}
-          onEditOrcamento={handleEdit}
-          onDeleteOrcamento={handleShowDelete}
+          onViewContrato={handleViewContrato}
+          onEditContrato={handleEdit}
+          onDeleteContrato={handleShowDelete}
         />
       </div>
 
       {showState.showModal ? (
-        <OrcamentoModal
+        <ContratoModal
           open={showState.showModal}
           onOpenChange={(value: boolean) => {
             changeShowState("showModal", value);
             if (!value) {
-              setOrcamento({} as Orcamento);
+              setContrato({} as Contrato);
             }
           }}
-          orcamento={orcamento?.id ? orcamento : undefined}
+          contrato={contrato?.id ? contrato : undefined}
           onSuccess={afterSubmit}
-        />
-      ) : null}
-
-      {showState.showViewModal ? (
-        <ViewItemsModal
-          open={showState.showViewModal}
-          onOpenChange={(value: boolean) => {
-            changeShowState("showViewModal", value);
-            setOrcamento({} as Orcamento);
-          }}
-          orcamentoId={orcamento?.id}
         />
       ) : null}
     </>

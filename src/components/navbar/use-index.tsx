@@ -35,6 +35,8 @@ export const useNavBar = () => {
         return "Clientes";
       case "/item":
         return "Itens";
+      case "/categoria-festa":
+        return "Categorias de Festa";
       default:
         return "";
     }

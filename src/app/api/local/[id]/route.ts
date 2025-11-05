@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import z from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
@@ -14,30 +14,31 @@ const idParamSchema = z.object({
 });
 
 // ATUALIZAR LOCAL
-export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const parsedId = idParamSchema.safeParse(ctx.params);
+    const resolvedParams = await params;
+    const parsedId = idParamSchema.safeParse(resolvedParams);
     if (!parsedId.success) {
       return NextResponse.json(
-        { local: null, errors: z.treeifyError(parsedId.error) },
+        { error: "ID inválido", details: parsedId.error.issues },
         { status: 400 }
       );
     }
     const { id } = parsedId.data;
 
-    const json = await req.json();
+    const json = await request.json();
     const parsedBody = localSchema.safeParse(json);
     if (!parsedBody.success) {
       return NextResponse.json(
-        { local: null, errors: z.treeifyError(parsedBody.error) },
+        { error: "Dados inválidos", details: parsedBody.error.issues },
         { status: 400 }
       );
     }
@@ -49,7 +50,7 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
     });
 
     if (!exists) {
-      return NextResponse.json({ local: null, message: "Local não encontrado!" }, { status: 404 });
+      return NextResponse.json({ error: "Local não encontrado" }, { status: 404 });
     }
 
     const updated = await db.localEvento.update({
@@ -57,28 +58,26 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
       data,
     });
 
-    return NextResponse.json(
-      { local: updated, message: "Local atualizado com sucesso!" },
-      { status: 200 }
-    );
+    return NextResponse.json(updated, { status: 200 });
   } catch (err) {
     console.error("PUT /api/local/:id error:", err);
-    return NextResponse.json({ local: null, message: "Erro ao atualizar local" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
 // DELETAR LOCAL
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
-      return NextResponse.json({ message: "Usuário não autenticado!" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { id } = await ctx.params; // 👈 e aqui
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const parsedId = idParamSchema.safeParse({ id });
     if (!parsedId.success) {
-      return NextResponse.json({ errors: parsedId.error }, { status: 400 });
+      return NextResponse.json({ error: "ID inválido", details: parsedId.error.issues }, { status: 400 });
     }
 
     const { id: localId } = parsedId.data;
@@ -89,11 +88,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     });
 
     if (!local) {
-      return NextResponse.json({ message: "Local não encontrado!" }, { status: 404 });
+      return NextResponse.json({ error: "Local não encontrado" }, { status: 404 });
     }
 
     if (local.deleted) {
-      return NextResponse.json({ message: "Local já deletado!" }, { status: 200 });
+      return NextResponse.json({ error: "Local já deletado" }, { status: 400 });
     }
 
     await db.localEvento.update({
@@ -101,12 +100,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       data: { deleted: true, deletedAt: new Date() },
     });
 
-    return NextResponse.json(
-      { message: "Local removido com sucesso!", id: localId },
-      { status: 200 }
-    );
+    return NextResponse.json({ id: localId }, { status: 200 });
   } catch (err) {
     console.error("PATCH /api/local/:id error:", err);
-    return NextResponse.json({ message: "Erro ao deletar o Local!" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

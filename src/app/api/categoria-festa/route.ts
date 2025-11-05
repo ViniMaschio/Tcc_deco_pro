@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { ensureEmpresaId } from "@/lib/auth-utils";
@@ -17,7 +17,7 @@ const querySchema = z.object({
   filter: z.string().optional(),
 });
 
-export async function GET(req: Request): Promise<NextResponse<CategoriaFestaListResponse>> {
+export async function GET(request: NextRequest): Promise<NextResponse<CategoriaFestaListResponse>> {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -27,7 +27,7 @@ export async function GET(req: Request): Promise<NextResponse<CategoriaFestaList
       );
     }
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse(Object.fromEntries(searchParams.entries()));
 
     if (!parsed.success) {
@@ -96,7 +96,7 @@ export async function GET(req: Request): Promise<NextResponse<CategoriaFestaList
   }
 }
 
-export async function POST(req: Request): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
@@ -106,7 +106,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       );
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const parsedBody = categoriaFestaSchema.parse(body);
 
     const novaCategoriaFesta = await db.categoriaFesta.create({

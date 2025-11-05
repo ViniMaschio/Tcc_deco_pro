@@ -1,15 +1,15 @@
-import { Orcamento } from "@/app/api/orcamento/types";
+import { Contrato } from "@/app/api/contrato/types";
 
-// Tipos para o modal de orçamento
-export type OrcamentoModalProps = {
+// Tipos para o modal de contrato
+export type ContratoModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  orcamento?: Orcamento;
+  contrato?: Contrato;
   onSuccess: () => void;
 };
 
 // Tipos para estados da página
-export type OrcamentoPageStates = {
+export type ContratoPageStates = {
   showModal: boolean;
   isLoading: boolean;
   showDialog: boolean;
@@ -17,7 +17,7 @@ export type OrcamentoPageStates = {
 };
 
 // Tipos para filtros
-export type OrcamentoFilterType = {
+export type ContratoFilterType = {
   search: string;
   status: string;
   page: number;
@@ -25,13 +25,13 @@ export type OrcamentoFilterType = {
 };
 
 // Tipos para estados do modal
-export type OrcamentoModalStates = {
+export type ContratoModalStates = {
   submitting: boolean;
   activeTab: string;
 };
 
 // Tipos para paginação
-export type OrcamentoPagination = {
+export type ContratoPagination = {
   page: number;
   limit: number;
   total: number;
@@ -64,18 +64,23 @@ export interface Item {
   tipo: "PRO" | "SER";
 }
 
+export interface Orcamento {
+  id: number;
+  uuid: string;
+}
+
 // Tipos para props dos componentes
-export type OrcamentoDataTableProps = {
-  data: Orcamento[];
+export type ContratoDataTableProps = {
+  data: Contrato[];
   isLoading: boolean;
-  pagination: OrcamentoPagination;
-  onPaginationChange: (pagination: Partial<OrcamentoPagination>) => void;
-  onEdit: (orcamento: Orcamento) => void;
-  onDelete: (orcamento: Orcamento) => void;
-  onView: (orcamento: Orcamento) => void;
+  pagination: ContratoPagination;
+  onPaginationChange: (pagination: Partial<ContratoPagination>) => void;
+  onEdit: (contrato: Contrato) => void;
+  onDelete: (contrato: Contrato) => void;
+  onView: (contrato: Contrato) => void;
 };
 
-export type OrcamentoItensTableProps = {
+export type ContratoItensTableProps = {
   itens: Array<{
     itemId: number;
     nome: string;
@@ -92,22 +97,22 @@ export type OrcamentoItensTableProps = {
   onRemoveItem: (index: number) => void;
 };
 
-export type UseOrcamentoPageReturn = {
-  orcamentos: Orcamento[];
+export type UseContratoPageReturn = {
+  contratos: Contrato[];
   isLoading: boolean;
   showModal: {
     open: boolean;
     mode: "create" | "edit" | "view";
-    data?: Orcamento;
+    data?: Contrato;
   };
   setShowModal: (state: {
     open: boolean;
     mode: "create" | "edit" | "view";
-    data?: Orcamento;
+    data?: Contrato;
   }) => void;
-  filters: OrcamentoFilterType;
-  setFilters: (filters: Partial<OrcamentoFilterType>) => void;
-  pagination: OrcamentoPagination;
-  setPagination: (pagination: Partial<OrcamentoPagination>) => void;
+  filters: ContratoFilterType;
+  setFilters: (filters: Partial<ContratoFilterType>) => void;
+  pagination: ContratoPagination;
+  setPagination: (pagination: Partial<ContratoPagination>) => void;
   refetch: () => void;
 };

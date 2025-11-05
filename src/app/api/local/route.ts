@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import z from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma";
 import { ensureEmpresaId } from "@/lib/auth-utils";
@@ -8,17 +8,17 @@ import { buildOrderBy } from "@/utils/functions/quey-functions";
 
 import { localSchema } from "./types";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const parsedBody = localSchema.parse(body);
 
     const novoLocal = await db.localEvento.create({
@@ -28,13 +28,16 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
-      { local: novoLocal, message: "Local criado com sucesso!" },
-      { status: 201 }
-    );
+    return NextResponse.json(novoLocal, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: error.issues },
+        { status: 400 }
+      );
+    }
     console.error("Error creating local:", error);
-    return NextResponse.json({ local: null, message: "Erro ao criar local!" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
@@ -57,21 +60,21 @@ const querySchema = z.object({
   cidade: z.string().optional(),
 });
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { data: [], pagination: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse(Object.fromEntries(searchParams.entries()));
     if (!parsed.success) {
       return NextResponse.json(
-        { data: [], pagination: null, message: "Parâmetros inválidos!" },
+        { error: "Parâmetros inválidos", details: parsed.error.issues },
         { status: 400 }
       );
     }
@@ -127,7 +130,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("GET /api/local error:", error);
     return NextResponse.json(
-      { data: [], pagination: null, message: "Erro ao buscar locais!" },
+      { error: "Erro interno do servidor" },
       { status: 500 }
     );
   }

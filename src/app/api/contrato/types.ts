@@ -1,17 +1,19 @@
-import { StatusLabelEnum } from "@/app/modules/orcamento/enum";
+import { StatusLabelEnum } from "@/app/modules/contrato/enum";
 import { Item } from "@/generated/prisma";
 
-export type OrcamentoStatus = keyof typeof StatusLabelEnum;
+export type ContratoStatus = keyof typeof StatusLabelEnum;
 
-export interface Orcamento {
+export interface Contrato {
   id: number;
   uuid: string;
   empresaId: number;
   clienteId: number;
   categoriaId?: number;
   localId?: number;
-  dataEvento?: Date;
-  status: OrcamentoStatus;
+  orcamentoId?: number;
+  dataEvento: Date;
+  horaInicio: Date;
+  status: ContratoStatus;
   desconto?: number;
   total: number;
   observacao?: string;
@@ -40,12 +42,16 @@ export interface Orcamento {
     id: number;
     descricao: string;
   };
-  itens?: OrcamentoItem[];
+  orcamento?: {
+    id: number;
+    uuid: string;
+  };
+  itens?: ContratoItem[];
 }
 
-export interface OrcamentoItem {
+export interface ContratoItem {
   id: number;
-  orcamentoId?: number;
+  contratoId?: number;
   itemId: number;
   quantidade: number;
   desconto: number;
@@ -58,12 +64,14 @@ export interface OrcamentoItem {
   item?: Item;
 }
 
-export interface CreateOrcamentoData {
+export interface CreateContratoData {
   clienteId: number;
-  status?: OrcamentoStatus;
+  status?: ContratoStatus;
   categoriaId?: number;
   localId?: number;
-  dataEvento?: string;
+  orcamentoId?: number;
+  dataEvento: string;
+  horaInicio: string;
   observacao?: string;
   itens: {
     itemId: number;
@@ -75,11 +83,11 @@ export interface CreateOrcamentoData {
   }[];
 }
 
-export interface UpdateOrcamentoData extends Partial<CreateOrcamentoData> {
-  status?: OrcamentoStatus;
+export interface UpdateContratoData extends Partial<CreateContratoData> {
+  status?: ContratoStatus;
 }
 
-export interface OrcamentoFilters {
+export interface ContratoFilters {
   search?: string;
   status?: string;
   page?: number;

@@ -1,4 +1,4 @@
-import { CiDeliveryTruck } from "react-icons/ci";
+import { HiTicket } from "react-icons/hi2";
 import { FaTruck } from "react-icons/fa";
 import {
   MdAccountBalance,
@@ -40,8 +40,8 @@ export const menuItems: MenuProps[] = [
     id: "contratos",
     label: "Contratos",
     icon: <MdDescription size={20} />,
-    path: "/contratos",
-    pathnames: ["/contratos"],
+    path: "/contrato",
+    pathnames: ["/contrato"],
   },
   {
     id: "orcamentos",
@@ -87,8 +87,8 @@ export const menuItems: MenuProps[] = [
   },
   {
     id: "categoria-festa",
-    label: "Categoria de Festa",
-    icon: <MdCategory size={20} />,
+    label: "Categoria Festa",
+    icon: <HiTicket size={20} />,
     path: "/categoria-festa",
     pathnames: ["/categoria-festa"],
   },

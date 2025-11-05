@@ -3,19 +3,15 @@
 import { TrashIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 
-import { CreateOrcamentoData } from "@/app/api/orcamento/types";
+import { CreateContratoData } from "@/app/api/contrato/types";
 import { ButtonAction } from "@/components/ui/button-action";
 import { Input } from "@/components/ui/input";
 import { InputCurrency } from "@/components/input/input-currency";
 import { formatCurrency } from "@/utils/currency";
 
-import { Item, OrcamentoItensTableProps } from "../types";
+import { Item, ContratoItensTableProps } from "../types";
 
-export function OrcamentoItensTable({
-  itens,
-  onUpdateItem,
-  onRemoveItem,
-}: OrcamentoItensTableProps) {
+export function ContratoItensTable({ itens, onUpdateItem, onRemoveItem }: ContratoItensTableProps) {
   const [selectedItems] = useState<{ [key: number]: Item }>({});
 
   const calculateItemTotal = (item: {
@@ -42,9 +38,7 @@ export function OrcamentoItensTable({
 
         <div className="max-h-96 divide-y overflow-y-auto">
           {itens.length <= 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              Nenhum item adicionado ao orçamento
-            </div>
+            <div className="py-8 text-center text-gray-500">Nenhum item adicionado ao contrato</div>
           ) : (
             itens.map((item, index) => {
               const selectedItem = selectedItems[index];

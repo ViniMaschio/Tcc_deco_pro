@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import z from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
@@ -14,31 +14,31 @@ const idParamSchema = z.object({
 });
 
 // ATUALIZAR Cliente
-export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const params = await ctx.params;
-    const parsedId = idParamSchema.safeParse(params);
+    const resolvedParams = await params;
+    const parsedId = idParamSchema.safeParse(resolvedParams);
     if (!parsedId.success) {
       return NextResponse.json(
-        { local: null, errors: z.treeifyError(parsedId.error) },
+        { error: "ID inválido", details: parsedId.error.issues },
         { status: 400 }
       );
     }
     const { id } = parsedId.data;
 
-    const json = await req.json();
+    const json = await request.json();
     const parsedBody = clienteSchema.safeParse(json);
     if (!parsedBody.success) {
       return NextResponse.json(
-        { local: null, errors: z.treeifyError(parsedBody.error) },
+        { error: "Dados inválidos", details: parsedBody.error.issues },
         { status: 400 }
       );
     }
@@ -52,7 +52,7 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
 
     if (!exists) {
       return NextResponse.json(
-        { local: null, message: "Cliente não encontrado!" },
+        { error: "Cliente não encontrado" },
         { status: 404 }
       );
     }
@@ -62,31 +62,29 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
       data,
     });
 
-    return NextResponse.json(
-      { local: updated, message: "Cliente atualizado com sucesso!" },
-      { status: 200 }
-    );
+    return NextResponse.json(updated, { status: 200 });
   } catch (err) {
     console.error("PUT /api/cliente/:id error:", err);
     return NextResponse.json(
-      { local: null, message: "Erro ao atualizar cliente" },
+      { error: "Erro interno do servidor" },
       { status: 500 }
     );
   }
 }
 
 // DELETAR CLIENTE
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
-      return NextResponse.json({ message: "Usuário não autenticado!" }, { status: 401 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { id } = await ctx.params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const parsedId = idParamSchema.safeParse({ id });
     if (!parsedId.success) {
-      return NextResponse.json({ errors: parsedId.error }, { status: 400 });
+      return NextResponse.json({ error: "ID inválido", details: parsedId.error.issues }, { status: 400 });
     }
 
     const { id: clienteId } = parsedId.data;
@@ -97,11 +95,11 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     });
 
     if (!cliente) {
-      return NextResponse.json({ message: "Cliente não encontrado!" }, { status: 404 });
+      return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
     }
 
     if (cliente.deleted) {
-      return NextResponse.json({ message: "Cliente já deletado!" }, { status: 200 });
+      return NextResponse.json({ error: "Cliente já deletado" }, { status: 400 });
     }
 
     await db.cliente.update({
@@ -109,12 +107,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
       data: { deleted: true, deletedAt: new Date() },
     });
 
-    return NextResponse.json(
-      { message: "Cliente removido com sucesso!", id: clienteId },
-      { status: 200 }
-    );
+    return NextResponse.json({ id: clienteId }, { status: 200 });
   } catch (err) {
     console.error("PATCH /api/cliente/:id error:", err);
-    return NextResponse.json({ message: "Erro ao deletar o Cliente!" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

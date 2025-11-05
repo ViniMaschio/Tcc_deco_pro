@@ -1,7 +1,6 @@
 "use client";
 
 import React, { forwardRef, useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { formatDecimal, parseDecimalString, isValidDecimal } from "@/utils/currency";
 
@@ -15,6 +14,9 @@ interface InputCurrencyProps
   precision?: number;
   allowNegative?: boolean;
   className?: string;
+  error?: boolean;
+  helperText?: string;
+  disabled?: boolean;
 }
 
 export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
@@ -24,16 +26,20 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
       onChange,
       onBlur,
       placeholder = "0,00",
-      showCurrency = false,
+      showCurrency = true,
       precision = 2,
       allowNegative = false,
       className,
+      error = false,
+      helperText,
+      disabled = false,
       ...props
     },
     ref
   ) => {
     const [displayValue, setDisplayValue] = useState<string>(() => {
-      return formatDecimal(typeof value === "string" ? parseFloat(value) : value);
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      return formatDecimal(numValue);
     });
 
     const [isFocused, setIsFocused] = useState(false);
@@ -46,19 +52,38 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
       }
     }, [value, isFocused]);
 
+    // Função para formatar valor durante a digitação (similar ao exemplo)
+    const formatCurrencyInput = (inputValue: string): string => {
+      // Remove todos os caracteres não numéricos
+      let cleaned = inputValue.replace(/\D/g, "");
+
+      // Se não permite negativos, garante que não há sinal negativo
+      if (!allowNegative) {
+        cleaned = cleaned.replace("-", "");
+      }
+
+      // Se estiver vazio, retorna vazio
+      if (cleaned === "") {
+        return "";
+      }
+
+      // Converte para número considerando os últimos 2 dígitos como centavos
+      // Exemplo: "12345" -> 123.45
+      const numericValue = parseInt(cleaned) / 100;
+
+      // Formata com vírgula para centavos e pontos para milhares
+      return formatDecimal(numericValue);
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
 
-      // Remove caracteres não numéricos exceto vírgula e ponto
-      const cleanValue = inputValue.replace(/[^\d,.-]/g, "");
-
-      // Se não permite negativos, remove o sinal de menos
-      const finalValue = allowNegative ? cleanValue : cleanValue.replace("-", "");
-
-      setDisplayValue(finalValue);
+      // Formata o valor durante a digitação
+      const formattedValue = formatCurrencyInput(inputValue);
+      setDisplayValue(formattedValue);
 
       // Converte para número e chama onChange
-      const numericValue = parseDecimalString(finalValue);
+      const numericValue = parseDecimalString(formattedValue);
 
       if (isValidDecimal(numericValue)) {
         onChange?.(numericValue);
@@ -81,7 +106,7 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // Permite apenas números, vírgula, ponto, backspace, delete, tab, escape, enter
+      // Permite apenas números, vírgula, ponto, backspace, delete, tab, escape, enter e setas
       const allowedKeys = [
         "Backspace",
         "Delete",
@@ -100,37 +125,48 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
         return;
       }
 
-      // Permite vírgula e ponto apenas uma vez
-      if ((e.key === "," || e.key === ".") && displayValue.includes(",")) {
-        e.preventDefault();
-        return;
-      }
-
-      // Permite apenas números, vírgula e ponto
-      if (!/[\d,.-]/.test(e.key)) {
+      // Permite apenas números e teclas de controle
+      if (!/\d/.test(e.key) && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
       }
     };
 
     return (
-      <div className="relative">
-        {showCurrency && (
-          <span className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transform text-sm">
-            R$
-          </span>
+      <div className="flex w-full flex-col">
+        <div className="relative">
+          {showCurrency && (
+            <span
+              className={cn(
+                "text-muted-foreground absolute inset-y-0 left-0 flex items-center pl-3 text-sm",
+                disabled && "opacity-50"
+              )}
+            >
+              R$
+            </span>
+          )}
+          <input
+            ref={ref}
+            type="text"
+            autoComplete="off"
+            value={displayValue}
+            onChange={handleInputChange}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={cn(
+              "border-input bg-background placeholder:text-muted-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+              showCurrency && "pl-9",
+              error && "border-destructive focus-visible:ring-destructive",
+              className
+            )}
+            {...props}
+          />
+        </div>
+        {error && helperText && (
+          <span className="text-destructive mt-1 ml-2 text-sm">{helperText}</span>
         )}
-        <Input
-          ref={ref}
-          type="text"
-          value={displayValue}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className={cn(showCurrency && "pl-8", className)}
-          {...props}
-        />
       </div>
     );
   }

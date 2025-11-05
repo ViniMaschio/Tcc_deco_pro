@@ -2,18 +2,21 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { CategoriaFesta } from "@/app/api/categoria-festa/types";
+import { Contrato } from "@/app/api/contrato/types";
 import { PaginationTable } from "@/app/api/types";
+import { contratoColumns, ContratoFilterType } from "@/app/modules/contrato/columns";
+import { ContratoPageStates } from "@/app/modules/contrato/types";
 import { SortingType } from "@/components/sort-table";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
-import { CategoriaFestaFilterType, createColumns } from "./columns";
-import { CategoriaFestaPageStates } from "./modal/types";
-
 export const usePage = () => {
-  const [categoriaFesta, setCategoriaFesta] = useState({} as CategoriaFesta);
+  const [contrato, setContrato] = useState({} as Contrato);
 
-  const [showState, setShowState] = useState({} as CategoriaFestaPageStates);
+  const [showState, setShowState] = useState({
+    showModal: false,
+    showDialog: false,
+    showViewModal: false,
+  } as ContratoPageStates);
 
   const [pagination, setPagination] = useState({
     perPage: 15,
@@ -27,7 +30,7 @@ export const usePage = () => {
       name: "id",
       type: "asc",
     },
-  } as CategoriaFestaFilterType);
+  } as ContratoFilterType);
 
   const changePagination = (pagination: PaginationTable) => {
     setPagination((previous) => ({
@@ -36,31 +39,31 @@ export const usePage = () => {
     }));
   };
 
-  const changeShowState = (name: keyof CategoriaFestaPageStates, value: boolean) => {
+  const changeShowState = (name: keyof ContratoPageStates, value: boolean) => {
     setShowState((previous) => ({
       ...previous,
       [name]: value,
     }));
   };
 
-  const getCategoriaFesta = async (
-    filtersParam: CategoriaFestaFilterType,
+  const getContrato = async (
+    filtersParam: ContratoFilterType,
     paginationParam: PaginationTable
   ) => {
     const queryString = buildQueryStringFrom(filtersParam, paginationParam);
 
-    const response = await fetch(`/api/categoria-festa?${queryString}`, {
+    const response = await fetch(`/api/contrato?${queryString}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
     if (!response.ok) {
       const msg = await response.text();
-      throw new Error(msg || "Erro ao buscar Categorias de Festa!");
+      throw new Error(msg || "Erro ao buscar Contratos!");
     }
 
     return response.json() as Promise<{
-      data: CategoriaFesta[];
+      data: Contrato[];
       pagination: {
         page: number;
         perPage: number;
@@ -71,8 +74,8 @@ export const usePage = () => {
   };
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["categoria-festa", filters, pagination.currentPage, pagination.perPage],
-    queryFn: () => getCategoriaFesta(filters, pagination),
+    queryKey: ["contrato", filters, pagination.currentPage, pagination.perPage],
+    queryFn: () => getContrato(filters, pagination),
     select: (res) => ({
       items: res.data,
       meta: res.pagination,
@@ -81,8 +84,8 @@ export const usePage = () => {
 
   const handleDelete = async () => {
     try {
-      await fetch(`/api/categoria-festa/${categoriaFesta.id}`, {
-        method: "DELETE",
+      await fetch(`/api/contrato/${contrato.id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
       });
 
@@ -96,9 +99,9 @@ export const usePage = () => {
     }
   };
 
-  const { mutateAsync: removeCategoriaFesta, isPending: isDeleting } = useMutation({
+  const { mutateAsync: removeContrato, isPending: isDeleting } = useMutation({
     mutationFn: handleDelete,
-    mutationKey: ["deleteCategoriaFesta"],
+    mutationKey: ["deleteContrato"],
   });
 
   const handleChangeFilters = (
@@ -121,18 +124,25 @@ export const usePage = () => {
   const handleClearFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      descricao: "",
+      search: "",
+      status: "",
+      dataEvento: "",
     }));
   };
 
-  const handleEdit = (value: CategoriaFesta) => {
-    setCategoriaFesta(value);
+  const handleEdit = (value: Contrato) => {
+    setContrato(value);
     changeShowState("showModal", true);
   };
 
-  const handleShowDelete = (value: CategoriaFesta) => {
-    setCategoriaFesta(value);
+  const handleShowDelete = (value: Contrato) => {
+    setContrato(value);
     changeShowState("showDialog", true);
+  };
+
+  const handleViewContrato = (value: Contrato) => {
+    setContrato(value);
+    changeShowState("showViewModal", true);
   };
 
   const afterSubmit = () => {
@@ -140,29 +150,29 @@ export const usePage = () => {
     refetch();
   };
 
-  const columns = createColumns({
-    onEdit: handleEdit,
-    onDelete: handleShowDelete,
-  });
+  const columns = contratoColumns;
 
-  const categoriaFestaData = data?.items || [];
+  const contratoData = data?.items || [];
 
   return {
     data,
     filters,
-    categoriaFesta,
+    contrato,
     showState,
     isLoading: isLoading || isFetching,
     pagination,
     isDeleting,
-    setCategoriaFesta,
+    setContrato,
     afterSubmit,
-    categoriaFestaData,
+    contratoData,
     columns,
-    removeCategoriaFesta,
+    removeContrato,
     changeShowState,
     changePagination,
     handleClearFilters,
     handleChangeFilters,
+    handleViewContrato,
+    handleEdit,
+    handleShowDelete,
   };
 };

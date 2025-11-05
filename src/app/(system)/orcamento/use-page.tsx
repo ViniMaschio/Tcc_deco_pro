@@ -11,7 +11,6 @@ import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
 export const usePage = () => {
   const [orcamento, setOrcamento] = useState({} as Orcamento);
-  const [showEditModal, setShowEditModal] = useState(false);
 
   const [showState, setShowState] = useState({
     showModal: false,
@@ -133,7 +132,7 @@ export const usePage = () => {
 
   const handleEdit = (value: Orcamento) => {
     setOrcamento(value);
-    setShowEditModal(true);
+    changeShowState("showModal", true);
   };
 
   const handleShowDelete = (value: Orcamento) => {
@@ -148,7 +147,6 @@ export const usePage = () => {
 
   const afterSubmit = () => {
     changeShowState("showModal", false);
-    setShowEditModal(false);
     refetch();
   };
 
@@ -176,7 +174,5 @@ export const usePage = () => {
     handleViewOrcamento,
     handleEdit,
     handleShowDelete,
-    showEditModal,
-    setShowEditModal,
   };
 };

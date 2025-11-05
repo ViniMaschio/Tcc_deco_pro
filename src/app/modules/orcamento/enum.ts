@@ -3,7 +3,6 @@ export enum StatusLabelEnum {
   ENVIADO = "Enviado",
   APROVADO = "Aprovado",
   REJEITADO = "Rejeitado",
-  VENCIDO = "Vencido",
   CANCELADO = "Cancelado",
 }
 
@@ -12,6 +11,5 @@ export enum StatusColorEnum {
   ENVIADO = "bg-blue-100 text-blue-800",
   APROVADO = "bg-green-100 text-green-800",
   REJEITADO = "bg-red-100 text-red-800",
-  VENCIDO = "bg-orange-100 text-orange-800",
   CANCELADO = "bg-gray-100 text-gray-800",
 }

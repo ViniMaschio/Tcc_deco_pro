@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import z from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma";
 import { ensureEmpresaId } from "@/lib/auth-utils";
@@ -8,17 +8,17 @@ import { buildOrderBy } from "@/utils/functions/quey-functions";
 
 import { clienteSchema } from "./types";
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const parsedBody = clienteSchema.parse(body);
 
     const novoCliente = await db.cliente.create({
@@ -28,13 +28,16 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(
-      { local: novoCliente, message: "Cliente criado com sucesso!" },
-      { status: 201 }
-    );
+    return NextResponse.json(novoCliente, { status: 201 });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Dados inválidos", details: error.issues },
+        { status: 400 }
+      );
+    }
     console.error("Erro ao criar cliente:", error);
-    return NextResponse.json({ local: null, message: "Erro ao criar cliente!" }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
 
@@ -59,21 +62,21 @@ const querySchema = z.object({
   cidade: z.string().optional(),
 });
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest) {
   try {
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       return NextResponse.json(
-        { local: null, message: "Usuário não autenticado!" },
+        { error: "Não autorizado" },
         { status: 401 }
       );
     }
 
-    const { searchParams } = new URL(req.url);
+    const { searchParams } = new URL(request.url);
     const parsed = querySchema.safeParse(Object.fromEntries(searchParams.entries()));
     if (!parsed.success) {
       return NextResponse.json(
-        { data: [], pagination: null, message: "Parâmetros inválidos!" },
+        { error: "Parâmetros inválidos", details: parsed.error.issues },
         { status: 400 }
       );
     }
@@ -127,16 +130,16 @@ export async function GET(req: Request) {
     return NextResponse.json({
       data,
       pagination: {
-        count: total,
+        page,
         perPage,
-        pagesCount: totalPages,
-        currentPage: page,
+        total,
+        totalPages,
       },
     });
   } catch (error) {
     console.error("Erro ao buscar clientes:", error);
     return NextResponse.json(
-      { data: [], pagination: null, message: "Erro ao buscar clientes!" },
+      { error: "Erro interno do servidor" },
       { status: 500 }
     );
   }

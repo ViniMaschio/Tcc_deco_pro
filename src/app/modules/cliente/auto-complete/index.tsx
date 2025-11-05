@@ -52,21 +52,21 @@ export const ClienteAutocomplete = memo(function ClienteAutocomplete({
           variant="outline"
           aria-expanded={show.openCommand}
           className={cn(
-            "min-h-[2.5rem] w-full justify-between",
+            "min-h-10 w-full justify-between",
             !cliente && "text-muted-foreground",
             className
           )}
           disabled={disabled}
         >
           <div className="flex min-w-0 flex-1 items-center gap-2 truncate">
-            <User className="text-primary h-4 w-4 flex-shrink-0" />
+            <User className="text-primary h-4 w-4 shrink-0" />
             <span className="truncate text-left">{cliente ? cliente.nome : placeholder}</span>
           </div>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="!z-[99999] w-full p-0 sm:w-[var(--radix-popover-trigger-width)]"
+        className="z-99999! w-full p-0 sm:w-(--radix-popover-trigger-width)"
         align="start"
         side="bottom"
         sideOffset={4}
@@ -120,7 +120,7 @@ export const ClienteAutocomplete = memo(function ClienteAutocomplete({
                       )}
                     >
                       <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <User className="text-primary h-4 w-4 flex-shrink-0" />
+                        <User className="text-primary h-4 w-4 shrink-0" />
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-medium">{clienteItem.nome}</div>
                           <div className="text-muted-foreground flex flex-wrap gap-1 text-xs">
@@ -134,7 +134,7 @@ export const ClienteAutocomplete = memo(function ClienteAutocomplete({
                         </div>
                       </div>
                       {cliente?.id === clienteItem.id && (
-                        <Check className="ml-2 h-4 w-4 flex-shrink-0" />
+                        <Check className="ml-2 h-4 w-4 shrink-0" />
                       )}
                     </CommandItem>
                   ))}

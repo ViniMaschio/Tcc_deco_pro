@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 
-import { CategoriaFestaResponse,UpdateCategoriaFestaRequest } from "../types";
+import { CategoriaFestaResponse } from "../types";
 
 const updateCategoriaFestaSchema = z.object({
   descricao: z.string().min(1, "Descrição é obrigatória"),
 });
 
 export async function GET(
-  req: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<CategoriaFestaResponse>> {
   try {
@@ -58,7 +58,7 @@ export async function GET(
 }
 
 export async function PUT(
-  req: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<CategoriaFestaResponse>> {
   try {
@@ -76,7 +76,7 @@ export async function PUT(
       return NextResponse.json({ categoriaFesta: null, message: "ID inválido!" }, { status: 400 });
     }
 
-    const body = await req.json();
+    const body = await request.json();
     const parsedBody = updateCategoriaFestaSchema.parse(body);
 
     // Verificar se a categoria existe
@@ -113,8 +113,8 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: Request,
+export async function PATCH(
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<CategoriaFestaResponse>> {
   try {
