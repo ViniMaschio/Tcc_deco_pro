@@ -331,6 +331,7 @@ model ContaReceber {
   empresaId      Int
   clienteId      Int
   contratoId     Int?
+  descricao      String?
   dataVencimento DateTime?
   dataPagamento  DateTime?
   valorPago      Int          @default(0) // Valor em centavos
