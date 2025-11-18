@@ -19,6 +19,8 @@ const FormSchema = z.object({
   status: z.enum(["PENDENTE", "PARCIAL", "PAGO", "VENCIDO", "CANCELADO"]).default("PENDENTE"),
 });
 
+export type FormValues = z.infer<typeof FormSchema>;
+
 export const useContaPagarModal = ({
   afterSubmit,
   contaPagar,
@@ -28,7 +30,7 @@ export const useContaPagarModal = ({
     undefined
   );
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       fornecedorId: 0,

@@ -20,6 +20,8 @@ const FormSchema = z.object({
   status: z.enum(["PENDENTE", "PARCIAL", "PAGO", "VENCIDO", "CANCELADO"]).default("PENDENTE"),
 });
 
+export type FormValues = z.infer<typeof FormSchema>;
+
 export const useContaReceberModal = ({
   afterSubmit,
   contaReceber,
@@ -27,7 +29,7 @@ export const useContaReceberModal = ({
   const [modalState, setModalState] = useState({} as FinanceiroModalStates);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | undefined>(undefined);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       clienteId: 0,
@@ -63,7 +65,10 @@ export const useContaReceberModal = ({
 
     const convertValues = {
       ...values,
-      valorTotal: typeof values.valorTotal === "number" ? values.valorTotal : decimalToCents(values.valorTotal),
+      valorTotal:
+        typeof values.valorTotal === "number"
+          ? values.valorTotal
+          : decimalToCents(values.valorTotal),
     };
 
     if (Number(values?.id) > 0) {
@@ -152,4 +157,3 @@ export const useContaReceberModal = ({
     handleResetForm,
   };
 };
-

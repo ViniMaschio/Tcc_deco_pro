@@ -50,12 +50,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Conta a receber não encontrada" }, { status: 404 });
     }
 
+    const dataToUpdate = {
+      ...data,
+      valorRestante: data.valorRestante ?? data.valorTotal - data.valorPago,
+      dataVencimento: data.dataVencimento
+        ? new Date(data.dataVencimento + "T00:00:00.000Z")
+        : undefined,
+      dataPagamento: data.dataPagamento
+        ? new Date(data.dataPagamento + "T00:00:00.000Z")
+        : undefined,
+    };
+
     const updated = await db.contaReceber.update({
       where: { id },
-      data: {
-        ...data,
-        valorRestante: data.valorRestante ?? data.valorTotal - data.valorPago,
-      },
+      data: dataToUpdate,
       include: {
         cliente: {
           select: {

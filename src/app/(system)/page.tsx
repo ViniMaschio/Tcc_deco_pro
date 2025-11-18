@@ -16,59 +16,12 @@ export default function Home() {
   const { data: session } = useSession();
   const { data, isLoading } = usePage();
 
-  const metrics = data
-    ? [
-        {
-          title: "Clientes",
-          value: data.metrics.clientes.total.toLocaleString("pt-BR"),
-          change: data.metrics.clientes.variacao,
-          icon: <MdPeople size={24} />,
-          color: "text-blue-600",
-        },
-        {
-          title: "Contratos Ativos",
-          value: data.metrics.contratosAtivos.total.toString(),
-          change: data.metrics.contratosAtivos.label,
-          icon: <MdDescription size={24} />,
-          color: "text-green-600",
-        },
-        {
-          title: "Receita Mensal",
-          value: data.metrics.receita.valor,
-          change: data.metrics.receita.variacao,
-          icon: <MdAttachMoney size={24} />,
-          color: "text-purple-600",
-        },
-        {
-          title: "Contas Pendentes",
-          value: data.metrics.contasPendentes.total.toString(),
-          change: data.metrics.contasPendentes.label,
-          icon: <MdInfo size={24} />,
-          color: "text-orange-600",
-        },
-      ]
-    : [];
-
-  const orcamentos = data?.orcamentos || [];
-  const eventos = data?.eventos || [];
-  const cards = data
-    ? [
-        { title: "Itens", value: data.cards.itens.toString() },
-        { title: "Locais", value: data.cards.locais.toString() },
-        { title: "Fornecedores", value: data.cards.fornecedores.toString() },
-        {
-          title: "Orçamentos Pendentes",
-          value: data.cards.orcamentosPendentes.toString(),
-        },
-      ]
-    : [];
-
   if (isLoading) {
     return (
       <div className="mx-1 mb-2 overflow-auto rounded-b-md bg-white p-6">
         <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+            <div className="border-primary mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-r-transparent"></div>
             <p className="text-gray-600">Carregando dados do dashboard...</p>
           </div>
         </div>
@@ -87,40 +40,75 @@ export default function Home() {
             Aqui você acompanha seus contratos, orçamentos e finanças em um só lugar.
           </p>
         </div>
-
       </div>
 
-      {/* Métricas Principais */}
-      {metrics.length > 0 && (
+      {data?.metrics && (
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {metrics.map((metric, index) => (
-            <div key={index} className="rounded-lg border bg-white p-6 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <div className={`rounded-lg bg-gray-100 p-2 ${metric.color}`}>{metric.icon}</div>
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-lg bg-gray-100 p-2 text-blue-600">
+                <MdPeople size={24} />
               </div>
-              <h3 className="mb-1 text-sm font-medium text-gray-600">{metric.title}</h3>
-              <p className="mb-1 text-2xl font-bold text-gray-900">{metric.value}</p>
-              <p className="text-sm text-gray-500">{metric.change}</p>
             </div>
-          ))}
+            <h3 className="mb-1 text-sm font-medium text-gray-600">Clientes</h3>
+            <p className="mb-1 text-2xl font-bold text-gray-900">
+              {data.metrics.clientes.total.toLocaleString("pt-BR")}
+            </p>
+            <p className="text-sm text-gray-500">{data.metrics.clientes.variacao}</p>
+          </div>
+
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-lg bg-gray-100 p-2 text-green-600">
+                <MdDescription size={24} />
+              </div>
+            </div>
+            <h3 className="mb-1 text-sm font-medium text-gray-600">Contratos Ativos</h3>
+            <p className="mb-1 text-2xl font-bold text-gray-900">
+              {data.metrics.contratosAtivos.total}
+            </p>
+            <p className="text-sm text-gray-500">{data.metrics.contratosAtivos.label}</p>
+          </div>
+
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-lg bg-gray-100 p-2 text-purple-600">
+                <MdAttachMoney size={24} />
+              </div>
+            </div>
+            <h3 className="mb-1 text-sm font-medium text-gray-600">Receita Mensal</h3>
+            <p className="mb-1 text-2xl font-bold text-gray-900">{data.metrics.receita.valor}</p>
+            <p className="text-sm text-gray-500">{data.metrics.receita.variacao}</p>
+          </div>
+
+          <div className="rounded-lg border bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="rounded-lg bg-gray-100 p-2 text-orange-600">
+                <MdInfo size={24} />
+              </div>
+            </div>
+            <h3 className="mb-1 text-sm font-medium text-gray-600">Contas Pendentes</h3>
+            <p className="mb-1 text-2xl font-bold text-gray-900">
+              {data.metrics.contasPendentes.total}
+            </p>
+            <p className="text-sm text-gray-500">{data.metrics.contasPendentes.label}</p>
+          </div>
         </div>
       )}
 
-      {/* Seções de Orçamentos e Eventos */}
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Orçamentos */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Orçamentos Recentes</h3>
             <p className="text-sm text-gray-600">
-              {orcamentos.length > 0
-                ? `${orcamentos.length} orçamentos encontrados`
+              {data?.orcamentos && data.orcamentos.length > 0
+                ? `${data.orcamentos.length} orçamentos encontrados`
                 : "Nenhum orçamento encontrado"}
             </p>
           </div>
           <div className="space-y-3">
-            {orcamentos.length > 0 ? (
-              orcamentos.map((orcamento) => (
+            {data?.orcamentos && data.orcamentos.length > 0 ? (
+              data.orcamentos.map((orcamento) => (
                 <div
                   key={orcamento.id}
                   className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
@@ -145,22 +133,19 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="py-4 text-center text-sm text-gray-500">
-                Nenhum orçamento recente
-              </p>
+              <p className="py-4 text-center text-sm text-gray-500">Nenhum orçamento recente</p>
             )}
           </div>
         </div>
 
-        {/* Próximos Eventos */}
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Próximos Eventos</h3>
             <p className="text-sm text-gray-600">Eventos agendados para os próximos dias</p>
           </div>
           <div className="space-y-3">
-            {eventos.length > 0 ? (
-              eventos.map((evento) => (
+            {data?.eventos && data.eventos.length > 0 ? (
+              data.eventos.map((evento) => (
                 <div
                   key={evento.id}
                   className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
@@ -179,26 +164,44 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              <p className="py-4 text-center text-sm text-gray-500">
-                Nenhum evento próximo
-              </p>
+              <p className="py-4 text-center text-sm text-gray-500">Nenhum evento próximo</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Cards Inferiores */}
-      {cards.length > 0 && (
+      {data?.cards && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {cards.map((card, index) => (
-            <div key={index} className="rounded-lg border bg-white p-6 text-center shadow-sm">
-              <div className="mb-3 flex justify-center">
-                <MdPeople size={24} className="text-gray-600" />
-              </div>
-              <p className="mb-1 text-2xl font-bold text-gray-900">{card.value}</p>
-              <p className="text-sm text-gray-600">{card.title}</p>
+          <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+            <div className="mb-3 flex justify-center">
+              <MdPeople size={24} className="text-gray-600" />
             </div>
-          ))}
+            <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.itens}</p>
+            <p className="text-sm text-gray-600">Itens</p>
+          </div>
+          <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+            <div className="mb-3 flex justify-center">
+              <MdPeople size={24} className="text-gray-600" />
+            </div>
+            <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.locais}</p>
+            <p className="text-sm text-gray-600">Locais</p>
+          </div>
+          <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+            <div className="mb-3 flex justify-center">
+              <MdPeople size={24} className="text-gray-600" />
+            </div>
+            <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.fornecedores}</p>
+            <p className="text-sm text-gray-600">Fornecedores</p>
+          </div>
+          <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
+            <div className="mb-3 flex justify-center">
+              <MdPeople size={24} className="text-gray-600" />
+            </div>
+            <p className="mb-1 text-2xl font-bold text-gray-900">
+              {data.cards.orcamentosPendentes}
+            </p>
+            <p className="text-sm text-gray-600">Orçamentos Pendentes</p>
+          </div>
         </div>
       )}
     </div>

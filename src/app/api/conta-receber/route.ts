@@ -18,12 +18,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsedBody = contaReceberSchema.parse(body);
 
+    const dataToCreate = {
+      ...parsedBody,
+      empresaId,
+      valorRestante: parsedBody.valorRestante ?? parsedBody.valorTotal - parsedBody.valorPago,
+      dataVencimento: parsedBody.dataVencimento
+        ? new Date(parsedBody.dataVencimento + "T00:00:00.000Z")
+        : undefined,
+      dataPagamento: parsedBody.dataPagamento
+        ? new Date(parsedBody.dataPagamento + "T00:00:00.000Z")
+        : undefined,
+    };
+
     const novaContaReceber = await db.contaReceber.create({
-      data: {
-        ...parsedBody,
-        empresaId,
-        valorRestante: parsedBody.valorRestante ?? parsedBody.valorTotal - parsedBody.valorPago,
-      },
+      data: dataToCreate,
       include: {
         cliente: {
           select: {
