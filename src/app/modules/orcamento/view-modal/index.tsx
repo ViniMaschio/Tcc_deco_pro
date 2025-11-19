@@ -169,7 +169,6 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamentoId }: ViewItemsMod
             </div>
           </div>
 
-          {/* Observações */}
           {orcamento.observacao && (
             <div className="rounded-lg bg-blue-50 p-4">
               <h3 className="mb-2 font-medium text-gray-900">Observações</h3>
@@ -177,7 +176,6 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamentoId }: ViewItemsMod
             </div>
           )}
 
-          {/* Tabela de Itens */}
           <div>
             <h3 className="mb-4 font-medium text-gray-900">Itens do Orçamento</h3>
             <div className="overflow-hidden rounded-lg border">

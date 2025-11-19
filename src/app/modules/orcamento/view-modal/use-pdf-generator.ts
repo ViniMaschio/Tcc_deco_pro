@@ -11,17 +11,17 @@ export const usePdfGenerator = ({ fileName = "documento", orcamento }: UsePdfGen
 
   const generatePDF = async () => {
     try {
-      // Chama a API route para gerar o PDF
+
       const response = await fetch(`/api/orcamento/${orcamento.id}/pdf`);
 
       if (!response.ok) {
         throw new Error("Erro ao gerar PDF");
       }
 
-      // Converte a resposta para blob
+
       const blob = await response.blob();
 
-      // Cria um link para download
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

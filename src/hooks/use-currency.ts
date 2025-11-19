@@ -34,7 +34,7 @@ export function useCurrency(initialValue: number | string = 0) {
     return formatDecimal(rawValue);
   });
 
-  // Atualiza o valor bruto e o valor de exibição
+
   const updateValue = useCallback((value: number | string) => {
     const numValue = typeof value === "string" ? parseFloat(value) : value;
     const validValue = isNaN(numValue) ? 0 : numValue;
@@ -43,7 +43,7 @@ export function useCurrency(initialValue: number | string = 0) {
     setDisplayValue(formatDecimal(validValue));
   }, []);
 
-  // Atualiza o valor a partir de uma string formatada brasileira
+
   const updateFromFormattedString = useCallback(
     (formattedValue: string) => {
       const parsedValue = parseDecimalString(formattedValue);
@@ -52,7 +52,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [updateValue]
   );
 
-  // Atualiza o valor a partir de centavos
+
   const updateFromCents = useCallback(
     (cents: number) => {
       const decimalValue = centsToDecimal(cents);
@@ -61,27 +61,27 @@ export function useCurrency(initialValue: number | string = 0) {
     [updateValue]
   );
 
-  // Formata o valor atual para moeda
+
   const getFormattedCurrency = useCallback(() => {
     return formatCurrency(rawValue);
   }, [rawValue]);
 
-  // Formata o valor atual para decimal
+
   const getFormattedDecimal = useCallback(() => {
     return formatDecimal(rawValue);
   }, [rawValue]);
 
-  // Obtém o valor em centavos
+
   const getCents = useCallback(() => {
     return decimalToCents(rawValue);
   }, [rawValue]);
 
-  // Valida se o valor atual é válido
+
   const isValid = useCallback(() => {
     return isValidDecimal(rawValue);
   }, [rawValue]);
 
-  // Aplica desconto ao valor atual
+
   const applyDiscountToValue = useCallback(
     (discountPercent: number | string) => {
       const discountedValue = applyDiscount(rawValue, discountPercent);
@@ -91,7 +91,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue, updateValue]
   );
 
-  // Calcula desconto do valor atual
+
   const calculateDiscountFromValue = useCallback(
     (discountPercent: number | string) => {
       return calculateDiscount(rawValue, discountPercent);
@@ -99,7 +99,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue]
   );
 
-  // Soma valores ao valor atual
+
   const addToValue = useCallback(
     (...values: (number | string)[]) => {
       const sum = sumDecimals(rawValue, ...values);
@@ -109,7 +109,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue, updateValue]
   );
 
-  // Multiplica o valor atual
+
   const multiplyValue = useCallback(
     (multiplier: number | string) => {
       const result = multiplyDecimals(rawValue, multiplier);
@@ -119,7 +119,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue, updateValue]
   );
 
-  // Divide o valor atual
+
   const divideValue = useCallback(
     (divisor: number | string) => {
       const result = divideDecimals(rawValue, divisor);
@@ -129,7 +129,7 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue, updateValue]
   );
 
-  // Arredonda o valor atual
+
   const roundValue = useCallback(
     (decimals: number = 2) => {
       const rounded = roundDecimal(rawValue, decimals);
@@ -139,30 +139,30 @@ export function useCurrency(initialValue: number | string = 0) {
     [rawValue, updateValue]
   );
 
-  // Reseta o valor para zero
+
   const reset = useCallback(() => {
     updateValue(0);
   }, [updateValue]);
 
   return {
-    // Valores
+
     rawValue,
     displayValue,
 
-    // Funções de atualização
+
     updateValue,
     updateFromFormattedString,
     updateFromCents,
 
-    // Funções de formatação
+
     getFormattedCurrency,
     getFormattedDecimal,
     getCents,
 
-    // Funções de validação
+
     isValid,
 
-    // Funções de cálculo
+
     applyDiscountToValue,
     calculateDiscountFromValue,
     addToValue,
@@ -170,7 +170,7 @@ export function useCurrency(initialValue: number | string = 0) {
     divideValue,
     roundValue,
 
-    // Utilitários
+
     reset,
   };
 }
@@ -189,7 +189,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     return formatDecimal(centsToDecimal(centsValue));
   });
 
-  // Atualiza o valor em centavos e o valor de exibição
+
   const updateCents = useCallback((cents: number | string) => {
     const numCents = typeof cents === "string" ? parseInt(cents) : cents;
     const validCents = isNaN(numCents) ? 0 : numCents;
@@ -198,7 +198,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     setDisplayValue(formatDecimal(centsToDecimal(validCents)));
   }, []);
 
-  // Atualiza o valor a partir de um decimal
+
   const updateFromDecimal = useCallback(
     (decimal: number | string) => {
       const cents = decimalToCents(decimal);
@@ -207,7 +207,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [updateCents]
   );
 
-  // Atualiza o valor a partir de uma string formatada brasileira
+
   const updateFromFormattedString = useCallback(
     (formattedValue: string) => {
       const parsedValue = parseDecimalString(formattedValue);
@@ -217,27 +217,27 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [updateCents]
   );
 
-  // Formata o valor atual para moeda
+
   const getFormattedCurrency = useCallback(() => {
     return formatCurrencyFromCents(centsValue);
   }, [centsValue]);
 
-  // Formata o valor atual para decimal
+
   const getFormattedDecimal = useCallback(() => {
     return formatDecimal(centsToDecimal(centsValue));
   }, [centsValue]);
 
-  // Obtém o valor em decimal
+
   const getDecimal = useCallback(() => {
     return centsToDecimal(centsValue);
   }, [centsValue]);
 
-  // Valida se o valor atual é válido
+
   const isValid = useCallback(() => {
     return isValidDecimal(centsValue);
   }, [centsValue]);
 
-  // Aplica desconto ao valor atual
+
   const applyDiscountToValue = useCallback(
     (discountPercent: number | string) => {
       const discountedCents = applyDiscountCents(centsValue, discountPercent);
@@ -247,7 +247,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [centsValue, updateCents]
   );
 
-  // Calcula desconto do valor atual
+
   const calculateDiscountFromValue = useCallback(
     (discountPercent: number | string) => {
       return calculateDiscountCents(centsValue, discountPercent);
@@ -255,7 +255,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [centsValue]
   );
 
-  // Soma valores ao valor atual
+
   const addToValue = useCallback(
     (...values: (number | string)[]) => {
       const sum = sumCents(centsValue, ...values);
@@ -265,7 +265,7 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [centsValue, updateCents]
   );
 
-  // Multiplica o valor atual
+
   const multiplyValue = useCallback(
     (multiplier: number | string) => {
       const result = multiplyCents(centsValue, multiplier);
@@ -275,36 +275,36 @@ export function useCurrencyCents(initialValue: number | string = 0) {
     [centsValue, updateCents]
   );
 
-  // Reseta o valor para zero
+
   const reset = useCallback(() => {
     updateCents(0);
   }, [updateCents]);
 
   return {
-    // Valores
+
     centsValue,
     displayValue,
 
-    // Funções de atualização
+
     updateCents,
     updateFromDecimal,
     updateFromFormattedString,
 
-    // Funções de formatação
+
     getFormattedCurrency,
     getFormattedDecimal,
     getDecimal,
 
-    // Funções de validação
+
     isValid,
 
-    // Funções de cálculo
+
     applyDiscountToValue,
     calculateDiscountFromValue,
     addToValue,
     multiplyValue,
 
-    // Utilitários
+
     reset,
   };
 }

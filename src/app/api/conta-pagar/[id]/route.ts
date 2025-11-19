@@ -52,7 +52,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const dataToUpdate = {
       ...data,
-      valorRestante: data.valorRestante ?? data.valorTotal - data.valorPago,
       dataVencimento: data.dataVencimento
         ? new Date(data.dataVencimento + "T00:00:00.000Z")
         : undefined,
@@ -61,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         : undefined,
     };
 
-    const updated = await db.contaPagar.update({
+    const updatedRaw = await db.contaPagar.update({
       where: { id },
       data: dataToUpdate,
       include: {
@@ -71,8 +70,26 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             nome: true,
           },
         },
+        caixaSaidas: {
+          where: {
+            deleted: false,
+          },
+          select: {
+            valor: true,
+          },
+        },
       },
     });
+
+    const valorPago = updatedRaw.caixaSaidas.reduce((acc, caixa) => acc + caixa.valor, 0);
+    const valorRestante = updatedRaw.valor - valorPago;
+    const updated = {
+      ...updatedRaw,
+      valorPago,
+      valorRestante,
+      valorTotal: updatedRaw.valor,
+      caixaSaidas: undefined,
+    };
 
     return NextResponse.json(updated, { status: 200 });
   } catch (err) {

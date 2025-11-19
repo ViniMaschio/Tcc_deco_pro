@@ -167,7 +167,6 @@ export const orcamentoFilterCols = {
 type Filters = keyof typeof orcamentoFilterCols;
 
 export type OrcamentoFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key in Filters]: any;
 } & {
   sorting: {

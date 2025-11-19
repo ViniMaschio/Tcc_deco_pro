@@ -39,7 +39,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<CategoriaF
 
     const { page, perPage, sort, filter } = parsed.data;
 
-    // Construir filtros
+
     const where: {
       empresaId: number;
       deleted: boolean;
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<CategoriaF
       };
     }
 
-    // Construir ordenação
+
     let orderBy: { [key: string]: "asc" | "desc" } = { createdAt: "desc" };
     if (sort) {
       const [field, direction] = sort.split(":");

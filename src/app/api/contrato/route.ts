@@ -38,12 +38,14 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const clienteId = searchParams.get("clienteId");
 
     const skip = (page - 1) * limit;
 
     const where: {
       empresaId: number;
       deleted: boolean;
+      clienteId?: number;
       OR?: Array<{
         cliente?: { nome: { contains: string; mode: "insensitive" } };
         local?: { descricao: { contains: string; mode: "insensitive" } };
@@ -53,6 +55,10 @@ export async function GET(request: NextRequest) {
       empresaId,
       deleted: false,
     };
+
+    if (clienteId) {
+      where.clienteId = parseInt(clienteId);
+    }
 
     if (search) {
       where.OR = [
@@ -91,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(total / limit);
 
-    // Converter valores de centavos para decimal na resposta
+
     const contratosFormatted = contratos.map((contrato) => ({
       ...contrato,
       total: centsToDecimal(contrato.total),
@@ -123,7 +129,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createContratoSchema.parse(body);
 
-    // Converter valores decimais para centavos e calcular total
+
     let totalCents = 0;
     for (const item of validatedData.itens) {
       const valorUnitCents = decimalToCents(item.valorUnit);
@@ -133,13 +139,13 @@ export async function POST(request: NextRequest) {
       totalCents += valorTotalCents;
     }
 
-    // Combinar dataEvento e horaInicio em DateTime
+
     const dataEvento = new Date(validatedData.dataEvento);
 
-    // Parsear hora no formato "HH:mm"
+
     const [horas, minutos] = validatedData.horaInicio.split(":").map(Number);
 
-    // Combinar data do evento com hora do início
+
     const dataHoraInicio = new Date(dataEvento);
     dataHoraInicio.setHours(horas, minutos, 0, 0);
 
@@ -196,7 +202,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Converter valores de centavos para decimal na resposta
+
     const contratoFormatted = {
       ...contrato,
       total: centsToDecimal(contrato.total),

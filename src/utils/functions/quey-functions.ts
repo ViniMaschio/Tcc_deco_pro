@@ -50,13 +50,13 @@ export function buildQueryStringFrom(
     perPage: String(pagination.perPage),
   };
 
-  // 1) Sorting => sort="campo:asc|desc"
+
   const sorting = filters?.sorting as SortingType | undefined;
   if (sorting?.name && sorting?.type) {
     params.sort = `${sorting.name}:${sorting.type}`;
   }
 
-  // 2) Outros filtros (nivel superficial)
+
   Object.entries(filters || {}).forEach(([key, value]) => {
     if (key === "sorting") return; // já tratado
 

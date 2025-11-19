@@ -2,6 +2,7 @@ import { XIcon } from "@phosphor-icons/react";
 import moment from "moment";
 
 import { ClienteAutocomplete } from "@/app/modules/cliente/auto-complete";
+import { ContratoAutocomplete } from "@/app/modules/contrato/auto-complete";
 import { InputCurrency } from "@/components/input/input-currency";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
@@ -40,11 +41,19 @@ export const ContaReceberModal = ({
   contaReceber,
   afterSubmit,
 }: ContaReceberModalProps) => {
-  const { form, onSubmit, clienteSelecionado, handleClienteSelect, modalState, handleResetForm } =
-    useContaReceberModal({
-      afterSubmit,
-      contaReceber,
-    });
+  const {
+    form,
+    onSubmit,
+    clienteSelecionado,
+    handleClienteSelect,
+    contratoSelecionado,
+    handleContratoSelect,
+    modalState,
+    handleResetForm,
+  } = useContaReceberModal({
+    afterSubmit,
+    contaReceber,
+  });
 
   return (
     <Dialog open={open} onOpenChange={(value) => changeOpen(value)}>
@@ -61,18 +70,15 @@ export const ContaReceberModal = ({
         <Separator />
 
         <Form {...form}>
-          {/* @ts-ignore - react-hook-form type inference issue */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="overflow-auto">
             <div className="grid grid-cols-12 gap-5">
               <div className="col-span-6 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
                   name="clienteId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cliente *</FormLabel>
+                      <FormLabel>Cliente</FormLabel>
                       <FormControl>
                         <ClienteAutocomplete
                           cliente={clienteSelecionado}
@@ -91,14 +97,12 @@ export const ContaReceberModal = ({
                 />
               </div>
               <div className="col-span-6 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
                   name="descricao"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição</FormLabel>
+                      <FormLabel>Descrição *</FormLabel>
                       <FormControl>
                         <Input placeholder="Descrição" {...field} />
                       </FormControl>
@@ -107,15 +111,36 @@ export const ContaReceberModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
+              <div className="col-span-6 w-full">
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
+                  control={form.control}
+                  name="contratoId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contrato</FormLabel>
+                      <FormControl>
+                        <ContratoAutocomplete
+                          contrato={contratoSelecionado}
+                          clienteId={clienteSelecionado?.id}
+                          onSelect={(contrato) => {
+                            handleContratoSelect(contrato);
+                            field.onChange(contrato?.id);
+                          }}
+                          placeholder="Selecione um contrato..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="col-span-4 w-full">
+                <FormField
                   control={form.control}
                   name="dataVencimento"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data de Vencimento</FormLabel>
+                      <FormLabel>Data de Vencimento *</FormLabel>
                       <FormControl>
                         <DatePicker
                           value={field.value ? moment(field.value).toDate() : undefined}
@@ -135,14 +160,12 @@ export const ContaReceberModal = ({
                 />
               </div>
               <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
-                  name="valorTotal"
+                  name="valor"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Total *</FormLabel>
+                      <FormLabel>Valor *</FormLabel>
                       <FormControl>
                         <InputCurrency
                           value={typeof field.value === "number" ? field.value / 100 : 0}
@@ -155,34 +178,32 @@ export const ContaReceberModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
-                <FormField
-                  // @ts-ignore - react-hook-form type inference issue
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="PENDENTE">Pendente</SelectItem>
-                          <SelectItem value="PARCIAL">Parcial</SelectItem>
-                          <SelectItem value="PAGO">Pago</SelectItem>
-                          <SelectItem value="VENCIDO">Vencido</SelectItem>
-                          <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {contaReceber?.id && (
+                <div className="col-span-4 w-full">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="PENDENTE">Pendente</SelectItem>
+                            <SelectItem value="PAGO">Pago</SelectItem>
+                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
           </form>
         </Form>
@@ -198,10 +219,8 @@ export const ContaReceberModal = ({
           >
             Cancelar
           </Button>
-          {/* @ts-ignore - react-hook-form type inference issue */}
           <Button
             variant={"default"}
-            // @ts-ignore - react-hook-form type inference issue
             onClick={form.handleSubmit(onSubmit)}
             type="button"
             loading={modalState.submitting}

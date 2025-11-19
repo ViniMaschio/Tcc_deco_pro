@@ -16,7 +16,7 @@ export const useItensAutocomplete = ({ onSelect, item }: UseItensAutocompletePro
 
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
 
-  // Debounce inteligente do filtro
+
   useEffect(() => {
     const timer = setTimeout(
       () => {
@@ -28,7 +28,7 @@ export const useItensAutocomplete = ({ onSelect, item }: UseItensAutocompletePro
     return () => clearTimeout(timer);
   }, [filter]);
 
-  // Função para buscar itens com paginação
+
   const fetchItens = useCallback(
     async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
@@ -53,7 +53,7 @@ export const useItensAutocomplete = ({ onSelect, item }: UseItensAutocompletePro
     [debouncedFilter.nome]
   );
 
-  // Query para buscar itens com infinite scroll
+
   const { data, isLoading, error, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useInfiniteQuery({
       queryKey: ["itens-autocomplete", debouncedFilter.nome],
@@ -97,7 +97,7 @@ export const useItensAutocomplete = ({ onSelect, item }: UseItensAutocompletePro
     }
   };
 
-  // Refetch quando o filtro muda (apenas se o popover estiver aberto)
+
   useEffect(() => {
     if (show.openCommand) {
       refetch();

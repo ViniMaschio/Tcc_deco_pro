@@ -12,11 +12,11 @@ import { ContaPagarModalProps, FinanceiroModalStates } from "../types";
 
 const FormSchema = z.object({
   id: z.number().optional(),
-  fornecedorId: z.number().int().positive("Fornecedor é obrigatório"),
-  descricao: z.string().optional(),
-  dataVencimento: z.string().optional(),
-  valorTotal: z.number().int().positive("Valor total é obrigatório"),
-  status: z.enum(["PENDENTE", "PARCIAL", "PAGO", "VENCIDO", "CANCELADO"]).default("PENDENTE"),
+  fornecedorId: z.number().int().positive().optional(),
+  descricao: z.string().min(1, "Descrição é obrigatória"),
+  dataVencimento: z.string().min(1, "Data de vencimento é obrigatória"),
+  valor: z.number().int().positive("Valor é obrigatório"),
+  status: z.enum(["PENDENTE", "PAGO", "CANCELADO"]),
 });
 
 export type FormValues = z.infer<typeof FormSchema>;
@@ -33,11 +33,11 @@ export const useContaPagarModal = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      fornecedorId: 0,
+      fornecedorId: undefined,
       descricao: "",
       dataVencimento: "",
-      valorTotal: 0,
-      status: "PENDENTE",
+      valor: 0,
+      status: "PENDENTE" as const,
     },
   });
 
@@ -47,10 +47,10 @@ export const useContaPagarModal = ({
 
   const handleResetForm = () => {
     form.reset({
-      fornecedorId: 0,
+      fornecedorId: undefined,
       descricao: "",
       dataVencimento: "",
-      valorTotal: 0,
+      valor: 0,
       status: "PENDENTE",
     });
     setFornecedorSelecionado(undefined);
@@ -64,7 +64,8 @@ export const useContaPagarModal = ({
 
     const convertValues = {
       ...values,
-      valorTotal: typeof values.valorTotal === "number" ? values.valorTotal : decimalToCents(values.valorTotal),
+      valor: typeof values.valor === "number" ? values.valor : decimalToCents(values.valor),
+      status: Number(values?.id) > 0 ? values.status : "PENDENTE",
     };
 
     if (Number(values?.id) > 0) {
@@ -134,14 +135,16 @@ export const useContaPagarModal = ({
         dataVencimento: contaPagar.dataVencimento
           ? new Date(contaPagar.dataVencimento).toISOString().split("T")[0]
           : "",
-        valorTotal: contaPagar.valorTotal,
+        valor: contaPagar.valor || 0,
         status: contaPagar.status,
       });
       if (contaPagar.fornecedor) {
         setFornecedorSelecionado(contaPagar.fornecedor as any);
       }
+    } else if (!contaPagar || Object.keys(contaPagar).length === 0) {
+      handleResetForm();
     }
-  }, [contaPagar, form]);
+  }, [contaPagar]);
 
   return {
     form,
@@ -152,4 +155,3 @@ export const useContaPagarModal = ({
     handleResetForm,
   };
 };
-

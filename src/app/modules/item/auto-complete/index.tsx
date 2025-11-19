@@ -28,10 +28,10 @@ export const ItemAutocomplete = memo(function ItemAutocomplete({
   onAddItem,
   itensAdicionados = [],
 }: ItemAutocompleteProps) {
-  // Estado interno para controlar o item selecionado quando não há props externas
+
   const [itemSelecionado, setItemSelecionado] = useState<Item | null>(null);
 
-  // Usar o item da prop ou o estado interno
+
   const itemAtual = item || itemSelecionado;
 
   const {
@@ -54,7 +54,7 @@ export const ItemAutocomplete = memo(function ItemAutocomplete({
   const handleAddItem = (itemParaAdicionar: Item) => {
     onAddItem?.(itemParaAdicionar);
     handleShowState("openCommand", false);
-    // Limpar o item selecionado após adicionar
+
     if (!onSelect) {
       setItemSelecionado(null);
     }
@@ -193,7 +193,7 @@ export const ItemAutocomplete = memo(function ItemAutocomplete({
                       );
                     })}
 
-                    {/* Loading indicator for infinite scroll */}
+                    {}
                     {isFetchingNextPage && (
                       <div className="bg-muted/30 flex items-center justify-center border-t py-4">
                         <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export const ItemAutocomplete = memo(function ItemAutocomplete({
                   </>
                 )}
               </CommandGroup>
-              {/* End of list indicator - moved outside the main content */}
+              {}
               {!isLoading && !hasNextPage && itens.length > 0 ? (
                 <div className="text-muted-foreground border-t py-2 text-center text-xs">
                   Todos os itens carregados

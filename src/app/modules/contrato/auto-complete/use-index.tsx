@@ -3,18 +3,19 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
-import { Fornecedor, UseFornecedoresAutocompleteProps } from "./types";
+import { Contrato, UseContratosAutocompleteProps } from "./types";
 
-export const useFornecedoresAutocomplete = ({
+export const useContratosAutocomplete = ({
   onSelect,
-  fornecedor,
-}: UseFornecedoresAutocompleteProps = {}) => {
+  contrato,
+  clienteId,
+}: UseContratosAutocompleteProps = {}) => {
   const [show, setShow] = useState({
     openCommand: false,
   });
 
   const [filter, setFilter] = useState({
-    nome: "",
+    search: "",
   });
 
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
@@ -24,25 +25,29 @@ export const useFornecedoresAutocomplete = ({
       () => {
         setDebouncedFilter(filter);
       },
-      filter.nome.length > 2 ? 300 : 100
+      filter.search.length > 2 ? 300 : 100
     );
 
     return () => clearTimeout(timer);
   }, [filter]);
 
-  const fetchFornecedores = useCallback(
+  const fetchContratos = useCallback(
     async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
-      if (debouncedFilter.nome && debouncedFilter.nome.trim().length > 0) {
-        params.append("filter", debouncedFilter.nome);
+      if (debouncedFilter.search && debouncedFilter.search.trim().length > 0) {
+        params.append("search", debouncedFilter.search);
+      }
+      if (clienteId) {
+        // Filtrar por cliente se fornecido
+        params.append("clienteId", clienteId.toString());
       }
       params.append("page", pageParam.toString());
-      params.append("perPage", "10");
+      params.append("limit", "10");
 
-      const response = await fetch(`/api/fornecedor?${params.toString()}`);
+      const response = await fetch(`/api/contrato?${params.toString()}`);
 
       if (!response.ok) {
-        throw new Error("Erro ao buscar fornecedores");
+        throw new Error("Erro ao buscar contratos");
       }
 
       const data = await response.json();
@@ -51,13 +56,13 @@ export const useFornecedoresAutocomplete = ({
         pagination: data.pagination,
       };
     },
-    [debouncedFilter.nome]
+    [debouncedFilter.search, clienteId]
   );
 
   const { data, isLoading, error, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useInfiniteQuery({
-      queryKey: ["fornecedores-autocomplete", debouncedFilter.nome],
-      queryFn: fetchFornecedores,
+      queryKey: ["contratos-autocomplete", debouncedFilter.search, clienteId],
+      queryFn: fetchContratos,
       initialPageParam: 1,
       getNextPageParam: (lastPage) => {
         if (lastPage.pagination.totalPages > lastPage.pagination.page) {
@@ -69,7 +74,7 @@ export const useFornecedoresAutocomplete = ({
       retry: 1,
     });
 
-  const fornecedores = data?.pages.flatMap((page) => page.data) ?? [];
+  const contratos = data?.pages.flatMap((page) => page.data) ?? [];
 
   const handleShowState = (key: keyof typeof show, value: boolean) => {
     setShow((prev) => ({
@@ -79,11 +84,11 @@ export const useFornecedoresAutocomplete = ({
   };
 
   const handleFilter = (value: string) => {
-    setFilter((prev) => ({ ...prev, nome: value }));
+    setFilter((prev) => ({ ...prev, search: value }));
   };
 
-  const handleSelect = (fornecedorSelecionado: Fornecedor) => {
-    onSelect?.(fornecedorSelecionado);
+  const handleSelect = (contratoSelecionado: Contrato) => {
+    onSelect?.(contratoSelecionado);
     handleShowState("openCommand", false);
   };
 
@@ -106,7 +111,7 @@ export const useFornecedoresAutocomplete = ({
   return {
     show,
     filter,
-    fornecedores,
+    contratos,
     isLoading,
     error,
     isFetchingNextPage,
@@ -115,6 +120,7 @@ export const useFornecedoresAutocomplete = ({
     handleFilter,
     handleSelect,
     handleScroll,
-    fornecedor,
+    contrato,
   };
 };
+

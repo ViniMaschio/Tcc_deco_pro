@@ -1,6 +1,5 @@
 import { Contrato } from "@/app/api/contrato/types";
 
-// Tipos para o modal de contrato
 export type ContratoModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -8,7 +7,6 @@ export type ContratoModalProps = {
   onSuccess: () => void;
 };
 
-// Tipos para estados da página
 export type ContratoPageStates = {
   showModal: boolean;
   isLoading: boolean;
@@ -16,7 +14,6 @@ export type ContratoPageStates = {
   showViewModal: boolean;
 };
 
-// Tipos para filtros
 export type ContratoFilterType = {
   search: string;
   status: string;
@@ -24,13 +21,11 @@ export type ContratoFilterType = {
   limit: number;
 };
 
-// Tipos para estados do modal
 export type ContratoModalStates = {
   submitting: boolean;
   activeTab: string;
 };
 
-// Tipos para paginação
 export type ContratoPagination = {
   page: number;
   limit: number;
@@ -38,7 +33,6 @@ export type ContratoPagination = {
   totalPages: number;
 };
 
-// Tipos para dados auxiliares
 export interface Cliente {
   id: number;
   nome: string;
@@ -69,7 +63,6 @@ export interface Orcamento {
   uuid: string;
 }
 
-// Tipos para props dos componentes
 export type ContratoDataTableProps = {
   data: Contrato[];
   isLoading: boolean;

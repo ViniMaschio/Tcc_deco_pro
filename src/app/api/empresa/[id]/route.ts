@@ -13,7 +13,6 @@ const idParamSchema = z.object({
     .pipe(z.number().int().positive()),
 });
 
-// ATUALIZAR Empresa
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
@@ -34,7 +33,6 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     }
     const { id } = parsedId.data;
 
-    // Verificar se o ID da URL corresponde ao ID da empresa autenticada
     if (id !== empresaId) {
       return NextResponse.json(
         { empresa: null, message: "Não autorizado a atualizar esta empresa!" },
@@ -65,11 +63,10 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
       );
     }
 
-    // Preparar dados para atualização (remover senha se não foi fornecida)
     const updateData: any = {};
     if (data.nome !== undefined) updateData.nome = data.nome;
     if (data.email !== undefined) updateData.email = data.email;
-    if (data.senha !== undefined) updateData.senha = data.senha; // Senha deve ser hasheada se fornecida
+    if (data.senha !== undefined) updateData.senha = data.senha;
     if (data.cnpj !== undefined) updateData.cnpj = data.cnpj;
     if (data.razaoSocial !== undefined) updateData.razaoSocial = data.razaoSocial;
     if (data.rua !== undefined) updateData.rua = data.rua;
@@ -110,7 +107,6 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
   } catch (err) {
     console.error("PUT /api/empresa/:id error:", err);
 
-    // Tratar erros do Prisma
     if (err instanceof PrismaClientKnownRequestError) {
       if (err.code === "P2002") {
         const target = Array.isArray(err.meta?.target) ? err.meta.target.join(", ") : "campo único";

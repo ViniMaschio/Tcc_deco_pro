@@ -141,7 +141,6 @@ export const FornecedorAutocomplete = memo(function FornecedorAutocomplete({
                     </CommandItem>
                   ))}
 
-                  {/* Loading indicator for infinite scroll */}
                   {isFetchingNextPage && (
                     <div className="bg-muted/30 flex items-center justify-center border-t py-4">
                       <div className="flex items-center gap-2">
@@ -152,7 +151,6 @@ export const FornecedorAutocomplete = memo(function FornecedorAutocomplete({
                 </>
               )}
             </CommandGroup>
-            {/* End of list indicator - moved outside the main content */}
             {!isLoading && !hasNextPage && fornecedores.length > 0 ? (
               <div className="text-muted-foreground border-t py-2 text-center text-xs">
                 Todos os fornecedores carregados

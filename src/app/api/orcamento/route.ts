@@ -121,7 +121,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createOrcamentoSchema.parse(body);
 
-    // Calcular total dos itens
     let total = 0;
     for (const item of validatedData.itens) {
       const valorTotal = item.quantidade * item.valorUnit - item.desconto;

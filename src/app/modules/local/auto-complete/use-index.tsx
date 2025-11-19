@@ -16,7 +16,7 @@ export const useLocaisAutocomplete = ({ onSelect, local }: UseLocaisAutocomplete
 
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
 
-  // Debounce inteligente do filtro
+
   useEffect(() => {
     const timer = setTimeout(
       () => {
@@ -28,7 +28,7 @@ export const useLocaisAutocomplete = ({ onSelect, local }: UseLocaisAutocomplete
     return () => clearTimeout(timer);
   }, [filter]);
 
-  // Função para buscar locais com paginação
+
   const fetchLocais = useCallback(
     async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
@@ -53,7 +53,7 @@ export const useLocaisAutocomplete = ({ onSelect, local }: UseLocaisAutocomplete
     [debouncedFilter.descricao]
   );
 
-  // Query para buscar locais com infinite scroll
+
   const { data, isLoading, error, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useInfiniteQuery({
       queryKey: ["locais-autocomplete", debouncedFilter.descricao],
@@ -98,7 +98,7 @@ export const useLocaisAutocomplete = ({ onSelect, local }: UseLocaisAutocomplete
     }
   };
 
-  // Refetch quando o filtro muda (apenas se o popover estiver aberto)
+
   useEffect(() => {
     if (show.openCommand) {
       refetch();

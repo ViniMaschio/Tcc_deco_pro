@@ -6,18 +6,19 @@ import z from "zod";
 
 import { ContaReceber } from "@/app/api/conta-receber/types";
 import { Cliente } from "@/app/modules/cliente/auto-complete/types";
+import { Contrato } from "@/app/modules/contrato/auto-complete/types";
 import { decimalToCents } from "@/utils/currency";
 
 import { ContaReceberModalProps, FinanceiroModalStates } from "../types";
 
 const FormSchema = z.object({
   id: z.number().optional(),
-  clienteId: z.number().int().positive("Cliente é obrigatório"),
+  clienteId: z.number().int().positive().optional(),
   contratoId: z.number().int().positive().optional(),
-  descricao: z.string().optional(),
-  dataVencimento: z.string().optional(),
-  valorTotal: z.number().int().positive("Valor total é obrigatório"),
-  status: z.enum(["PENDENTE", "PARCIAL", "PAGO", "VENCIDO", "CANCELADO"]).default("PENDENTE"),
+  descricao: z.string().min(1, "Descrição é obrigatória"),
+  dataVencimento: z.string().min(1, "Data de vencimento é obrigatória"),
+  valor: z.number().int().positive("Valor é obrigatório"),
+  status: z.enum(["PENDENTE", "PAGO", "CANCELADO"]),
 });
 
 export type FormValues = z.infer<typeof FormSchema>;
@@ -28,33 +29,48 @@ export const useContaReceberModal = ({
 }: Omit<ContaReceberModalProps, "open" | "changeOpen">) => {
   const [modalState, setModalState] = useState({} as FinanceiroModalStates);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | undefined>(undefined);
+  const [contratoSelecionado, setContratoSelecionado] = useState<Contrato | undefined>(undefined);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      clienteId: 0,
+      clienteId: undefined,
       contratoId: undefined,
       descricao: "",
       dataVencimento: "",
-      valorTotal: 0,
-      status: "PENDENTE",
+      valor: 0,
+      status: "PENDENTE" as const,
     },
   });
 
   const handleClienteSelect = (cliente: Cliente) => {
     setClienteSelecionado(cliente);
+    // Limpar contrato selecionado quando o cliente mudar
+    if (cliente?.id !== clienteSelecionado?.id) {
+      setContratoSelecionado(undefined);
+      form.setValue("contratoId", undefined);
+    }
+  };
+
+  const handleContratoSelect = (contrato: Contrato | null) => {
+    if (contrato) {
+      setContratoSelecionado(contrato);
+    } else {
+      setContratoSelecionado(undefined);
+    }
   };
 
   const handleResetForm = () => {
     form.reset({
-      clienteId: 0,
+      clienteId: undefined,
       contratoId: undefined,
       descricao: "",
       dataVencimento: "",
-      valorTotal: 0,
+      valor: 0,
       status: "PENDENTE",
     });
     setClienteSelecionado(undefined);
+    setContratoSelecionado(undefined);
   };
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
@@ -65,10 +81,8 @@ export const useContaReceberModal = ({
 
     const convertValues = {
       ...values,
-      valorTotal:
-        typeof values.valorTotal === "number"
-          ? values.valorTotal
-          : decimalToCents(values.valorTotal),
+      valor: typeof values.valor === "number" ? values.valor : decimalToCents(values.valor),
+      status: Number(values?.id) > 0 ? values.status : "PENDENTE",
     };
 
     if (Number(values?.id) > 0) {
@@ -139,20 +153,39 @@ export const useContaReceberModal = ({
         dataVencimento: contaReceber.dataVencimento
           ? new Date(contaReceber.dataVencimento).toISOString().split("T")[0]
           : "",
-        valorTotal: contaReceber.valorTotal,
+        valor: contaReceber.valor || 0,
         status: contaReceber.status,
       });
       if (contaReceber.cliente) {
         setClienteSelecionado(contaReceber.cliente as any);
       }
+      // Buscar contrato completo se houver contratoId
+      if (contaReceber.contratoId) {
+        fetch(`/api/contrato/${contaReceber.contratoId}`)
+          .then((res) => res.json())
+          .then((contrato) => {
+            if (contrato && !contrato.error) {
+              setContratoSelecionado(contrato as Contrato);
+            }
+          })
+          .catch((err) => {
+            console.error("Erro ao buscar contrato:", err);
+          });
+      } else {
+        setContratoSelecionado(undefined);
+      }
+    } else if (!contaReceber || Object.keys(contaReceber).length === 0) {
+      handleResetForm();
     }
-  }, [contaReceber, form]);
+  }, [contaReceber]);
 
   return {
     form,
     onSubmit,
     clienteSelecionado,
     handleClienteSelect,
+    contratoSelecionado,
+    handleContratoSelect,
     modalState,
     handleResetForm,
   };

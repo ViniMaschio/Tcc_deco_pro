@@ -177,7 +177,6 @@ export const contratoFilterCols = {
 type Filters = keyof typeof contratoFilterCols;
 
 export type ContratoFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key in Filters]: any;
 } & {
   sorting: {

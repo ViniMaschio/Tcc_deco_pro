@@ -44,7 +44,6 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
 
     const [isFocused, setIsFocused] = useState(false);
 
-    // Atualiza o valor de exibição quando o valor prop muda
     useEffect(() => {
       const numValue = typeof value === "string" ? parseFloat(value) : value;
       if (!isFocused) {
@@ -52,37 +51,28 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
       }
     }, [value, isFocused]);
 
-    // Função para formatar valor durante a digitação (similar ao exemplo)
     const formatCurrencyInput = (inputValue: string): string => {
-      // Remove todos os caracteres não numéricos
       let cleaned = inputValue.replace(/\D/g, "");
 
-      // Se não permite negativos, garante que não há sinal negativo
       if (!allowNegative) {
         cleaned = cleaned.replace("-", "");
       }
 
-      // Se estiver vazio, retorna vazio
       if (cleaned === "") {
         return "";
       }
 
-      // Converte para número considerando os últimos 2 dígitos como centavos
-      // Exemplo: "12345" -> 123.45
       const numericValue = parseInt(cleaned) / 100;
 
-      // Formata com vírgula para centavos e pontos para milhares
       return formatDecimal(numericValue);
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
 
-      // Formata o valor durante a digitação
       const formattedValue = formatCurrencyInput(inputValue);
       setDisplayValue(formattedValue);
 
-      // Converte para número e chama onChange
       const numericValue = parseDecimalString(formattedValue);
 
       if (isValidDecimal(numericValue)) {
@@ -97,7 +87,6 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
     const handleBlur = () => {
       setIsFocused(false);
 
-      // Formata o valor final
       const numericValue = parseDecimalString(displayValue);
       const formattedValue = formatDecimal(numericValue);
 
@@ -106,7 +95,6 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // Permite apenas números, vírgula, ponto, backspace, delete, tab, escape, enter e setas
       const allowedKeys = [
         "Backspace",
         "Delete",
@@ -125,7 +113,6 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
         return;
       }
 
-      // Permite apenas números e teclas de controle
       if (!/\d/.test(e.key) && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
       }
@@ -174,7 +161,6 @@ export const InputCurrency = forwardRef<HTMLInputElement, InputCurrencyProps>(
 
 InputCurrency.displayName = "InputCurrency";
 
-// Componente para exibição de valores formatados (somente leitura)
 interface CurrencyDisplayProps {
   value: number | string;
   showCurrency?: boolean;

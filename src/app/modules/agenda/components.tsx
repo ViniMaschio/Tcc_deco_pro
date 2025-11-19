@@ -147,9 +147,6 @@ export function Calendar({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          {/* <button className="cursor-pointer rounded-md border p-2" aria-label="Novo evento">
-            <Plus size={18} />
-          </button> */}
           <CalendarLegend />
         </div>
       </div>

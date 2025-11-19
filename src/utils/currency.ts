@@ -149,7 +149,7 @@ export function parseDecimalString(value: string): number {
     return 0;
   }
 
-  // Remove espaços e converte vírgula para ponto
+
   const cleanValue = value.trim().replace(/\./g, "").replace(",", ".");
 
   const numValue = parseFloat(cleanValue);

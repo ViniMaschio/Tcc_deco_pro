@@ -133,7 +133,7 @@ export const localFilterCols = {
 type Filters = keyof typeof localFilterCols;
 
 export type LocalFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key in Filters]: any;
 } & {
   sorting: {

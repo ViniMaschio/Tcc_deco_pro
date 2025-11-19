@@ -175,7 +175,7 @@ export const clienteFilterCols = {
 type Filters = keyof typeof clienteFilterCols;
 
 export type ClienteFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key in Filters]: any;
 } & {
   sorting: {

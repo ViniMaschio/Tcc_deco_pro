@@ -27,7 +27,7 @@ export const useFormLogin = () => {
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     try {
-      // Para NextAuth.js v4, use o signIn do next-auth/react
+
       const { signIn } = await import("next-auth/react");
 
       const result = await signIn("credentials", {

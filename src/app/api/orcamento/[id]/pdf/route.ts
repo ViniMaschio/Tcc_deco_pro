@@ -10,7 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    // Busca o orçamento
+
     const orcamentoResult = await obterOrcamento(orcamentoId);
     if (!orcamentoResult.ok) {
       return NextResponse.json(
@@ -24,10 +24,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Orçamento não encontrado" }, { status: 404 });
     }
 
-    // Gera o PDF
+
     const pdfBlob = await generateOrcamentoPDF(orcamento, `orcamento-${orcamento.id}`);
 
-    // Retorna o PDF
+
     return new NextResponse(pdfBlob, {
       headers: {
         "Content-Type": "application/pdf",

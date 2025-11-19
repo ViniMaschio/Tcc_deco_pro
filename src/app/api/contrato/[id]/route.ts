@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Contrato não encontrado" }, { status: 404 });
     }
 
-    // Converter valores de centavos para decimal na resposta
+
     const contratoFormatted = {
       ...contrato,
       total: centsToDecimal(contrato.total),
@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const validatedData = updateContratoSchema.parse(body);
 
-    // Verificar se o contrato existe
+
     const existingContrato = await prisma.contrato.findFirst({
       where: {
         id: parseInt((await params).id),
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Contrato não encontrado" }, { status: 404 });
     }
 
-    // Construir objeto de atualização removendo propriedades undefined
+
     const updateData: any = {};
 
     if (validatedData.clienteId !== undefined) {
@@ -132,18 +132,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.observacao = validatedData.observacao;
     }
 
-    // Se dataEvento foi fornecida, converter para Date
+
     if (validatedData.dataEvento) {
       updateData.dataEvento = new Date(validatedData.dataEvento);
     }
 
-    // Se horaInicio foi fornecida, combinar com dataEvento
+
     if (validatedData.horaInicio) {
       const dataEvento = validatedData.dataEvento
         ? new Date(validatedData.dataEvento)
         : existingContrato.dataEvento;
 
-      // Parsear hora no formato "HH:mm"
+
       const [horas, minutos] = validatedData.horaInicio.split(":").map(Number);
 
       const dataHoraInicio = new Date(dataEvento);
@@ -152,14 +152,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.horaInicio = dataHoraInicio;
     }
 
-    // Se itens foram fornecidos, recalcular total e atualizar itens
+
     if (validatedData.itens) {
-      // Deletar itens existentes
+
       await prisma.contratoItem.deleteMany({
         where: { contratoId: parseInt((await params).id) },
       });
 
-      // Converter valores decimais para centavos e calcular novo total
+
       let totalCents = 0;
       for (const item of validatedData.itens) {
         const valorUnitCents = decimalToCents(item.valorUnit);
@@ -215,7 +215,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
-    // Converter valores de centavos para decimal na resposta
+
     const contratoFormatted = {
       ...contrato,
       total: centsToDecimal(contrato.total),
@@ -243,7 +243,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETAR CONTRATO
+
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();

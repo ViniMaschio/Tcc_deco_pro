@@ -13,7 +13,6 @@ const idParamSchema = z.object({
     .pipe(z.number().int().positive()),
 });
 
-// ATUALIZAR LOCAL
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();
@@ -65,7 +64,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETAR LOCAL
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const empresaId = await ensureEmpresaId();

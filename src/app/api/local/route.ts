@@ -81,7 +81,6 @@ export async function GET(request: NextRequest) {
 
     const { page, perPage, sort, filter, descricao, cidade } = parsed.data;
 
-    // ORDENAÇÃO
     const sortable = new Set<keyof typeof db.localEvento.fields>([
       "id",
       "descricao",
@@ -90,7 +89,6 @@ export async function GET(request: NextRequest) {
     ]);
     const orderBy = buildOrderBy(sort, sortable);
 
-    // Filtros dinâmicos
     const where: Prisma.LocalEventoWhereInput = {
       empresaId,
       AND: [
@@ -107,7 +105,6 @@ export async function GET(request: NextRequest) {
       ],
     };
 
-    // PAGINAÇÃO
     const skip = (page - 1) * perPage;
     const [total, data] = await Promise.all([
       db.localEvento.count({ where: { ...where, deleted: false } }),

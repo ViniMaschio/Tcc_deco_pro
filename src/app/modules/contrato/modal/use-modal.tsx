@@ -186,7 +186,6 @@ export const useContratoModal = ({
     if (!contrato?.id) {
       await createMutation.mutateAsync(contratoData);
     } else if (contrato?.id) {
-      // Para atualização, remover campos não esperados pela API
       const itensParaAtualizacao = contratoData.itens.map((item) => ({
         itemId: item.itemId,
         quantidade: item.quantidade,
@@ -279,7 +278,6 @@ export const useContratoModal = ({
       resetForm();
       setActiveTab("dados-gerais");
     } else if (open && !contrato?.id) {
-      // Se a modal abrir sem contrato, garantir que o formulário está limpo
       resetForm();
     }
   }, [open, contrato?.id]);

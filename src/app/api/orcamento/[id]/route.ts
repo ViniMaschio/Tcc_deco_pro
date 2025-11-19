@@ -4,7 +4,6 @@ import { z } from "zod";
 import { auth } from "@/lib/auth-server";
 import { db as prisma } from "@/lib/prisma";
 
-// Função utilitária para buscar orçamento por ID
 export async function obterOrcamento(orcamentoId: number) {
   try {
     const session = await auth();
@@ -54,7 +53,6 @@ export async function obterOrcamento(orcamentoId: number) {
       return { ok: false, error: "Orçamento não encontrado" };
     }
 
-    // Converter null para undefined para compatibilidade com o tipo Orcamento
     const orcamentoFormatted = {
       ...orcamento,
       categoriaId: orcamento.categoriaId ?? undefined,
@@ -175,7 +173,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const validatedData = updateOrcamentoSchema.parse(body);
 
-    // Verificar se o orçamento existe
     const existingOrcamento = await prisma.orcamento.findFirst({
       where: {
         id: parseInt((await params).id),
@@ -188,7 +185,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Orçamento não encontrado" }, { status: 404 });
     }
 
-    // Construir objeto de atualização removendo propriedades undefined
     const updateData: any = {};
 
     if (validatedData.clienteId !== undefined) {
@@ -207,19 +203,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.observacao = validatedData.observacao;
     }
 
-    // Se dataEvento foi fornecida, converter para Date
     if (validatedData.dataEvento) {
       updateData.dataEvento = new Date(validatedData.dataEvento);
     }
 
-    // Se itens foram fornecidos, recalcular total e atualizar itens
     if (validatedData.itens) {
-      // Deletar itens existentes
       await prisma.orcamentoItem.deleteMany({
         where: { orcamentoId: parseInt((await params).id) },
       });
 
-      // Calcular novo total
       let total = 0;
       for (const item of validatedData.itens) {
         const valorTotal = item.quantidade * item.valorUnit - (item.desconto || 0);
@@ -275,7 +267,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETAR ORÇAMENTO
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();

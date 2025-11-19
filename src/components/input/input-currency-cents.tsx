@@ -45,7 +45,7 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
 
     const [isFocused, setIsFocused] = useState(false);
 
-    // Atualiza o valor de exibição quando o valor prop muda
+
     useEffect(() => {
       const cents = typeof value === "string" ? parseInt(value) : value;
       if (!isFocused) {
@@ -56,15 +56,15 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
 
-      // Remove caracteres não numéricos exceto vírgula e ponto
+
       const cleanValue = inputValue.replace(/[^\d,.-]/g, "");
 
-      // Se não permite negativos, remove o sinal de menos
+
       const finalValue = allowNegative ? cleanValue : cleanValue.replace("-", "");
 
       setDisplayValue(finalValue);
 
-      // Converte para centavos e chama onChange
+
       const numericValue = parseDecimalString(finalValue);
       const cents = decimalToCents(numericValue);
 
@@ -80,7 +80,7 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
     const handleBlur = () => {
       setIsFocused(false);
 
-      // Formata o valor final
+
       const numericValue = parseDecimalString(displayValue);
       const cents = decimalToCents(numericValue);
       const formattedValue = formatDecimal(centsToDecimal(cents));
@@ -90,7 +90,7 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // Permite apenas números, vírgula, ponto, backspace, delete, tab, escape, enter
+
       const allowedKeys = [
         "Backspace",
         "Delete",
@@ -109,13 +109,13 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
         return;
       }
 
-      // Permite vírgula e ponto apenas uma vez
+
       if ((e.key === "," || e.key === ".") && displayValue.includes(",")) {
         e.preventDefault();
         return;
       }
 
-      // Permite apenas números, vírgula e ponto
+
       if (!/[\d,.-]/.test(e.key)) {
         e.preventDefault();
       }
@@ -147,7 +147,7 @@ export const InputCurrencyCents = forwardRef<HTMLInputElement, InputCurrencyCent
 
 InputCurrencyCents.displayName = "InputCurrencyCents";
 
-// Componente para exibição de valores em centavos (somente leitura)
+
 interface CurrencyCentsDisplayProps {
   value: number | string; // Valor em centavos
   showCurrency?: boolean;

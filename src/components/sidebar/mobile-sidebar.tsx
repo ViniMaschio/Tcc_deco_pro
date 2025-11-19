@@ -45,7 +45,7 @@ export const MobileSidebar = () => {
     });
   };
 
-  // Não renderizar em desktop
+
   if (!isMobile) {
     return null;
   }

@@ -79,7 +79,7 @@ export async function PUT(
     const body = await request.json();
     const parsedBody = updateCategoriaFestaSchema.parse(body);
 
-    // Verificar se a categoria existe
+
     const existingCategoria = await db.categoriaFesta.findFirst({
       where: {
         id,
@@ -132,7 +132,7 @@ export async function PATCH(
       return NextResponse.json({ categoriaFesta: null, message: "ID inválido!" }, { status: 400 });
     }
 
-    // Verificar se a categoria existe
+
     const existingCategoria = await db.categoriaFesta.findFirst({
       where: {
         id,
@@ -148,7 +148,7 @@ export async function PATCH(
       );
     }
 
-    // Verificar se há orçamentos ou contratos vinculados
+
     const [orcamentosCount, contratosCount] = await Promise.all([
       db.orcamento.count({
         where: {
@@ -175,7 +175,7 @@ export async function PATCH(
       );
     }
 
-    // Soft delete
+
     const categoriaFestaExcluida = await db.categoriaFesta.update({
       where: { id },
       data: {

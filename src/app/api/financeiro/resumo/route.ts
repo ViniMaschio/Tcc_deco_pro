@@ -16,12 +16,20 @@ export async function GET(request: NextRequest) {
           empresaId,
           deleted: false,
           status: {
-            in: ["PENDENTE", "PARCIAL"],
+            in: ["PENDENTE"],
           },
         },
         select: {
-          valorTotal: true,
-          valorPago: true,
+          valor: true,
+          id: true,
+          caixaEntradas: {
+            where: {
+              deleted: false,
+            },
+            select: {
+              valor: true,
+            },
+          },
         },
       }),
       db.contaPagar.findMany({
@@ -29,24 +37,32 @@ export async function GET(request: NextRequest) {
           empresaId,
           deleted: false,
           status: {
-            in: ["PENDENTE", "PARCIAL"],
+            in: ["PENDENTE"],
           },
         },
         select: {
-          valorTotal: true,
-          valorPago: true,
+          valor: true,
+          id: true,
+          caixaSaidas: {
+            where: {
+              deleted: false,
+            },
+            select: {
+              valor: true,
+            },
+          },
         },
       }),
     ]);
 
-    const totalReceber = contasReceber.reduce(
-      (acc, conta) => acc + (conta.valorTotal - conta.valorPago),
-      0
-    );
-    const totalPagar = contasPagar.reduce(
-      (acc, conta) => acc + (conta.valorTotal - conta.valorPago),
-      0
-    );
+    const totalReceber = contasReceber.reduce((acc, conta) => {
+      const valorPago = conta.caixaEntradas.reduce((sum, caixa) => sum + caixa.valor, 0);
+      return acc + (conta.valor - valorPago);
+    }, 0);
+    const totalPagar = contasPagar.reduce((acc, conta) => {
+      const valorPago = conta.caixaSaidas.reduce((sum, caixa) => sum + caixa.valor, 0);
+      return acc + (conta.valor - valorPago);
+    }, 0);
     const saldo = totalReceber - totalPagar;
 
     return NextResponse.json({

@@ -21,7 +21,7 @@ export const useContrato = () => {
     },
   });
 
-  // Buscar cláusulas template do banco de dados
+
   const getClausulasTemplate = async () => {
     if (!session?.user?.id) {
       throw new Error("Sessão não encontrada");
@@ -48,7 +48,7 @@ export const useContrato = () => {
     enabled: !!session?.user?.id,
   });
 
-  // Salvar cláusulas template
+
   const saveClausulasTemplate = async (data: ContratoData) => {
     if (!session?.user?.id) {
       throw new Error("Sessão não encontrada");
@@ -86,13 +86,13 @@ export const useContrato = () => {
   });
 
   const handleContratoSubmit = async (data: ContratoData) => {
-    // Atualizar configurações locais
+
     const dataWithClausulas = { ...data, clausulas };
     Object.entries(dataWithClausulas).forEach(([key, value]) => {
       handleChangeConfiguracao(`contrato.${key}`, value);
     });
 
-    // Salvar no banco de dados
+
     try {
       await saveTemplateMutation(data);
       return { ok: true };
@@ -162,7 +162,7 @@ export const useContrato = () => {
     contratoForm.setValue("clausulas", clausulasReordenadas);
   };
 
-  // Carregar dados das cláusulas quando disponível
+
   useEffect(() => {
     if (clausulasData && Array.isArray(clausulasData)) {
       const clausulasCarregadas: Clausula[] = clausulasData.map((c: any) => ({
@@ -178,12 +178,12 @@ export const useContrato = () => {
         clausulas: clausulasCarregadas,
       });
 
-      // Atualizar configurações locais
+
       handleChangeConfiguracao("contrato.clausulas", clausulasCarregadas);
     }
   }, [clausulasData]);
 
-  // Sincronizar com configurações locais (fallback)
+
   useEffect(() => {
     if (!clausulasData && configuracoes.contrato) {
       const novasClausulas = configuracoes.contrato.clausulas || [];

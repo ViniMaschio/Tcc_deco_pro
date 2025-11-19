@@ -7,7 +7,7 @@ import { Label } from "./ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 type FilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key: string]: any;
 };
 

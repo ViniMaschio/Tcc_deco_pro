@@ -57,7 +57,7 @@ export type CurrencyLocale = {
   thousandSeparator: string;
 };
 
-// Constantes para configuração
+
 export const CURRENCY_CONFIG = {
   DEFAULT_LOCALE: "pt-BR",
   DEFAULT_CURRENCY: "BRL",

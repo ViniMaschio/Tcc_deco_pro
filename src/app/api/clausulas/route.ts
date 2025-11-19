@@ -16,7 +16,7 @@ const clausulasSchema = z.object({
   clausulas: z.array(clausulaTemplateSchema),
 });
 
-// GET - Buscar cláusulas template da empresa
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const empresaId = Number(session.user.id);
 
-    // Buscar as cláusulas da empresa
+
     const clausulas = await db.clausulaTemplate.findMany({
       where: {
         empresaId,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Criar ou atualizar cláusulas template
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -73,14 +73,14 @@ export async function POST(request: NextRequest) {
 
     const { clausulas } = validation.data;
 
-    // Remover todas as cláusulas antigas da empresa
+
     await db.clausulaTemplate.deleteMany({
       where: {
         empresaId,
       },
     });
 
-    // Criar novas cláusulas
+
     if (clausulas.length > 0) {
       await db.clausulaTemplate.createMany({
         data: clausulas.map((clausula) => ({
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Buscar as cláusulas criadas para retornar
+
     const clausulasCriadas = await db.clausulaTemplate.findMany({
       where: {
         empresaId,

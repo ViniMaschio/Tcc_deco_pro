@@ -152,7 +152,7 @@ export const itemFilterCols = {
 type Filters = keyof typeof itemFilterCols;
 
 export type ItemFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key in Filters]: any;
 } & {
   sorting: {

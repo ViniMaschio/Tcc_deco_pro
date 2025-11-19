@@ -14,10 +14,10 @@ const LEGEND_ITEMS = [
     color: "bg-yellow-500",
     label: "Orçamento",
   },
-  //   {
-  //     color: "#3b82f6",
-  //     label: "Reunião/Visita",
-  //   },
+
+
+
+
 ];
 
 export function CalendarLegend() {

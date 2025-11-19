@@ -64,7 +64,6 @@ export function ContratoDataTable({
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // Conectar eventos dos botões
   useEffect(() => {
     const handleViewContrato = (event: CustomEvent) => {
       onViewContrato?.(event.detail);

@@ -38,15 +38,15 @@ export async function GET(request: NextRequest) {
     const month = parsed.data.month ?? now.getMonth() + 1;
     const year = parsed.data.year ?? now.getFullYear();
 
-    // Data inicial do mês
+
     const startDate = new Date(year, month - 1, 1);
     startDate.setHours(0, 0, 0, 0);
 
-    // Data final do mês
+
     const endDate = new Date(year, month, 0);
     endDate.setHours(23, 59, 59, 999);
 
-    // Buscar contratos do mês
+
     const contratos = await db.contrato.findMany({
       where: {
         empresaId,
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Buscar orçamentos do mês
+
     const orcamentos = await db.orcamento.findMany({
       where: {
         empresaId,
@@ -94,14 +94,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Transformar em eventos do calendário
+
     const events = [
       ...contratos.map((contrato) => {
         const dataEvento = new Date(contrato.dataEvento);
         const horaInicio = new Date(contrato.horaInicio);
         const endDate = new Date(dataEvento);
         endDate.setHours(horaInicio.getHours(), horaInicio.getMinutes(), 0, 0);
-        // Se não tiver hora definida, usar fim do dia
+
         if (horaInicio.getHours() === 0 && horaInicio.getMinutes() === 0) {
           endDate.setHours(23, 59, 59, 999);
         }

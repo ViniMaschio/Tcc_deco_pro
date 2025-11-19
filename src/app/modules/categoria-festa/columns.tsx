@@ -81,7 +81,7 @@ export const categoriaFestaFilterCols = {
 type Filters = keyof typeof categoriaFestaFilterCols;
 
 export type CategoriaFestaFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key in Filters]: any;
 } & {
   sorting: {

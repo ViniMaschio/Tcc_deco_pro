@@ -67,18 +67,15 @@ export const ContaPagarModal = ({
         <Separator />
 
         <Form {...form}>
-          {/* @ts-ignore - react-hook-form type inference issue */}
           <form onSubmit={form.handleSubmit(onSubmit)} className="overflow-auto">
             <div className="grid grid-cols-12 gap-5">
               <div className="col-span-6 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
                   name="fornecedorId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fornecedor *</FormLabel>
+                      <FormLabel>Fornecedor</FormLabel>
                       <FormControl>
                         <FornecedorAutocomplete
                           fornecedor={fornecedorSelecionado}
@@ -97,14 +94,12 @@ export const ContaPagarModal = ({
                 />
               </div>
               <div className="col-span-6 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
                   name="descricao"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descrição</FormLabel>
+                      <FormLabel>Descrição *</FormLabel>
                       <FormControl>
                         <Input placeholder="Descrição" {...field} />
                       </FormControl>
@@ -114,14 +109,12 @@ export const ContaPagarModal = ({
                 />
               </div>
               <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
                   name="dataVencimento"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data de Vencimento</FormLabel>
+                      <FormLabel>Data de Vencimento *</FormLabel>
                       <FormControl>
                         <DatePicker
                           value={field.value ? moment(field.value).toDate() : undefined}
@@ -141,14 +134,12 @@ export const ContaPagarModal = ({
                 />
               </div>
               <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
                 <FormField
-                  // @ts-ignore - react-hook-form type inference issue
                   control={form.control}
-                  name="valorTotal"
+                  name="valor"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor Total *</FormLabel>
+                      <FormLabel>Valor *</FormLabel>
                       <FormControl>
                         <InputCurrency
                           value={typeof field.value === "number" ? field.value / 100 : 0}
@@ -161,34 +152,32 @@ export const ContaPagarModal = ({
                   )}
                 />
               </div>
-              <div className="col-span-4 w-full">
-                {/* @ts-ignore - react-hook-form type inference issue */}
-                <FormField
-                  // @ts-ignore - react-hook-form type inference issue
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="PENDENTE">Pendente</SelectItem>
-                          <SelectItem value="PARCIAL">Parcial</SelectItem>
-                          <SelectItem value="PAGO">Pago</SelectItem>
-                          <SelectItem value="VENCIDO">Vencido</SelectItem>
-                          <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {contaPagar?.id && (
+                <div className="col-span-4 w-full">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="PENDENTE">Pendente</SelectItem>
+                            <SelectItem value="PAGO">Pago</SelectItem>
+                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
           </form>
         </Form>
@@ -204,10 +193,8 @@ export const ContaPagarModal = ({
           >
             Cancelar
           </Button>
-          {/* @ts-ignore - react-hook-form type inference issue */}
           <Button
             variant={"default"}
-            // @ts-ignore - react-hook-form type inference issue
             onClick={form.handleSubmit(onSubmit)}
             type="button"
             loading={modalState.submitting}

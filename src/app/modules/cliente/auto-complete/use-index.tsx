@@ -19,7 +19,7 @@ export const useClientesAutocomplete = ({
 
   const [debouncedFilter, setDebouncedFilter] = useState(filter);
 
-  // Debounce inteligente do filtro
+
   useEffect(() => {
     const timer = setTimeout(
       () => {
@@ -31,7 +31,7 @@ export const useClientesAutocomplete = ({
     return () => clearTimeout(timer);
   }, [filter]);
 
-  // Função para buscar clientes com paginação
+
   const fetchClientes = useCallback(
     async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
@@ -56,7 +56,7 @@ export const useClientesAutocomplete = ({
     [debouncedFilter.nome]
   );
 
-  // Query para buscar clientes com infinite scroll
+
   const { data, isLoading, error, refetch, fetchNextPage, isFetchingNextPage, hasNextPage } =
     useInfiniteQuery({
       queryKey: ["clientes-autocomplete", debouncedFilter.nome],
@@ -100,7 +100,7 @@ export const useClientesAutocomplete = ({
     }
   };
 
-  // Refetch quando o filtro muda (apenas se o popover estiver aberto)
+
   useEffect(() => {
     if (show.openCommand) {
       refetch();

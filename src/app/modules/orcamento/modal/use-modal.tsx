@@ -181,7 +181,6 @@ export const useOrcamentoModal = ({
     if (!orcamento?.id) {
       await createMutation.mutateAsync(orcamentoData);
     } else if (orcamento?.id) {
-      // Para atualização, remover campos não esperados pela API
       const itensParaAtualizacao = orcamentoData.itens.map((item) => ({
         itemId: item.itemId,
         quantidade: item.quantidade,
@@ -263,7 +262,6 @@ export const useOrcamentoModal = ({
       resetForm();
       setActiveTab("dados-gerais");
     } else if (open && !orcamento?.id) {
-      // Se a modal abrir sem orçamento, garantir que o formulário está limpo
       resetForm();
     }
   }, [open, orcamento?.id]);

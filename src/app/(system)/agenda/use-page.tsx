@@ -47,14 +47,14 @@ export const usePage = () => {
   const onDateChange = useCallback(
     (d: Date) => {
       setCurrentDate(d);
-      // Refetch quando mudar de mês
+
       refetch();
     },
     [refetch]
   );
 
   const onSelectEvent = useCallback((e: CalendarEvent) => {
-    // placeholder: poderá abrir drawer/modal
+
     console.log("Evento selecionado:", e);
   }, []);
 

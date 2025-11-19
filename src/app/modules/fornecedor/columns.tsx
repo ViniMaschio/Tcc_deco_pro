@@ -177,7 +177,7 @@ export const fornecedorFilterCols = {
 type Filters = keyof typeof fornecedorFilterCols;
 
 export type FornecedorFilterType = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   [key in Filters]: any;
 } & {
   sorting: {

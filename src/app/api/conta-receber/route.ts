@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
     const dataToCreate = {
       ...parsedBody,
       empresaId,
-      valorRestante: parsedBody.valorRestante ?? parsedBody.valorTotal - parsedBody.valorPago,
       dataVencimento: parsedBody.dataVencimento
         ? new Date(parsedBody.dataVencimento + "T00:00:00.000Z")
         : undefined,
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
       "id",
       "dataVencimento",
       "dataPagamento",
-      "valorTotal",
+      "valor",
       "status",
       "createdAt",
       "updatedAt",
@@ -121,7 +120,7 @@ export async function GET(request: NextRequest) {
     };
 
     const skip = (page - 1) * perPage;
-    const [total, data] = await Promise.all([
+    const [total, dataRaw] = await Promise.all([
       db.contaReceber.count({ where }),
       db.contaReceber.findMany({
         where,
@@ -135,9 +134,34 @@ export async function GET(request: NextRequest) {
               nome: true,
             },
           },
+          contrato: {
+            select: {
+              id: true,
+            },
+          },
+          caixaEntradas: {
+            where: {
+              deleted: false,
+            },
+            select: {
+              valor: true,
+            },
+          },
         },
       }),
     ]);
+
+    const data = dataRaw.map((conta) => {
+      const valorPago = conta.caixaEntradas.reduce((acc, caixa) => acc + caixa.valor, 0);
+      const valorRestante = conta.valor - valorPago;
+      return {
+        ...conta,
+        valorPago,
+        valorRestante,
+        valorTotal: conta.valor,
+        caixaEntradas: undefined,
+      };
+    });
 
     const totalPages = Math.max(1, Math.ceil(total / perPage));
 

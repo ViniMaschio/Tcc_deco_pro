@@ -28,9 +28,7 @@ enum StatusContrato {
 
 enum StatusTitulo {
   PENDENTE
-  PARCIAL
   PAGO
-  VENCIDO
   CANCELADO
 }
 
@@ -310,9 +308,7 @@ model ContaPagar {
   descricao      String?
   dataVencimento DateTime?
   dataPagamento  DateTime?
-  valorPago      Int          @default(0) // Valor em centavos
-  valorRestante  Int?         // Valor em centavos
-  valorTotal     Int          // Valor em centavos
+  valor      Int          @default(0) 
   status         StatusTitulo @default(PENDENTE)
 
   createdAt DateTime  @default(now())
@@ -334,9 +330,7 @@ model ContaReceber {
   descricao      String?
   dataVencimento DateTime?
   dataPagamento  DateTime?
-  valorPago      Int          @default(0) // Valor em centavos
-  valorRestante  Int?         // Valor em centavos
-  valorTotal     Int          // Valor em centavos
+  valor      Int          @default(0) // Valor em centavos
   status         StatusTitulo @default(PENDENTE)
 
   createdAt DateTime  @default(now())
@@ -359,8 +353,6 @@ model CaixaEntrada {
   valor           Int             // Valor em centavos
   dataRecebimento DateTime
   metodo          MetodoPagamento
-  parcela         Int?
-  totalParcelas   Int?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -380,8 +372,6 @@ model CaixaSaida {
   valor         Int             // Valor em centavos
   dataPagamento DateTime
   metodo        MetodoPagamento
-  parcela       Int?
-  totalParcelas Int?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

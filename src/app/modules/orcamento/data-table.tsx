@@ -64,7 +64,6 @@ export function OrcamentoDataTable({
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // Conectar eventos dos botões
   useEffect(() => {
     const handleViewOrcamento = (event: CustomEvent) => {
       onViewOrcamento?.(event.detail);

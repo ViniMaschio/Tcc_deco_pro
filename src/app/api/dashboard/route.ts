@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
     const nextWeek = new Date(now);
     nextWeek.setDate(now.getDate() + 7);
 
-    // Buscar estatísticas
     const [
       totalClientes,
       clientesEsteMes,
@@ -35,14 +34,14 @@ export async function GET(request: NextRequest) {
       totalFornecedores,
       orcamentosPendentes,
     ] = await Promise.all([
-      // Total de clientes
+
       db.cliente.count({
         where: {
           empresaId,
           deleted: false,
         },
       }),
-      // Clientes criados este mês
+
       db.cliente.count({
         where: {
           empresaId,
@@ -52,7 +51,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      // Contratos ativos
+
       db.contrato.count({
         where: {
           empresaId,
@@ -60,7 +59,7 @@ export async function GET(request: NextRequest) {
           status: "ATIVO",
         },
       }),
-      // Eventos esta semana
+
       db.contrato.count({
         where: {
           empresaId,
@@ -71,7 +70,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      // Receita mensal (contas receber pagas este mês)
+
       db.caixaEntrada.aggregate({
         where: {
           empresaId,
@@ -83,7 +82,7 @@ export async function GET(request: NextRequest) {
           valor: true,
         },
       }),
-      // Receita mês anterior
+
       db.caixaEntrada.aggregate({
         where: {
           empresaId,
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
           valor: true,
         },
       }),
-      // Contas pendentes (próximos 7 dias)
+
       db.contaReceber.count({
         where: {
           empresaId,
@@ -108,7 +107,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      // Orçamentos recentes
+
       db.orcamento.findMany({
         where: {
           empresaId,
@@ -126,7 +125,7 @@ export async function GET(request: NextRequest) {
         },
         take: 5,
       }),
-      // Próximos eventos (contratos)
+
       db.contrato.findMany({
         where: {
           empresaId,
@@ -152,28 +151,28 @@ export async function GET(request: NextRequest) {
         },
         take: 5,
       }),
-      // Total de itens
+
       db.item.count({
         where: {
           empresaId,
           deleted: false,
         },
       }),
-      // Total de locais
+
       db.localEvento.count({
         where: {
           empresaId,
           deleted: false,
         },
       }),
-      // Total de fornecedores
+
       db.fornecedor.count({
         where: {
           empresaId,
           deleted: false,
         },
       }),
-      // Orçamentos pendentes
+
       db.orcamento.count({
         where: {
           empresaId,
@@ -185,7 +184,6 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Calcular variações
     const receitaAtual = receitaMensal._sum.valor || 0;
     const receitaAnterior = receitaMesAnterior._sum.valor || 0;
     const variacaoReceita =
@@ -193,15 +191,13 @@ export async function GET(request: NextRequest) {
         ? Math.round(((receitaAtual - receitaAnterior) / receitaAnterior) * 100)
         : 0;
 
-    // Formatar valores
     const formatCurrency = (value: number) => {
       return new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
-      }).format(value / 100); // Dividir por 100 pois está em centavos
+      }).format(value / 100);
     };
 
-    // Formatar data
     const formatDate = (date: Date) => {
       return new Intl.DateTimeFormat("pt-BR", {
         day: "2-digit",

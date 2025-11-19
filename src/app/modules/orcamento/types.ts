@@ -1,6 +1,5 @@
 import { Orcamento } from "@/app/api/orcamento/types";
 
-// Tipos para o modal de orçamento
 export type OrcamentoModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -8,7 +7,6 @@ export type OrcamentoModalProps = {
   onSuccess: () => void;
 };
 
-// Tipos para estados da página
 export type OrcamentoPageStates = {
   showModal: boolean;
   isLoading: boolean;
@@ -16,7 +14,6 @@ export type OrcamentoPageStates = {
   showViewModal: boolean;
 };
 
-// Tipos para filtros
 export type OrcamentoFilterType = {
   search: string;
   status: string;
@@ -24,13 +21,11 @@ export type OrcamentoFilterType = {
   limit: number;
 };
 
-// Tipos para estados do modal
 export type OrcamentoModalStates = {
   submitting: boolean;
   activeTab: string;
 };
 
-// Tipos para paginação
 export type OrcamentoPagination = {
   page: number;
   limit: number;
@@ -38,7 +33,6 @@ export type OrcamentoPagination = {
   totalPages: number;
 };
 
-// Tipos para dados auxiliares
 export interface Cliente {
   id: number;
   nome: string;
@@ -64,7 +58,6 @@ export interface Item {
   tipo: "PRO" | "SER";
 }
 
-// Tipos para props dos componentes
 export type OrcamentoDataTableProps = {
   data: Orcamento[];
   isLoading: boolean;

@@ -100,7 +100,7 @@ export const NavBar = () => {
         </div>
       </div>
 
-      {/* Modal de Configurações */}
+      {}
       {showState.showModal ? (
         <ConfiguracoesModal
           open={showState.showModal}

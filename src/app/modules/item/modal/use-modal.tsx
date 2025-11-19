@@ -47,7 +47,7 @@ export const useItemModal = ({
       submitting: true,
     }));
 
-    // Converter centavos para decimal para envio à API
+
     const dataToSend = {
       ...values,
       precoBase: centsToDecimal(values.precoBase), // Converter centavos para decimal

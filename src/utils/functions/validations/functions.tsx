@@ -3,7 +3,7 @@ export function validarCNPJ(cnpj: string): boolean {
 
   if (cnpj.length !== 14) return false;
 
-  // Elimina CNPJs inválidos conhecidos
+
   if (/^(\d)\1+$/.test(cnpj)) return false;
 
   let tamanho = cnpj.length - 2;

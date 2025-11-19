@@ -8,7 +8,6 @@ import autoTable from "jspdf-autotable";
 
 export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: string = "orcamento") {
   try {
-    // Obtém dados da empresa
     const empresaId = await ensureEmpresaId();
     if (!empresaId) {
       throw new Error("Empresa não encontrada");
@@ -38,7 +37,6 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
     const logoY = 10;
     const logoWidth = 30;
     const logoHeight = 30;
-    //pdf.addImage(logoBase64, "PNG", logoX, logoY, logoWidth, logoHeight);
 
     autoTable(pdf, {
       body: [
@@ -72,8 +70,6 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
       },
       margin: { top: 10, left: 45 },
       startY: 10,
-      // footStyles: { fillColor: [211, 211, 211], textColor: [64, 64, 64], fontSize: 9 },
-      // headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0], fontSize: 12 },
     });
 
     autoTable(pdf, {
@@ -162,8 +158,6 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
       },
       headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
     });
-
-    // === TABELA DE ITENS ===
 
     const produtos: any[] = [];
     const servicos: any[] = [];

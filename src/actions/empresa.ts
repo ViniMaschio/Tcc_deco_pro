@@ -65,7 +65,7 @@ export async function criarEmpresa(empresa: Empresa) {
   }
 }
 
-/** Read (lista tudo, com busca opcional) */
+
 export async function listarEmpresas(q?: string) {
   const where = q
     ? {
@@ -87,7 +87,7 @@ export async function listarEmpresas(q?: string) {
   return { ok: true as const, data: rows.map(serializeEmpresa) };
 }
 
-/** Read (por ID) */
+
 export async function obterEmpresa(id: string | number | bigint) {
   try {
     const empresa = await prisma.empresa.findUnique({
@@ -103,7 +103,7 @@ export async function obterEmpresa(id: string | number | bigint) {
   }
 }
 
-/** Update */
+
 export async function atualizarEmpresa(id: string | number | bigint, input: unknown) {
   try {
     const data = empresaUpdateSchema.parse(input);
@@ -143,7 +143,7 @@ export async function atualizarEmpresa(id: string | number | bigint, input: unkn
   }
 }
 
-/** Delete */
+
 export async function excluirEmpresa(id: string | number | bigint) {
   try {
     const deleted = await prisma.empresa.delete({
