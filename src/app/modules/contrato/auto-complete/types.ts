@@ -24,5 +24,5 @@ export interface ContratoAutocompleteProps {
   disabled?: boolean;
   className?: string;
   clienteId?: number; // Filtrar contratos por cliente
+  showClear?: boolean; // Mostrar botão de limpar
 }
-

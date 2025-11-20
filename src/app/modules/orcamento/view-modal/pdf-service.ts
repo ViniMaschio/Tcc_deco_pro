@@ -167,7 +167,7 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
         total += item.valorTotal;
         if (item.item?.tipo == "PRO") {
           produtos.push([
-            item.nome || "",
+            item.item.nome || "",
             item.quantidade || 0,
             `R$ ${(item.valorUnit || 0).toFixed(2)}`,
             `${item.desconto ? item.desconto + "%" : "R$ 0.00"}`,
@@ -175,7 +175,7 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
           ]);
         } else {
           servicos.push([
-            item.nome || "",
+            item.item?.nome || "",
             item.quantidade || 0,
             `R$ ${(item.valorUnit || 0).toFixed(2)}`,
             `${item.desconto ? item.desconto + "%" : "R$ 0.00"}`,
