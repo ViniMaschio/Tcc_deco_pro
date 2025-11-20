@@ -177,9 +177,7 @@ export async function GET(request: NextRequest) {
         where: {
           empresaId,
           deleted: false,
-          status: {
-            in: ["RASCUNHO", "ENVIADO"],
-          },
+          status: "RASCUNHO",
         },
       }),
     ]);

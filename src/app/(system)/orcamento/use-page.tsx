@@ -145,6 +145,82 @@ export const usePage = () => {
     changeShowState("showViewModal", true);
   };
 
+  const handleApproveOrcamento = async (orcamento: Orcamento) => {
+    try {
+      const response = await fetch(`/api/orcamento/${orcamento.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "APROVADO" }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao aprovar orçamento");
+      }
+
+      toast.success("Orçamento aprovado com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao aprovar orçamento", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleRejectOrcamento = async (orcamento: Orcamento) => {
+    try {
+      const response = await fetch(`/api/orcamento/${orcamento.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "REJEITADO" }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Erro ao rejeitar orçamento");
+      }
+
+      toast.success("Orçamento rejeitado com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao rejeitar orçamento", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleGeneratePdfOrcamento = async (orcamento: Orcamento) => {
+    try {
+      const response = await fetch(`/api/orcamento/${orcamento.id}/pdf`);
+
+      if (!response.ok) {
+        throw new Error("Erro ao gerar PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `orcamento-${orcamento.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF gerado com sucesso!", {
+        position: "top-center",
+      });
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao gerar PDF", {
+        position: "top-center",
+      });
+    }
+  };
+
   const afterSubmit = () => {
     changeShowState("showModal", false);
     refetch();
@@ -174,5 +250,8 @@ export const usePage = () => {
     handleViewOrcamento,
     handleEdit,
     handleShowDelete,
+    handleApproveOrcamento,
+    handleRejectOrcamento,
+    handleGeneratePdfOrcamento,
   };
 };

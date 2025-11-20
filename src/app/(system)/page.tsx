@@ -121,11 +121,9 @@ export default function Home() {
                     className={`rounded px-3 py-1 text-xs font-medium text-white ${
                       orcamento.status === "APROVADO"
                         ? "bg-green-600"
-                        : orcamento.status === "ENVIADO"
-                          ? "bg-blue-600"
-                          : orcamento.status === "REJEITADO"
-                            ? "bg-red-600"
-                            : "bg-gray-600"
+                        : orcamento.status === "REJEITADO"
+                          ? "bg-red-600"
+                          : "bg-gray-600"
                     }`}
                   >
                     {orcamento.status}

@@ -12,11 +12,8 @@ datasource db {
 // ========================= Enums =========================
 enum StatusOrcamento {
   RASCUNHO
-  ENVIADO
   APROVADO
   REJEITADO
-  VENCIDO
-  CANCELADO
 }
 
 enum StatusContrato {
@@ -114,7 +111,6 @@ model Cliente {
   empresa       Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
   orcamentos    Orcamento[]
   contratos     Contrato[]
-  contasReceber ContaReceber[]
 }
 
 model Fornecedor {
@@ -325,7 +321,6 @@ model ContaReceber {
   id             Int          @id @default(autoincrement())
   uuid           String       @unique @default(uuid()) @db.Uuid
   empresaId      Int
-  clienteId      Int
   contratoId     Int?
   descricao      String?
   dataVencimento DateTime?
@@ -339,7 +334,6 @@ model ContaReceber {
   deleted   Boolean   @default(false)
 
   empresa       Empresa        @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  cliente       Cliente        @relation(fields: [clienteId], references: [id], onDelete: Restrict)
   contrato      Contrato?      @relation(fields: [contratoId], references: [id], onDelete: SetNull)
   caixaEntradas CaixaEntrada[]
 }

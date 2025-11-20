@@ -161,11 +161,8 @@ export const OrcamentoModal = ({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                              <SelectItem value="ENVIADO">Enviado</SelectItem>
                               <SelectItem value="APROVADO">Aprovado</SelectItem>
                               <SelectItem value="REJEITADO">Rejeitado</SelectItem>
-                              <SelectItem value="VENCIDO">Vencido</SelectItem>
-                              <SelectItem value="CANCELADO">Cancelado</SelectItem>
                             </SelectContent>
                           </Select>
                         )}

@@ -104,7 +104,7 @@ const updateOrcamentoSchema = z.object({
   localId: z.number().optional(),
   dataEvento: z.string().optional(),
   status: z
-    .enum(["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "VENCIDO", "CANCELADO"])
+    .enum(["RASCUNHO", "APROVADO", "REJEITADO"])
     .optional(),
   observacao: z.string().optional(),
   itens: z

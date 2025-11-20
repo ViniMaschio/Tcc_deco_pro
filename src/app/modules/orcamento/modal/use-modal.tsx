@@ -23,7 +23,7 @@ const orcamentoSchema = z.object({
   clienteId: z.number().min(1, "Cliente é obrigatório"),
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
-  status: z.enum(["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "CANCELADO"]).optional(),
+  status: z.enum(["RASCUNHO", "APROVADO", "REJEITADO"]).optional(),
   dataEvento: z.string().optional(),
   observacao: z.string().optional(),
 });

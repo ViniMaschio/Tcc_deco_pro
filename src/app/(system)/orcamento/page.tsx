@@ -1,6 +1,7 @@
 "use client";
 
 import { PlusCircle } from "lucide-react";
+import { useEffect } from "react";
 
 import { Orcamento } from "@/app/api/orcamento/types";
 import { orcamentoFilterCols } from "@/app/modules/orcamento/columns";
@@ -32,7 +33,37 @@ export default function Page() {
     handleViewOrcamento,
     handleEdit,
     handleShowDelete,
+    handleApproveOrcamento,
+    handleRejectOrcamento,
+    handleGeneratePdfOrcamento,
   } = usePage();
+
+  useEffect(() => {
+    const handleApprove = (event: Event) => {
+      const customEvent = event as CustomEvent<Orcamento>;
+      handleApproveOrcamento(customEvent.detail);
+    };
+
+    const handleReject = (event: Event) => {
+      const customEvent = event as CustomEvent<Orcamento>;
+      handleRejectOrcamento(customEvent.detail);
+    };
+
+    const handleGeneratePdf = (event: Event) => {
+      const customEvent = event as CustomEvent<Orcamento>;
+      handleGeneratePdfOrcamento(customEvent.detail);
+    };
+
+    window.addEventListener("approveOrcamento", handleApprove);
+    window.addEventListener("rejectOrcamento", handleReject);
+    window.addEventListener("generatePdfOrcamento", handleGeneratePdf);
+
+    return () => {
+      window.removeEventListener("approveOrcamento", handleApprove);
+      window.removeEventListener("rejectOrcamento", handleReject);
+      window.removeEventListener("generatePdfOrcamento", handleGeneratePdf);
+    };
+  }, [handleApproveOrcamento, handleRejectOrcamento, handleGeneratePdfOrcamento]);
 
   return (
     <>

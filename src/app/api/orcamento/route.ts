@@ -7,7 +7,7 @@ import { db as prisma } from "@/lib/prisma";
 const createOrcamentoSchema = z.object({
   clienteId: z.number(),
   status: z
-    .enum(["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "VENCIDO", "CANCELADO"])
+    .enum(["RASCUNHO", "APROVADO", "REJEITADO"])
     .optional(),
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         cliente?: { nome: { contains: string; mode: "insensitive" } };
         local?: { descricao: { contains: string; mode: "insensitive" } };
       }>;
-      status?: "RASCUNHO" | "ENVIADO" | "APROVADO" | "REJEITADO" | "VENCIDO" | "CANCELADO";
+      status?: "RASCUNHO" | "APROVADO" | "REJEITADO";
     } = {
       empresaId: parseInt(session.user.id),
       deleted: false,
@@ -62,15 +62,12 @@ export async function GET(request: NextRequest) {
 
     if (
       status &&
-      ["RASCUNHO", "ENVIADO", "APROVADO", "REJEITADO", "VENCIDO", "CANCELADO"].includes(status)
+      ["RASCUNHO", "APROVADO", "REJEITADO"].includes(status)
     ) {
       where.status = status as
         | "RASCUNHO"
-        | "ENVIADO"
         | "APROVADO"
-        | "REJEITADO"
-        | "VENCIDO"
-        | "CANCELADO";
+        | "REJEITADO";
     }
 
     const [orcamentos, total] = await Promise.all([
