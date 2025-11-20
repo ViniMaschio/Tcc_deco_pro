@@ -4,11 +4,6 @@ export type ContaReceber = {
   id: number;
   uuid?: string;
   empresaId?: number;
-  clienteId: number;
-  cliente?: {
-    id: number;
-    nome: string;
-  };
   contratoId?: number;
   contrato?: {
     id: number;
@@ -26,7 +21,6 @@ export type ContaReceber = {
 };
 
 export const contaReceberSchema = z.object({
-  clienteId: z.number().int().positive("Cliente é obrigatório"),
   contratoId: z.number().int().positive().optional(),
   descricao: z.string().optional(),
   dataVencimento: z.string().optional(),

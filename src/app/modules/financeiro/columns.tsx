@@ -27,12 +27,12 @@ export const createContaPagarColumns = ({
   onDelete,
 }: ContaPagarColumnsProps): ColumnDef<ContaPagar>[] => [
   {
-    id: "id",
-    accessorKey: "id",
+    id: "descricao",
+    accessorKey: "descricao",
     meta: {
-      name: "Id",
+      name: "Descrição",
     },
-    header: () => <span>Id</span>,
+    header: () => <span>Descrição</span>,
   },
   {
     id: "fornecedor",
@@ -45,14 +45,6 @@ export const createContaPagarColumns = ({
       const fornecedor = row.original.fornecedor;
       return <div>{fornecedor?.nome || "-"}</div>;
     },
-  },
-  {
-    id: "descricao",
-    accessorKey: "descricao",
-    meta: {
-      name: "Descrição",
-    },
-    header: () => <span>Descrição</span>,
   },
   {
     id: "dataVencimento",
@@ -135,32 +127,24 @@ export const createContaReceberColumns = ({
   onDelete,
 }: ContaReceberColumnsProps): ColumnDef<ContaReceber>[] => [
   {
-    id: "id",
-    accessorKey: "id",
-    meta: {
-      name: "Id",
-    },
-    header: () => <span>Id</span>,
-  },
-  {
-    id: "cliente",
-    accessorKey: "cliente.nome",
-    meta: {
-      name: "Cliente",
-    },
-    header: () => <span>Cliente</span>,
-    cell: ({ row }) => {
-      const cliente = row.original.cliente;
-      return <div>{cliente?.nome || "-"}</div>;
-    },
-  },
-  {
     id: "descricao",
     accessorKey: "descricao",
     meta: {
       name: "Descrição",
     },
     header: () => <span>Descrição</span>,
+  },
+  {
+    id: "contrato",
+    accessorKey: "contrato.id",
+    meta: {
+      name: "Contrato",
+    },
+    header: () => <span>Contrato</span>,
+    cell: ({ row }) => {
+      const contrato = row.original.contrato;
+      return <div>{contrato?.id ? `C${contrato.id}` : "-"}</div>;
+    },
   },
   {
     id: "dataVencimento",
@@ -256,13 +240,6 @@ export const contaPagarFilterCols = {
 };
 
 export const contaReceberFilterCols = {
-  clienteId: {
-    name: "clienteId",
-    sortName: "clienteId",
-    type: "number",
-    label: "Cliente",
-    sortable: false,
-  },
   status: {
     name: "status",
     sortName: "status",
@@ -271,4 +248,3 @@ export const contaReceberFilterCols = {
     sortable: true,
   },
 };
-

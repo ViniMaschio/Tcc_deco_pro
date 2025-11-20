@@ -8,9 +8,8 @@ import { PaginationTable } from "@/app/api/types";
 import {
   createContaPagarColumns,
   createContaReceberColumns,
-  FinanceiroFilterType,
 } from "@/app/modules/financeiro/columns";
-import { FinanceiroPageStates } from "@/app/modules/financeiro/types";
+import { FinanceiroFilterType, FinanceiroPageStates } from "@/app/modules/financeiro/types";
 import { SortingType } from "@/components/sort-table";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
@@ -129,7 +128,12 @@ export const usePage = () => {
     queryFn: getResumo,
   });
 
-  const { data: contasPagarData, isLoading: isLoadingPagar, isFetching: isFetchingPagar, refetch: refetchPagar } = useQuery({
+  const {
+    data: contasPagarData,
+    isLoading: isLoadingPagar,
+    isFetching: isFetchingPagar,
+    refetch: refetchPagar,
+  } = useQuery({
     queryKey: ["conta-pagar", filters, pagination.currentPage, pagination.perPage],
     queryFn: () => getContasPagar(filters, pagination),
     select: (res) => ({
@@ -139,7 +143,12 @@ export const usePage = () => {
     enabled: showState.activeTab === "pagar",
   });
 
-  const { data: contasReceberData, isLoading: isLoadingReceber, isFetching: isFetchingReceber, refetch: refetchReceber } = useQuery({
+  const {
+    data: contasReceberData,
+    isLoading: isLoadingReceber,
+    isFetching: isFetchingReceber,
+    refetch: refetchReceber,
+  } = useQuery({
     queryKey: ["conta-receber", filters, pagination.currentPage, pagination.perPage],
     queryFn: () => getContasReceber(filters, pagination),
     select: (res) => ({
@@ -216,7 +225,6 @@ export const usePage = () => {
     setFilters((prev) => ({
       ...prev,
       fornecedorId: undefined,
-      clienteId: undefined,
       status: undefined,
     }));
   };
@@ -264,7 +272,10 @@ export const usePage = () => {
   const contasPagarItems = contasPagarData?.items || [];
   const contasReceberItems = contasReceberData?.items || [];
 
-  const isLoading = showState.activeTab === "pagar" ? (isLoadingPagar || isFetchingPagar) : (isLoadingReceber || isFetchingReceber);
+  const isLoading =
+    showState.activeTab === "pagar"
+      ? isLoadingPagar || isFetchingPagar
+      : isLoadingReceber || isFetchingReceber;
   const isDeleting = showState.activeTab === "pagar" ? isDeletingPagar : isDeletingReceber;
   const removeConta = showState.activeTab === "pagar" ? removeContaPagar : removeContaReceber;
 
@@ -291,4 +302,3 @@ export const usePage = () => {
     handleChangeFilters,
   };
 };
-

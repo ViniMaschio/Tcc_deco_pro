@@ -10,7 +10,6 @@ export type FinanceiroPageStates = {
 
 export type FinanceiroFilterType = {
   fornecedorId?: number;
-  clienteId?: number;
   status?: string;
   sorting: {
     name: string;

@@ -31,14 +31,6 @@ export async function POST(request: NextRequest) {
 
     const novaContaReceber = await db.contaReceber.create({
       data: dataToCreate,
-      include: {
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-          },
-        },
-      },
     });
 
     return NextResponse.json(novaContaReceber, { status: 201 });
@@ -69,7 +61,6 @@ const querySchema = z.object({
     .catch(10),
   sort: z.string().optional(),
   filter: z.string().optional(),
-  clienteId: z.string().optional(),
   status: z.string().optional(),
 });
 
@@ -89,7 +80,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { page, perPage, sort, filter, clienteId, status, ...filters } = parsed.data;
+    const { page, perPage, sort, filter, status, ...filters } = parsed.data;
 
     const sortable = new Set<keyof typeof db.contaReceber.fields>([
       "id",
@@ -108,13 +99,9 @@ export async function GET(request: NextRequest) {
       AND: [
         filter
           ? {
-              OR: [
-                { descricao: { contains: filter, mode: "insensitive" } },
-                { cliente: { nome: { contains: filter, mode: "insensitive" } } },
-              ],
+              OR: [{ descricao: { contains: filter, mode: "insensitive" } }],
             }
           : {},
-        clienteId ? { clienteId: Number(clienteId) } : {},
         status ? { status: status as any } : {},
       ],
     };
@@ -128,12 +115,6 @@ export async function GET(request: NextRequest) {
         skip,
         take: perPage,
         include: {
-          cliente: {
-            select: {
-              id: true,
-              nome: true,
-            },
-          },
           contrato: {
             select: {
               id: true,

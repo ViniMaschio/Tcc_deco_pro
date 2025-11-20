@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { ContaReceber } from "@/app/api/conta-receber/types";
-import { Cliente } from "@/app/modules/cliente/auto-complete/types";
 import { Contrato } from "@/app/modules/contrato/auto-complete/types";
 import { decimalToCents } from "@/utils/currency";
 
@@ -13,7 +12,6 @@ import { ContaReceberModalProps, FinanceiroModalStates } from "../types";
 
 const FormSchema = z.object({
   id: z.number().optional(),
-  clienteId: z.number().int().positive().optional(),
   contratoId: z.number().int().positive().optional(),
   descricao: z.string().min(1, "Descrição é obrigatória"),
   dataVencimento: z.string().min(1, "Data de vencimento é obrigatória"),
@@ -28,13 +26,11 @@ export const useContaReceberModal = ({
   contaReceber,
 }: Omit<ContaReceberModalProps, "open" | "changeOpen">) => {
   const [modalState, setModalState] = useState({} as FinanceiroModalStates);
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | undefined>(undefined);
   const [contratoSelecionado, setContratoSelecionado] = useState<Contrato | undefined>(undefined);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      clienteId: undefined,
       contratoId: undefined,
       descricao: "",
       dataVencimento: "",
@@ -43,33 +39,45 @@ export const useContaReceberModal = ({
     },
   });
 
-  const handleClienteSelect = (cliente: Cliente) => {
-    setClienteSelecionado(cliente);
-    // Limpar contrato selecionado quando o cliente mudar
-    if (cliente?.id !== clienteSelecionado?.id) {
-      setContratoSelecionado(undefined);
-      form.setValue("contratoId", undefined);
-    }
+  const generateDescricaoFromContrato = (contrato: Contrato): string => {
+    return `Lançamento referente ao contrato nº ${contrato.id}`;
   };
 
   const handleContratoSelect = (contrato: Contrato | null) => {
     if (contrato) {
       setContratoSelecionado(contrato);
+
+      // Gerar descrição automática
+      const descricaoGerada = generateDescricaoFromContrato(contrato).toUpperCase();
+      form.setValue("descricao", descricaoGerada);
+
+      // Preencher valor do contrato se não houver valor preenchido
+      if (!form.getValues("valor") || form.getValues("valor") === 0) {
+        // O total do contrato vem em decimal da API, então precisamos converter para centavos
+        const totalDecimal =
+          typeof contrato.total === "number"
+            ? contrato.total
+            : parseFloat(String(contrato.total)) || 0;
+        const valorContrato = decimalToCents(totalDecimal);
+        form.setValue("valor", valorContrato);
+      }
     } else {
       setContratoSelecionado(undefined);
+      // Limpar descrição se o contrato for removido
+      if (form.getValues("contratoId") === undefined) {
+        form.setValue("descricao", "");
+      }
     }
   };
 
   const handleResetForm = () => {
     form.reset({
-      clienteId: undefined,
       contratoId: undefined,
       descricao: "",
       dataVencimento: "",
       valor: 0,
       status: "PENDENTE",
     });
-    setClienteSelecionado(undefined);
     setContratoSelecionado(undefined);
   };
 
@@ -147,7 +155,6 @@ export const useContaReceberModal = ({
     if (contaReceber?.id) {
       form.reset({
         id: contaReceber.id,
-        clienteId: contaReceber.clienteId,
         contratoId: contaReceber.contratoId,
         descricao: contaReceber.descricao || "",
         dataVencimento: contaReceber.dataVencimento
@@ -156,9 +163,6 @@ export const useContaReceberModal = ({
         valor: contaReceber.valor || 0,
         status: contaReceber.status,
       });
-      if (contaReceber.cliente) {
-        setClienteSelecionado(contaReceber.cliente as any);
-      }
       // Buscar contrato completo se houver contratoId
       if (contaReceber.contratoId) {
         fetch(`/api/contrato/${contaReceber.contratoId}`)
@@ -182,8 +186,6 @@ export const useContaReceberModal = ({
   return {
     form,
     onSubmit,
-    clienteSelecionado,
-    handleClienteSelect,
     contratoSelecionado,
     handleContratoSelect,
     modalState,

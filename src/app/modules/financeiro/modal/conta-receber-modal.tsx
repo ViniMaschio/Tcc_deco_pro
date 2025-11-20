@@ -1,7 +1,6 @@
 import { XIcon } from "@phosphor-icons/react";
 import moment from "moment";
 
-import { ClienteAutocomplete } from "@/app/modules/cliente/auto-complete";
 import { ContratoAutocomplete } from "@/app/modules/contrato/auto-complete";
 import { InputCurrency } from "@/components/input/input-currency";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -41,19 +40,11 @@ export const ContaReceberModal = ({
   contaReceber,
   afterSubmit,
 }: ContaReceberModalProps) => {
-  const {
-    form,
-    onSubmit,
-    clienteSelecionado,
-    handleClienteSelect,
-    contratoSelecionado,
-    handleContratoSelect,
-    modalState,
-    handleResetForm,
-  } = useContaReceberModal({
-    afterSubmit,
-    contaReceber,
-  });
+  const { form, onSubmit, contratoSelecionado, handleContratoSelect, modalState, handleResetForm } =
+    useContaReceberModal({
+      afterSubmit,
+      contaReceber,
+    });
 
   return (
     <Dialog open={open} onOpenChange={(value) => changeOpen(value)}>
@@ -70,25 +61,24 @@ export const ContaReceberModal = ({
         <Separator />
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="overflow-auto">
-            <div className="grid grid-cols-12 gap-5">
-              <div className="col-span-6 w-full">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-full">
+            <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-12">
+              <div className="col-span-6 w-full min-w-0">
                 <FormField
                   control={form.control}
-                  name="clienteId"
+                  name="contratoId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cliente</FormLabel>
+                    <FormItem className="w-full">
+                      <FormLabel>Contrato</FormLabel>
                       <FormControl>
-                        <ClienteAutocomplete
-                          cliente={clienteSelecionado}
-                          onSelect={(cliente) => {
-                            if (cliente) {
-                              handleClienteSelect(cliente);
-                              field.onChange(cliente.id);
-                            }
+                        <ContratoAutocomplete
+                          contrato={contratoSelecionado}
+                          onSelect={(contrato) => {
+                            handleContratoSelect(contrato);
+                            field.onChange(contrato?.id);
                           }}
-                          placeholder="Selecione um cliente..."
+                          placeholder="Selecione um contrato..."
+                          showClear={true}
                         />
                       </FormControl>
                       <FormMessage />
@@ -105,29 +95,6 @@ export const ContaReceberModal = ({
                       <FormLabel>Descrição *</FormLabel>
                       <FormControl>
                         <Input placeholder="Descrição" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="col-span-6 w-full">
-                <FormField
-                  control={form.control}
-                  name="contratoId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contrato</FormLabel>
-                      <FormControl>
-                        <ContratoAutocomplete
-                          contrato={contratoSelecionado}
-                          clienteId={clienteSelecionado?.id}
-                          onSelect={(contrato) => {
-                            handleContratoSelect(contrato);
-                            field.onChange(contrato?.id);
-                          }}
-                          placeholder="Selecione um contrato..."
-                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -178,32 +145,6 @@ export const ContaReceberModal = ({
                   )}
                 />
               </div>
-              {contaReceber?.id && (
-                <div className="col-span-4 w-full">
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Selecione o status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="PENDENTE">Pendente</SelectItem>
-                            <SelectItem value="PAGO">Pago</SelectItem>
-                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
             </div>
           </form>
         </Form>

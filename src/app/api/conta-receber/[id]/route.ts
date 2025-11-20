@@ -64,12 +64,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       where: { id },
       data: dataToUpdate,
       include: {
-        cliente: {
-          select: {
-            id: true,
-            nome: true,
-          },
-        },
         contrato: {
           select: {
             id: true,
