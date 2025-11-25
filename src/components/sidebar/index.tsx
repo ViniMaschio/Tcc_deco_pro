@@ -107,6 +107,7 @@ export const SideBar = () => {
                           <PopoverTrigger asChild>
                             <TooltipTrigger asChild>
                               <button
+                                suppressHydrationWarning
                                 className={twMerge(
                                   "flex h-[40px] w-full cursor-pointer items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                                   isActive
@@ -167,6 +168,7 @@ export const SideBar = () => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
+                            suppressHydrationWarning
                             onClick={() => item.path && handleNavigation(item.path)}
                             className={twMerge(
                               "flex h-[40px] w-full cursor-pointer items-center justify-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
