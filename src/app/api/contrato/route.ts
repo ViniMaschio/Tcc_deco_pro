@@ -18,7 +18,7 @@ const createContratoSchema = z.object({
     .array(
       z.object({
         itemId: z.number(),
-        quantidade: z.number(),
+        quantidade: z.number().positive("Quantidade deve ser maior que zero"),
         valorUnit: z.number(),
         desconto: z.number().default(0),
       })
@@ -30,7 +30,7 @@ const createContratoSchema = z.object({
         ordem: z.number(),
         titulo: z.string(),
         conteudo: z.string(),
-        templateClausulaId: z.number().optional(),
+        templateClausulaId: z.number().nullable().optional(),
         alteradaPeloUsuario: z.boolean().optional(),
       })
     )

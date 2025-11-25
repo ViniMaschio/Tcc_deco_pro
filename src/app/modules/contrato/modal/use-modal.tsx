@@ -269,7 +269,7 @@ export const useContratoModal = ({
       ordem: clausula.ordem,
       titulo: clausula.titulo,
       conteudo: clausula.conteudo,
-      templateClausulaId: clausula.templateClausulaId,
+      templateClausulaId: clausula.templateClausulaId ?? undefined,
       alteradaPeloUsuario: clausula.alteradaPeloUsuario || false,
     }));
 
@@ -283,9 +283,9 @@ export const useContratoModal = ({
     } else if (contrato?.id) {
       const itensParaAtualizacao = contratoData.itens.map((item) => ({
         itemId: item.itemId,
-        quantidade: item.quantidade,
-        valorUnit: item.valorUnit,
-        desconto: item.desconto || 0,
+        quantidade: Number(item.quantidade) || 0,
+        valorUnit: Number(item.valorUnit) || 0,
+        desconto: Number(item.desconto) || 0,
       }));
 
       const updateData: UpdateContratoData = {
@@ -430,7 +430,7 @@ export const useContratoModal = ({
         const itensFormatados: CreateContratoData["itens"] = data.itens.map((item) => ({
           itemId: item.itemId,
           nome: item.item?.nome || "",
-          quantidade: item.quantidade / 1000, // Converter milésimos para decimal
+          quantidade: item.quantidade, // Já vem convertido do backend
           valorUnit: item.valorUnit,
           desconto: item.desconto || 0,
           valorTotal: item.valorTotal || 0,
