@@ -98,7 +98,7 @@ export function FluxoCaixaDataTable<T extends { id: number | string }>({
                       <TableCell
                         key={cell.id}
                         className={twMerge(
-                          cell.column.id === "actions" && "sticky right-0 z-[1] w-32",
+                          cell.column.id === "actions" && "sticky right-0 z-1 w-32",
                           row.index % 2
                             ? cell.column.id === "actions"
                               ? "bg-[#f8fafc]"

@@ -66,6 +66,13 @@ export async function obterOrcamento(orcamentoId: number) {
             ...orcamento.cliente,
             telefone: orcamento.cliente.telefone ?? undefined,
             email: orcamento.cliente.email ?? undefined,
+            cpf: orcamento.cliente.cpf ?? undefined,
+            rua: orcamento.cliente.rua ?? undefined,
+            numero: orcamento.cliente.numero ?? undefined,
+            bairro: orcamento.cliente.bairro ?? undefined,
+            cidade: orcamento.cliente.cidade ?? undefined,
+            estado: orcamento.cliente.estado ?? undefined,
+            cep: orcamento.cliente.cep ?? undefined,
           }
         : undefined,
       local: orcamento.local
@@ -83,10 +90,10 @@ export async function obterOrcamento(orcamentoId: number) {
         nome: item.item?.nome || "",
         deletedAt: item.deletedAt ?? undefined,
         item: item.item
-          ? {
+          ? ({
               ...item.item,
               descricao: item.item.descricao ?? undefined,
-            }
+            } as any)
           : undefined,
       })),
     };
@@ -103,9 +110,7 @@ const updateOrcamentoSchema = z.object({
   categoriaId: z.number().optional(),
   localId: z.number().optional(),
   dataEvento: z.string().optional(),
-  status: z
-    .enum(["RASCUNHO", "APROVADO", "REJEITADO"])
-    .optional(),
+  status: z.enum(["RASCUNHO", "APROVADO", "REJEITADO"]).optional(),
   observacao: z.string().optional(),
   itens: z
     .array(

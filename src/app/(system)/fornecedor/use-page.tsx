@@ -102,7 +102,7 @@ export const usePage = () => {
 
   const handleChangeFilters = (
     name: string,
-    value: string | number | boolean | SortingType | undefined
+    value: string | number | boolean | SortingType | Date | undefined
   ) => {
     if (!value)
       setFilters((filters) => ({

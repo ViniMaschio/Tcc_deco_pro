@@ -25,8 +25,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { contaPagarFilterCols, FinanceiroFilterType } from "./columns";
-import { FinanceiroPageStates } from "./types";
+import { contaPagarFilterCols } from "./columns";
+import { FinanceiroFilterType, FinanceiroPageStates } from "./types";
 
 interface DataTableProps {
   columns: ColumnDef<ContaPagar>[];
@@ -93,7 +93,11 @@ export function ContaPagarDataTable({
                         <div className="flex items-center">
                           {Object.keys(contaPagarFilterCols).includes(header.id) ? (
                             <>
-                              {contaPagarFilterCols[header.id as keyof typeof contaPagarFilterCols]
+                              {"sortable" in
+                                contaPagarFilterCols[
+                                  header.id as keyof typeof contaPagarFilterCols
+                                ] &&
+                              contaPagarFilterCols[header.id as keyof typeof contaPagarFilterCols]
                                 .sortable ? (
                                 <SortTable
                                   filters={filters}
@@ -169,4 +173,3 @@ export function ContaPagarDataTable({
     </>
   );
 }
-

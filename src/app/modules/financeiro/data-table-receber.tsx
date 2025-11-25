@@ -25,7 +25,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { contaReceberFilterCols, FinanceiroFilterType } from "./columns";
+import { contaReceberFilterCols } from "./columns";
+import { FinanceiroFilterType } from "./types";
 import { FinanceiroPageStates } from "./types";
 
 interface DataTableProps {
@@ -93,19 +94,29 @@ export function ContaReceberDataTable({
                         <div className="flex items-center">
                           {Object.keys(contaReceberFilterCols).includes(header.id) ? (
                             <>
-                              {contaReceberFilterCols[
-                                header.id as keyof typeof contaReceberFilterCols
-                              ].sortable ? (
-                                <SortTable
-                                  filters={filters}
-                                  name={
-                                    contaReceberFilterCols[
-                                      header.id as keyof typeof contaReceberFilterCols
-                                    ].sortName
-                                  }
-                                  changeFilter={changeFilters}
-                                />
-                              ) : undefined}
+                              {(() => {
+                                const filterCol =
+                                  contaReceberFilterCols[
+                                    header.id as keyof typeof contaReceberFilterCols
+                                  ];
+                                if (
+                                  "sortable" in filterCol &&
+                                  filterCol.sortable &&
+                                  "sortName" in filterCol
+                                ) {
+                                  return (
+                                    <SortTable
+                                      filters={filters}
+                                      name={filterCol.sortName}
+                                      changeFilter={changeFilters}
+                                    />
+                                  );
+                                }
+                                return flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                );
+                              })()}
                             </>
                           ) : undefined}
                         </div>
@@ -170,4 +181,3 @@ export function ContaReceberDataTable({
     </>
   );
 }
-

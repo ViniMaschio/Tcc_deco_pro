@@ -94,14 +94,50 @@ export async function obterContrato(contratoId: number) {
 
     const contratoFormatted = {
       ...contrato,
+      categoriaId: contrato.categoriaId ?? undefined,
+      localId: contrato.localId ?? undefined,
+      orcamentoId: contrato.orcamentoId ?? undefined,
       total: centsToDecimal(contrato.total),
       desconto: contrato.desconto ? centsToDecimal(contrato.desconto) : undefined,
+      observacao: contrato.observacao ?? undefined,
+      deletedAt: contrato.deletedAt ?? undefined,
+      cliente: contrato.cliente
+        ? {
+            ...contrato.cliente,
+            telefone: contrato.cliente.telefone ?? undefined,
+            email: contrato.cliente.email ?? undefined,
+            cpf: contrato.cliente.cpf ?? undefined,
+            rua: contrato.cliente.rua ?? undefined,
+            numero: contrato.cliente.numero ?? undefined,
+            bairro: contrato.cliente.bairro ?? undefined,
+            cidade: contrato.cliente.cidade ?? undefined,
+            estado: contrato.cliente.estado ?? undefined,
+            cep: contrato.cliente.cep ?? undefined,
+          }
+        : undefined,
+      local: contrato.local ?? undefined,
+      categoriaFesta: contrato.categoriaFesta ?? undefined,
+      orcamento: contrato.orcamento ?? undefined,
+      clausulas: contrato.clausulas?.map((clausula) => ({
+        ...clausula,
+        templateClausulaId: clausula.templateClausulaId ?? undefined,
+      })),
       itens: contrato.itens.map((item) => ({
         ...item,
+        contratoId: item.contratoId ?? undefined,
         quantidade: item.quantidade / 1000, // Converter milésimos para decimal
         valorUnit: centsToDecimal(item.valorUnit),
         desconto: centsToDecimal(item.desconto),
         valorTotal: centsToDecimal(item.valorTotal),
+        deletedAt: item.deletedAt ?? undefined,
+        createdAt: item.createdAt ?? undefined,
+        updatedAt: item.updatedAt ?? undefined,
+        item: item.item
+          ? ({
+              ...item.item,
+              descricao: item.item.descricao ?? undefined,
+            } as any)
+          : undefined,
       })),
     };
 

@@ -183,6 +183,7 @@ export const useOrcamentoModal = ({
     } else if (orcamento?.id) {
       const itensParaAtualizacao = orcamentoData.itens.map((item) => ({
         itemId: item.itemId,
+        nome: item.nome,
         quantidade: item.quantidade,
         valorUnit: item.valorUnit,
         desconto: item.desconto || 0,

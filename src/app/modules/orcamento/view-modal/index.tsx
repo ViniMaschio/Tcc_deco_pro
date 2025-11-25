@@ -195,8 +195,7 @@ export const ViewItemsModal = ({ open, onOpenChange, orcamentoId }: ViewItemsMod
                       <TableRow key={index}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{item.nome}</div>
-                            {item.item?.nome && <div className="text-sm">{item.item.nome}</div>}
+                            <div className="font-medium">{item.item?.nome || "-"}</div>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">{item.quantidade}</TableCell>
