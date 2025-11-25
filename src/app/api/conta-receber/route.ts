@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const dataToCreate = {
       ...parsedBody,
       empresaId,
+      contratoId: parsedBody.contratoId ?? null,
       dataVencimento: parsedBody.dataVencimento
         ? new Date(parsedBody.dataVencimento + "T00:00:00.000Z")
         : undefined,
@@ -62,6 +63,8 @@ const querySchema = z.object({
   sort: z.string().optional(),
   filter: z.string().optional(),
   status: z.string().optional(),
+  dataInicio: z.string().optional(),
+  dataFim: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -80,7 +83,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { page, perPage, sort, filter, status, ...filters } = parsed.data;
+    const { page, perPage, sort, filter, status, dataInicio, dataFim, ...filters } = parsed.data;
 
     const sortable = new Set<keyof typeof db.contaReceber.fields>([
       "id",
@@ -104,6 +107,18 @@ export async function GET(request: NextRequest) {
           : {},
         status && (status === "PENDENTE" || status === "FINALIZADO")
           ? { status: status as StatusTitulo }
+          : {},
+        dataInicio || dataFim
+          ? {
+              dataVencimento: {
+                ...(dataInicio
+                  ? { gte: new Date(dataInicio + "T00:00:00.000Z") }
+                  : {}),
+                ...(dataFim
+                  ? { lte: new Date(dataFim + "T23:59:59.999Z") }
+                  : {}),
+              },
+            }
           : {},
       ],
     };

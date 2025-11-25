@@ -4,7 +4,7 @@ export type ContaPagar = {
   id: number;
   uuid?: string;
   empresaId?: number;
-  fornecedorId: number;
+  fornecedorId?: number | null;
   fornecedor?: {
     id: number;
     nome: string;
@@ -22,7 +22,7 @@ export type ContaPagar = {
 };
 
 export const contaPagarSchema = z.object({
-  fornecedorId: z.number().int().positive("Fornecedor é obrigatório"),
+  fornecedorId: z.number().int().positive().optional().nullable(),
   descricao: z.string().optional(),
   dataVencimento: z.string().optional(),
   dataPagamento: z.string().optional(),

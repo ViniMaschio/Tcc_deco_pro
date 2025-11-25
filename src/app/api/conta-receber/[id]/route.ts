@@ -50,7 +50,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Conta a receber não encontrada" }, { status: 404 });
     }
 
-    const dataToUpdate = {
+    const dataToUpdate: {
+      contratoId?: number | null;
+      descricao?: string;
+      dataVencimento?: Date;
+      dataPagamento?: Date;
+      valor: number;
+      status: "PENDENTE" | "FINALIZADO";
+    } = {
       ...data,
       dataVencimento: data.dataVencimento
         ? new Date(data.dataVencimento + "T00:00:00.000Z")
@@ -59,6 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ? new Date(data.dataPagamento + "T00:00:00.000Z")
         : undefined,
     };
+
+    if (data.contratoId !== undefined) {
+      dataToUpdate.contratoId = data.contratoId ?? null;
+    }
 
     const updatedRaw = await db.contaReceber.update({
       where: { id },

@@ -35,6 +35,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Conta a receber não encontrada" }, { status: 404 });
     }
 
+    // Verificar se a conta já está finalizada
+    if (contaReceber.status === "FINALIZADO") {
+      return NextResponse.json({ error: "Esta conta já foi recebida" }, { status: 400 });
+    }
+
     // Criar entrada no caixa
     const caixaEntrada = await db.caixaEntrada.create({
       data: {
@@ -47,29 +52,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Verificar se a conta foi totalmente paga
-    const totalRecebido = await db.caixaEntrada.aggregate({
-      where: {
-        contasReceberId: parsedBody.contasReceberId,
-        deleted: false,
-      },
-      _sum: {
-        valor: true,
+    // Atualizar o status da conta para FINALIZADO
+    await db.contaReceber.update({
+      where: { id: parsedBody.contasReceberId },
+      data: {
+        status: "FINALIZADO",
+        dataPagamento: new Date(parsedBody.dataRecebimento + "T00:00:00.000Z"),
       },
     });
-
-    const valorTotalRecebido = totalRecebido._sum.valor || 0;
-
-    // Se o valor total recebido for maior ou igual ao valor da conta, marcar como finalizada
-    if (valorTotalRecebido >= contaReceber.valor) {
-      await db.contaReceber.update({
-        where: { id: parsedBody.contasReceberId },
-        data: {
-          status: "FINALIZADO",
-          dataPagamento: new Date(parsedBody.dataRecebimento + "T00:00:00.000Z"),
-        },
-      });
-    }
 
     return NextResponse.json(caixaEntrada, { status: 201 });
   } catch (error) {
@@ -97,6 +87,8 @@ const querySchema = z.object({
     .pipe(z.number().int().positive().max(100))
     .default(10)
     .catch(10),
+  dataInicio: z.string().optional(),
+  dataFim: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -115,21 +107,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { page, perPage } = parsed.data;
+    const { page, perPage, dataInicio, dataFim } = parsed.data;
+
+    // Construir filtros de data
+    const whereClause: any = {
+      empresaId,
+      deleted: false,
+    };
+
+    if (dataInicio || dataFim) {
+      whereClause.dataRecebimento = {};
+      if (dataInicio) {
+        // Criar data no início do dia em UTC para evitar problemas de timezone
+        const startDate = new Date(dataInicio + "T00:00:00.000Z");
+        whereClause.dataRecebimento.gte = startDate;
+      }
+      if (dataFim) {
+        // Criar data no final do dia em UTC para evitar problemas de timezone
+        const endDate = new Date(dataFim + "T23:59:59.999Z");
+        whereClause.dataRecebimento.lte = endDate;
+      }
+    }
 
     const skip = (page - 1) * perPage;
     const [total, data] = await Promise.all([
       db.caixaEntrada.count({
-        where: {
-          empresaId,
-          deleted: false,
-        },
+        where: whereClause,
       }),
       db.caixaEntrada.findMany({
-        where: {
-          empresaId,
-          deleted: false,
-        },
+        where: whereClause,
         orderBy: {
           dataRecebimento: "desc",
         },

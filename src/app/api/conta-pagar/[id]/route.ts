@@ -50,7 +50,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Conta a pagar não encontrada" }, { status: 404 });
     }
 
-    const dataToUpdate = {
+    const dataToUpdate: {
+      fornecedorId?: number | null;
+      descricao?: string;
+      dataVencimento?: Date;
+      dataPagamento?: Date;
+      valor: number;
+      status: "PENDENTE" | "FINALIZADO";
+    } = {
       ...data,
       dataVencimento: data.dataVencimento
         ? new Date(data.dataVencimento + "T00:00:00.000Z")
@@ -59,6 +66,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         ? new Date(data.dataPagamento + "T00:00:00.000Z")
         : undefined,
     };
+
+    if (data.fornecedorId !== undefined) {
+      dataToUpdate.fornecedorId = data.fornecedorId ?? null;
+    }
 
     const updatedRaw = await db.contaPagar.update({
       where: { id },
@@ -81,7 +92,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
     });
 
-    const valorPago = updatedRaw.caixaSaidas.reduce((acc, caixa) => acc + caixa.valor, 0);
+    const valorPago = updatedRaw.caixaSaidas.reduce(
+      (acc: number, caixa: { valor: number }) => acc + caixa.valor,
+      0
+    );
     const valorRestante = updatedRaw.valor - valorPago;
     const updated = {
       ...updatedRaw,

@@ -21,7 +21,7 @@ export type ContaReceber = {
 };
 
 export const contaReceberSchema = z.object({
-  contratoId: z.number().int().positive().optional(),
+  contratoId: z.number().int().positive().optional().nullable(),
   descricao: z.string().optional(),
   dataVencimento: z.string().optional(),
   dataPagamento: z.string().optional(),

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { StatusTitulo } from "@/generated/prisma";
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 
@@ -28,102 +27,73 @@ export async function GET(request: NextRequest) {
 
     const { dataInicio, dataFim } = parsed.data;
 
-    // Construir filtros de data para caixaEntradas
-    const caixaEntradasWhere: any = {
+    // Construir filtros de data para entradas
+    const whereEntradas: any = {
+      empresaId,
       deleted: false,
     };
 
     if (dataInicio || dataFim) {
-      caixaEntradasWhere.dataRecebimento = {};
+      whereEntradas.dataRecebimento = {};
       if (dataInicio) {
         // Criar data no início do dia em UTC para evitar problemas de timezone
         const startDate = new Date(dataInicio + "T00:00:00.000Z");
-        caixaEntradasWhere.dataRecebimento.gte = startDate;
+        whereEntradas.dataRecebimento.gte = startDate;
       }
       if (dataFim) {
         // Criar data no final do dia em UTC para evitar problemas de timezone
         const endDate = new Date(dataFim + "T23:59:59.999Z");
-        caixaEntradasWhere.dataRecebimento.lte = endDate;
+        whereEntradas.dataRecebimento.lte = endDate;
       }
     }
 
-    // Construir filtros de data para caixaSaidas
-    const caixaSaidasWhere: any = {
+    // Construir filtros de data para saídas
+    const whereSaidas: any = {
+      empresaId,
       deleted: false,
     };
 
     if (dataInicio || dataFim) {
-      caixaSaidasWhere.dataPagamento = {};
+      whereSaidas.dataPagamento = {};
       if (dataInicio) {
         // Criar data no início do dia em UTC para evitar problemas de timezone
         const startDate = new Date(dataInicio + "T00:00:00.000Z");
-        caixaSaidasWhere.dataPagamento.gte = startDate;
+        whereSaidas.dataPagamento.gte = startDate;
       }
       if (dataFim) {
         // Criar data no final do dia em UTC para evitar problemas de timezone
         const endDate = new Date(dataFim + "T23:59:59.999Z");
-        caixaSaidasWhere.dataPagamento.lte = endDate;
+        whereSaidas.dataPagamento.lte = endDate;
       }
     }
 
-    const [contasReceber, contasPagar] = await Promise.all([
-      db.contaReceber.findMany({
-        where: {
-          empresaId,
-          deleted: false,
-          status: {
-            in: [StatusTitulo.PENDENTE],
-          },
-        },
-        select: {
+    // Buscar totais de entradas e saídas
+    const [entradas, saidas] = await Promise.all([
+      db.caixaEntrada.aggregate({
+        where: whereEntradas,
+        _sum: {
           valor: true,
-          id: true,
-          caixaEntradas: {
-            where: caixaEntradasWhere,
-            select: {
-              valor: true,
-            },
-          },
         },
       }),
-      db.contaPagar.findMany({
-        where: {
-          empresaId,
-          deleted: false,
-          status: {
-            in: [StatusTitulo.PENDENTE],
-          },
-        },
-        select: {
+      db.caixaSaida.aggregate({
+        where: whereSaidas,
+        _sum: {
           valor: true,
-          id: true,
-          caixaSaidas: {
-            where: caixaSaidasWhere,
-            select: {
-              valor: true,
-            },
-          },
         },
       }),
     ]);
 
-    const totalReceber = contasReceber.reduce((acc, conta) => {
-      const valorPago = conta.caixaEntradas.reduce((sum, caixa) => sum + caixa.valor, 0);
-      return acc + (conta.valor - valorPago);
-    }, 0);
-    const totalPagar = contasPagar.reduce((acc, conta) => {
-      const valorPago = conta.caixaSaidas.reduce((sum, caixa) => sum + caixa.valor, 0);
-      return acc + (conta.valor - valorPago);
-    }, 0);
-    const saldo = totalReceber - totalPagar;
+    const totalRecebido = entradas._sum.valor || 0;
+    const totalPago = saidas._sum.valor || 0;
+    const saldo = totalRecebido - totalPago;
 
     return NextResponse.json({
-      contasReceber: totalReceber,
-      contasPagar: totalPagar,
+      contasRecebidas: totalRecebido,
+      contasPagas: totalPago,
       saldo,
     });
   } catch (error) {
-    console.error("Erro ao buscar resumo financeiro:", error);
+    console.error("Erro ao buscar resumo do fluxo de caixa:", error);
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

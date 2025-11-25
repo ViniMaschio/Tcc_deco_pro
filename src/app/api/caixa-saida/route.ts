@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Conta a pagar não encontrada" }, { status: 404 });
     }
 
+    // Verificar se a conta já está finalizada
+    if (contaPagar.status === "FINALIZADO") {
+      return NextResponse.json(
+        { error: "Esta conta já foi paga" },
+        { status: 400 }
+      );
+    }
+
     // Criar saída no caixa
     const caixaSaida = await db.caixaSaida.create({
       data: {
@@ -47,29 +55,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Verificar se a conta foi totalmente paga
-    const totalPago = await db.caixaSaida.aggregate({
-      where: {
-        contasPagarId: parsedBody.contasPagarId,
-        deleted: false,
-      },
-      _sum: {
-        valor: true,
+    // Atualizar o status da conta para FINALIZADO
+    await db.contaPagar.update({
+      where: { id: parsedBody.contasPagarId },
+      data: {
+        status: "FINALIZADO",
+        dataPagamento: new Date(parsedBody.dataPagamento + "T00:00:00.000Z"),
       },
     });
-
-    const valorTotalPago = totalPago._sum.valor || 0;
-
-    // Se o valor total pago for maior ou igual ao valor da conta, marcar como finalizada
-    if (valorTotalPago >= contaPagar.valor) {
-      await db.contaPagar.update({
-        where: { id: parsedBody.contasPagarId },
-        data: {
-          status: "FINALIZADO",
-          dataPagamento: new Date(parsedBody.dataPagamento + "T00:00:00.000Z"),
-        },
-      });
-    }
 
     return NextResponse.json(caixaSaida, { status: 201 });
   } catch (error) {
@@ -97,6 +90,8 @@ const querySchema = z.object({
     .pipe(z.number().int().positive().max(100))
     .default(10)
     .catch(10),
+  dataInicio: z.string().optional(),
+  dataFim: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -115,21 +110,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { page, perPage } = parsed.data;
+    const { page, perPage, dataInicio, dataFim } = parsed.data;
+
+    // Construir filtros de data
+    const whereClause: any = {
+      empresaId,
+      deleted: false,
+    };
+
+    if (dataInicio || dataFim) {
+      whereClause.dataPagamento = {};
+      if (dataInicio) {
+        // Criar data no início do dia em UTC para evitar problemas de timezone
+        const startDate = new Date(dataInicio + "T00:00:00.000Z");
+        whereClause.dataPagamento.gte = startDate;
+      }
+      if (dataFim) {
+        // Criar data no final do dia em UTC para evitar problemas de timezone
+        const endDate = new Date(dataFim + "T23:59:59.999Z");
+        whereClause.dataPagamento.lte = endDate;
+      }
+    }
 
     const skip = (page - 1) * perPage;
     const [total, data] = await Promise.all([
       db.caixaSaida.count({
-        where: {
-          empresaId,
-          deleted: false,
-        },
+        where: whereClause,
       }),
       db.caixaSaida.findMany({
-        where: {
-          empresaId,
-          deleted: false,
-        },
+        where: whereClause,
         orderBy: {
           dataPagamento: "desc",
         },
