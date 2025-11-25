@@ -26,6 +26,7 @@ export type ConfiguracoesUsuario = {
     cidade?: string;
     estado?: string;
     cep?: string;
+    logoUrl?: string | null;
   };
   contrato: {
     observacoes?: string;
@@ -95,6 +96,7 @@ export const empresaSchema = z.object({
   cidade: z.string().optional(),
   estado: z.string().optional(),
   cep: z.string().optional(),
+  logoUrl: z.union([z.string().url(), z.null(), z.literal("")]).optional(),
 });
 
 export const clausulaSchema = z.object({

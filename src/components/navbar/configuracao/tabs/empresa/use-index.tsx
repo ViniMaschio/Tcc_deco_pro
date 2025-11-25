@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   empresaSchema,
   EmpresaData,
@@ -17,6 +18,7 @@ import { formatCEPCodeNumber } from "@/utils/mask";
 export const useEmpresa = () => {
   const { data: session } = useSession();
   const { handleChangeConfiguracao } = useConfiguracoes();
+  const queryClient = useQueryClient();
   const [zipCodeLoading, setZipCodeLoading] = useState(false);
 
   const empresaForm = useForm<EmpresaData>({
@@ -34,6 +36,7 @@ export const useEmpresa = () => {
       cidade: "",
       estado: "",
       cep: "",
+      logoUrl: null,
     },
   });
 
@@ -128,6 +131,7 @@ export const useEmpresa = () => {
         cep: data.cep,
         estado: data.estado,
         razaoSocial: data.razaoSocial,
+        logoUrl: data.logoUrl || null,
       }),
     });
 
@@ -135,6 +139,16 @@ export const useEmpresa = () => {
 
     if (!response.ok) {
       throw new Error(resultado.message || "Erro ao salvar dados da empresa");
+    }
+
+    // Invalidar queries para atualizar a navbar e outras partes que usam dados da empresa
+    if (session?.user?.id) {
+      await queryClient.invalidateQueries({
+        queryKey: ["empresa-navbar", session.user.id],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["empresa", session.user.id],
+      });
     }
 
     refetch();
@@ -178,6 +192,7 @@ export const useEmpresa = () => {
         cidade: empresaData.cidade || "",
         estado: empresaData.estado || "",
         cep: empresaData.cep || "",
+        logoUrl: empresaData.logoUrl || null,
       };
 
       const currentValues = empresaForm.getValues();
@@ -201,11 +216,30 @@ export const useEmpresa = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const handleUploadLogo = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload/logo", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Erro ao fazer upload da imagem");
+    }
+
+    const data = await response.json();
+    return data.url;
+  };
+
   return {
     empresaForm,
     handleEmpresaSubmit,
     searchZipCode,
     zipCodeLoading,
     isLoading: isLoading || isFetching,
+    handleUploadLogo,
   };
 };

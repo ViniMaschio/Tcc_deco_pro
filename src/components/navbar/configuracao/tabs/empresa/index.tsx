@@ -18,16 +18,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useEmpresa } from "./use-index";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { obterEmpresa } from "@/actions/empresa";
 import { useConfiguracoes } from "../../use-modal";
 import { EmpresaTabProps } from "../../types";
+import { UploadLogo } from "@/components/ui/upload-logo";
 
 export const EmpresaTab = ({ onClose }: EmpresaTabProps) => {
-  const { empresaForm, handleEmpresaSubmit, searchZipCode, zipCodeLoading, isLoading } =
-    useEmpresa();
+  const {
+    empresaForm,
+    handleEmpresaSubmit,
+    searchZipCode,
+    zipCodeLoading,
+    isLoading,
+    handleUploadLogo,
+  } = useEmpresa();
   const [saving, setSaving] = useState(false);
   const { data: session, update } = useSession();
   const { handleChangeConfiguracao } = useConfiguracoes();
+  const queryClient = useQueryClient();
 
   const handleSave = async () => {
     const isValid = await empresaForm.trigger();
@@ -63,6 +72,7 @@ export const EmpresaTab = ({ onClose }: EmpresaTabProps) => {
           handleChangeConfiguracao("empresa.cidade", empresa.cidade || "");
           handleChangeConfiguracao("empresa.estado", empresa.estado || "");
           handleChangeConfiguracao("empresa.cep", empresa.cep || "");
+          handleChangeConfiguracao("empresa.logoUrl", empresa.logoUrl || null);
 
           if (empresa.nome !== session?.user?.name) {
             await update({
@@ -74,6 +84,16 @@ export const EmpresaTab = ({ onClose }: EmpresaTabProps) => {
             });
           }
         }
+      }
+
+      // Invalidar queries para atualizar a navbar e outras partes que usam dados da empresa
+      if (session?.user?.id) {
+        await queryClient.invalidateQueries({
+          queryKey: ["empresa-navbar", session.user.id],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["empresa", session.user.id],
+        });
       }
 
       toast.success("Dados da empresa salvos com sucesso!");
@@ -377,6 +397,32 @@ export const EmpresaTab = ({ onClose }: EmpresaTabProps) => {
               )}
             />
           </div>
+        </div>
+
+        {/* Campo de Upload de Logo */}
+        <div className="w-full max-w-xs">
+          <FormField
+            control={empresaForm.control}
+            name="logoUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Logo da Empresa</FormLabel>
+                <FormControl>
+                  <UploadLogo
+                    value={field.value}
+                    onChange={(url) => {
+                      field.onChange(url);
+                      handleChangeConfiguracao("empresa.logoUrl", url);
+                    }}
+                    onUpload={handleUploadLogo}
+                    disabled={saving}
+                    className="h-32 w-32"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="flex justify-end gap-2 pt-4">

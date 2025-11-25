@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   ConfiguracoesUsuario,
@@ -14,6 +14,7 @@ import { obterEmpresa } from "@/actions/empresa";
 
 export const useConfiguracoes = (open?: boolean) => {
   const { data: session, update } = useSession();
+  const queryClient = useQueryClient();
 
   const [configuracoes, setConfiguracoes] = useState<ConfiguracoesUsuario>({
     tema: "system",
@@ -41,6 +42,7 @@ export const useConfiguracoes = (open?: boolean) => {
       cidade: "",
       estado: "",
       cep: "",
+      logoUrl: null,
     },
     contrato: {
       observacoes: "",
@@ -123,6 +125,7 @@ export const useConfiguracoes = (open?: boolean) => {
         cep: empresaData.cep,
         estado: empresaData.estado,
         razaoSocial: empresaData.razaoSocial,
+        logoUrl: empresaData.logoUrl || null,
       }),
     });
 
@@ -146,6 +149,14 @@ export const useConfiguracoes = (open?: boolean) => {
 
     toast.success("Configurações salvas com sucesso!", {
       position: "top-center",
+    });
+
+    // Invalidar queries para atualizar a navbar e outras partes que usam dados da empresa
+    await queryClient.invalidateQueries({
+      queryKey: ["empresa-navbar", session.user.id],
+    });
+    await queryClient.invalidateQueries({
+      queryKey: ["empresa", session.user.id],
     });
 
     refetch();
@@ -181,6 +192,7 @@ export const useConfiguracoes = (open?: boolean) => {
           cidade: empresaData.cidade || "",
           estado: empresaData.estado || "",
           cep: empresaData.cep || "",
+          logoUrl: empresaData.logoUrl || null,
         },
       }));
     }

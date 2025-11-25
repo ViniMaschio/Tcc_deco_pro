@@ -19,11 +19,11 @@ export const MountTabs = ({ onClose }: MountTabsProps) => {
         label: "Contrato",
         icon: <FileText className="h-4 w-4" />,
       },
-      {
-        name: "tema",
-        label: "Tema",
-        icon: <Palette className="h-4 w-4" />,
-      },
+      // {
+      //   name: "tema",
+      //   label: "Tema",
+      //   icon: <Palette className="h-4 w-4" />,
+      // },
     ],
 
     content: [
@@ -37,10 +37,10 @@ export const MountTabs = ({ onClose }: MountTabsProps) => {
         forceMount: true,
         render: <ContratoTab onClose={onClose} />,
       },
-      {
-        name: "tema",
-        render: <TemaTab onClose={onClose} />,
-      },
+      // {
+      //   name: "tema",
+      //   render: <TemaTab onClose={onClose} />,
+      // },
     ],
   };
 

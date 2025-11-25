@@ -43,7 +43,7 @@ export const ConfiguracoesModal = ({ open, changeOpen }: ConfiguracoesModalProps
           onValueChange={(value) => setActiveTab(value as any)}
           className="flex h-full w-full flex-col"
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             {tabs.trigger.map((tab) => (
               <TabsTrigger
                 key={tab.name}
