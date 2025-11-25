@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { CaixaEntrada } from "@/app/api/caixa-entrada/types";
 import { CaixaSaida } from "@/app/api/caixa-saida/types";
@@ -23,11 +24,15 @@ const getFirstAndLastDayOfMonth = () => {
 };
 
 export const usePage = () => {
+  const queryClient = useQueryClient();
   const { firstDay, lastDay } = getFirstAndLastDayOfMonth();
 
   const [showState, setShowState] = useState({
     activeTab: "receber" as "receber" | "pagar",
+    showDialog: false,
   } as FinanceiroPageStates);
+
+  const [itemToDelete, setItemToDelete] = useState<CaixaEntrada | CaixaSaida | null>(null);
 
   const [pagination, setPagination] = useState({
     perPage: 10,
@@ -226,8 +231,87 @@ export const usePage = () => {
     }
   }, [caixaEntradasData?.meta, caixaSaidasData?.meta, showState.activeTab]);
 
-  const caixaEntradaColumns = createCaixaEntradaColumns();
-  const caixaSaidaColumns = createCaixaSaidaColumns();
+  const deleteCaixaEntrada = async (id: number) => {
+    const response = await fetch(`/api/caixa-entrada/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Erro ao excluir entrada no caixa");
+    }
+
+    return response.json();
+  };
+
+  const deleteCaixaSaida = async (id: number) => {
+    const response = await fetch(`/api/caixa-saida/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Erro ao excluir saída no caixa");
+    }
+
+    return response.json();
+  };
+
+  const deleteEntradaMutation = useMutation({
+    mutationFn: deleteCaixaEntrada,
+    onSuccess: () => {
+      toast.success("Entrada no caixa excluída com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["caixa-entradas"] });
+      queryClient.invalidateQueries({ queryKey: ["fluxo-caixa-resumo"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteSaidaMutation = useMutation({
+    mutationFn: deleteCaixaSaida,
+    onSuccess: () => {
+      toast.success("Saída no caixa excluída com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["caixa-saidas"] });
+      queryClient.invalidateQueries({ queryKey: ["fluxo-caixa-resumo"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleDelete = (item: CaixaEntrada | CaixaSaida) => {
+    setItemToDelete(item);
+    changeShowState("showDialog", true);
+  };
+
+  const removeItem = () => {
+    if (!itemToDelete) return;
+
+    if ("contasReceberId" in itemToDelete && itemToDelete.contasReceberId) {
+      // É uma entrada no caixa
+      deleteEntradaMutation.mutate(itemToDelete.id, {
+        onSuccess: () => {
+          changeShowState("showDialog", false);
+          setItemToDelete(null);
+        },
+      });
+    } else if ("contasPagarId" in itemToDelete && itemToDelete.contasPagarId) {
+      // É uma saída no caixa
+      deleteSaidaMutation.mutate(itemToDelete.id, {
+        onSuccess: () => {
+          changeShowState("showDialog", false);
+          setItemToDelete(null);
+        },
+      });
+    }
+  };
+
+  const caixaEntradaColumns = createCaixaEntradaColumns({ onDelete: handleDelete });
+  const caixaSaidaColumns = createCaixaSaidaColumns({ onDelete: handleDelete });
 
   return {
     showState,
@@ -243,5 +327,7 @@ export const usePage = () => {
     filters,
     handleChangeFilters,
     handleClearFilters,
+    removeItem,
+    isDeleting: deleteEntradaMutation.isPending || deleteSaidaMutation.isPending,
   };
 };

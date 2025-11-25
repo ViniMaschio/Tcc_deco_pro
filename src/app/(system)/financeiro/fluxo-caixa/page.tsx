@@ -2,6 +2,7 @@
 
 import { FluxoCaixaDataTable } from "@/app/modules/financeiro/fluxo-caixa-data-table";
 import { fluxoCaixaFilterCols } from "@/app/modules/financeiro/fluxo-caixa-columns";
+import { DeleteConfirmationDialog } from "@/components/delete-dialog";
 import { PageFilter } from "@/components/page-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrencyFromCents } from "@/utils/currency";
@@ -23,6 +24,8 @@ export default function Page() {
     filters,
     handleChangeFilters,
     handleClearFilters,
+    removeItem,
+    isDeleting,
   } = usePage();
 
   return (
@@ -154,6 +157,15 @@ export default function Page() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {showState.showDialog ? (
+        <DeleteConfirmationDialog
+          open={showState.showDialog}
+          onOpenChange={(open) => changeShowState("showDialog", open)}
+          onConfirm={removeItem}
+          isLoading={isDeleting}
+        />
+      ) : null}
     </div>
   );
 }

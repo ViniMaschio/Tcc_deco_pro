@@ -61,7 +61,12 @@ export function FluxoCaixaDataTable<T extends { id: number | string }>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className={twMerge(
+                        header.column.id === "actions" && "sticky top-0 right-0 z-10 bg-white"
+                      )}
+                    >
                       <div className="flex items-center gap-4">
                         {header.isPlaceholder
                           ? null
@@ -93,7 +98,12 @@ export function FluxoCaixaDataTable<T extends { id: number | string }>({
                       <TableCell
                         key={cell.id}
                         className={twMerge(
-                          row.index % 2 ? "bg-[#f8fafc]" : "bg-white",
+                          cell.column.id === "actions" && "sticky right-0 z-[1] w-32",
+                          row.index % 2
+                            ? cell.column.id === "actions"
+                              ? "bg-[#f8fafc]"
+                              : "bg-[#f8fafc]"
+                            : "bg-white",
                           "transition-all duration-500"
                         )}
                       >

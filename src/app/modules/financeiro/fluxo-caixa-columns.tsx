@@ -1,7 +1,9 @@
+import { TrashIcon } from "@phosphor-icons/react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { CaixaEntrada } from "@/app/api/caixa-entrada/types";
 import { CaixaSaida } from "@/app/api/caixa-saida/types";
+import { ButtonAction } from "@/components/ui/button-action";
 import { formatCurrencyFromCents } from "@/utils/currency";
 import { formatDate } from "@/utils/date";
 
@@ -16,7 +18,13 @@ const METODOS_LABEL: Record<string, string> = {
   OUTRO: "Outro",
 };
 
-export const createCaixaEntradaColumns = (): ColumnDef<CaixaEntrada>[] => [
+interface FluxoCaixaColumnsProps {
+  onDelete?: (item: CaixaEntrada | CaixaSaida) => void;
+}
+
+export const createCaixaEntradaColumns = (
+  props?: FluxoCaixaColumnsProps
+): ColumnDef<CaixaEntrada>[] => [
   {
     id: "descricao",
     accessorKey: "descricao",
@@ -70,9 +78,43 @@ export const createCaixaEntradaColumns = (): ColumnDef<CaixaEntrada>[] => [
       return <span>{METODOS_LABEL[metodo] || metodo}</span>;
     },
   },
+  ...(props?.onDelete
+    ? [
+        {
+          id: "actions",
+          meta: {
+            name: "Ações",
+          },
+          header: () => {
+            return (
+              <div className="flex justify-end">
+                <span>Ações</span>
+              </div>
+            );
+          },
+          cell: ({ row }) => {
+            const item = row.original;
+            return (
+              <div className="flex items-center justify-end gap-1">
+                <ButtonAction
+                  className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
+                  variant="outline"
+                  tooltip="Excluir"
+                  onClick={() => props.onDelete?.(item)}
+                >
+                  <TrashIcon weight="fill" size={16} />
+                </ButtonAction>
+              </div>
+            );
+          },
+        } as ColumnDef<CaixaEntrada>,
+      ]
+    : []),
 ];
 
-export const createCaixaSaidaColumns = (): ColumnDef<CaixaSaida>[] => [
+export const createCaixaSaidaColumns = (
+  props?: FluxoCaixaColumnsProps
+): ColumnDef<CaixaSaida>[] => [
   {
     id: "descricao",
     accessorKey: "descricao",
@@ -138,6 +180,38 @@ export const createCaixaSaidaColumns = (): ColumnDef<CaixaSaida>[] => [
       return <span>{METODOS_LABEL[metodo] || metodo}</span>;
     },
   },
+  ...(props?.onDelete
+    ? [
+        {
+          id: "actions",
+          meta: {
+            name: "Ações",
+          },
+          header: () => {
+            return (
+              <div className="flex justify-end">
+                <span>Ações</span>
+              </div>
+            );
+          },
+          cell: ({ row }) => {
+            const item = row.original;
+            return (
+              <div className="flex items-center justify-end gap-1">
+                <ButtonAction
+                  className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
+                  variant="outline"
+                  tooltip="Excluir"
+                  onClick={() => props.onDelete?.(item)}
+                >
+                  <TrashIcon weight="fill" size={16} />
+                </ButtonAction>
+              </div>
+            );
+          },
+        } as ColumnDef<CaixaSaida>,
+      ]
+    : []),
 ];
 
 export const fluxoCaixaFilterCols = {
