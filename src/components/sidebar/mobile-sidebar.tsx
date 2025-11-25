@@ -7,9 +7,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { IoLogOutOutline } from "react-icons/io5";
+import { ChevronRight } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { useShallow } from "zustand/react/shallow";
 
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sheet, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSidebarStore } from "@/store/sidebar";
 
@@ -64,22 +66,70 @@ export const MobileSidebar = () => {
 
           <nav className="flex-1 px-3 py-4">
             <ul className="space-y-2">
-              {menuItems.map((item) => (
-                <li key={item.id}>
-                  <button
-                    onClick={() => handleNavigation(item?.path || "")}
-                    className={twMerge(
-                      "flex h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      item.pathnames.includes(pathname)
-                        ? "bg-primary hover:bg-primary/90 text-white"
-                        : "text-gray-700 hover:bg-gray-200"
-                    )}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              ))}
+              {menuItems.map((item) => {
+                const hasChildren = item.children && item.children.length > 0;
+                const isActive = item.pathnames.includes(pathname) || 
+                  (hasChildren && item.children?.some(child => child.pathnames.includes(pathname)));
+
+                if (hasChildren) {
+                  return (
+                    <li key={item.id}>
+                      <Collapsible className="group/collapsible">
+                        <CollapsibleTrigger asChild>
+                          <button
+                            className={twMerge(
+                              "flex h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                              isActive
+                                ? "bg-primary hover:bg-primary/90 text-white"
+                                : "text-gray-700 hover:bg-gray-200"
+                            )}
+                          >
+                            {item.icon}
+                            <span className="flex-1 text-left">{item.label}</span>
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <ul className="mt-1 space-y-1 pl-4">
+                            {item.children?.map((child) => (
+                              <li key={child.id}>
+                                <button
+                                  onClick={() => handleNavigation(child.path)}
+                                  className={twMerge(
+                                    "flex h-[36px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                                    child.pathnames.includes(pathname)
+                                      ? "bg-primary/80 hover:bg-primary/90 text-white"
+                                      : "text-gray-600 hover:bg-gray-100"
+                                  )}
+                                >
+                                  <span>{child.label}</span>
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </li>
+                  );
+                }
+
+                return (
+                  <li key={item.id}>
+                    <button
+                      onClick={() => item.path && handleNavigation(item.path)}
+                      className={twMerge(
+                        "flex h-[40px] w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-primary hover:bg-primary/90 text-white"
+                          : "text-gray-700 hover:bg-gray-200"
+                      )}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 

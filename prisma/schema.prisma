@@ -25,8 +25,7 @@ enum StatusContrato {
 
 enum StatusTitulo {
   PENDENTE
-  PAGO
-  CANCELADO
+  FINALIZADO
 }
 
 enum MetodoPagamento {
@@ -38,11 +37,6 @@ enum MetodoPagamento {
   TED
   DOC
   OUTRO
-}
-
-enum TipoCaixa {
-  ENTRADA
-  SAIDA
 }
 
 enum TipoItem {

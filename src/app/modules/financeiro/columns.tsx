@@ -1,4 +1,4 @@
-import { PencilIcon, TrashIcon } from "@phosphor-icons/react";
+import { PencilIcon, TrashIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -10,21 +10,24 @@ import { ButtonAction } from "@/components/ui/button-action";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrencyFromCents } from "@/utils/currency";
 
-import { StatusColorEnum, StatusLabelEnum } from "./enum";
+import { StatusColorEnum, getStatusLabel } from "./enum";
 
 interface ContaPagarColumnsProps {
   onEdit: (conta: ContaPagar) => void;
   onDelete: (conta: ContaPagar) => void;
+  onPay?: (conta: ContaPagar) => void;
 }
 
 interface ContaReceberColumnsProps {
   onEdit: (conta: ContaReceber) => void;
   onDelete: (conta: ContaReceber) => void;
+  onReceive?: (conta: ContaReceber) => void;
 }
 
 export const createContaPagarColumns = ({
   onEdit,
   onDelete,
+  onPay,
 }: ContaPagarColumnsProps): ColumnDef<ContaPagar>[] => [
   {
     id: "descricao",
@@ -82,10 +85,10 @@ export const createContaPagarColumns = ({
     },
     header: () => <span>Situação</span>,
     cell: ({ row }) => {
-      const status = row.getValue("status") as keyof typeof StatusLabelEnum;
+      const status = row.getValue("status") as "PENDENTE" | "FINALIZADO";
       return (
         <Badge className={twMerge("font-bold", StatusColorEnum[status])}>
-          {StatusLabelEnum[status]}
+          {getStatusLabel(status, "pagar")}
         </Badge>
       );
     },
@@ -100,6 +103,16 @@ export const createContaPagarColumns = ({
       const conta = row.original;
       return (
         <div className="flex items-center gap-1">
+          {onPay && conta.status === "PENDENTE" && (
+            <ButtonAction
+              className="h-8 w-8 p-0 text-green-500 hover:text-green-500/80"
+              variant="outline"
+              tooltip="Pagar"
+              onClick={() => onPay(conta)}
+            >
+              <CheckCircleIcon weight="fill" size={16} />
+            </ButtonAction>
+          )}
           <ButtonAction
             className="h-8 w-8 p-0 text-yellow-500 hover:text-yellow-500/80"
             variant="outline"
@@ -125,6 +138,7 @@ export const createContaPagarColumns = ({
 export const createContaReceberColumns = ({
   onEdit,
   onDelete,
+  onReceive,
 }: ContaReceberColumnsProps): ColumnDef<ContaReceber>[] => [
   {
     id: "descricao",
@@ -182,10 +196,10 @@ export const createContaReceberColumns = ({
     },
     header: () => <span>Situação</span>,
     cell: ({ row }) => {
-      const status = row.getValue("status") as keyof typeof StatusLabelEnum;
+      const status = row.getValue("status") as "PENDENTE" | "FINALIZADO";
       return (
         <Badge className={twMerge("font-bold", StatusColorEnum[status])}>
-          {StatusLabelEnum[status]}
+          {getStatusLabel(status, "receber")}
         </Badge>
       );
     },
@@ -200,6 +214,16 @@ export const createContaReceberColumns = ({
       const conta = row.original;
       return (
         <div className="flex items-center gap-1">
+          {onReceive && conta.status === "PENDENTE" && (
+            <ButtonAction
+              className="h-8 w-8 p-0 text-green-500 hover:text-green-500/80"
+              variant="outline"
+              tooltip="Receber"
+              onClick={() => onReceive(conta)}
+            >
+              <CheckCircleIcon weight="fill" size={16} />
+            </ButtonAction>
+          )}
           <ButtonAction
             className="h-8 w-8 p-0 text-yellow-500 hover:text-yellow-500/80"
             variant="outline"

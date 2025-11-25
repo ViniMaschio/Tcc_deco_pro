@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { Prisma } from "@/generated/prisma";
+import { Prisma, StatusTitulo } from "@/generated/prisma";
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 import { buildOrderBy } from "@/utils/functions/quey-functions";
@@ -102,7 +102,9 @@ export async function GET(request: NextRequest) {
               OR: [{ descricao: { contains: filter, mode: "insensitive" } }],
             }
           : {},
-        status ? { status: status as any } : {},
+        status && (status === "PENDENTE" || status === "FINALIZADO")
+          ? { status: status as StatusTitulo }
+          : {},
       ],
     };
 

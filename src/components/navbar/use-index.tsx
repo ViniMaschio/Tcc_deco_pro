@@ -26,7 +26,10 @@ export const useNavBar = () => {
       case "/orcamento":
         return "Orçamentos";
       case "/financeiro":
-        return "Financeiro";
+      case "/financeiro/entrada-saida":
+        return "Entrada e Saída";
+      case "/financeiro/fluxo-caixa":
+        return "Fluxo de Caixa";
       case "/fornecedor":
         return "Fornecedores";
       case "/local":

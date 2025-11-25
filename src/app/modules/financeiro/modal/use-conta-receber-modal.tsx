@@ -16,7 +16,7 @@ const FormSchema = z.object({
   descricao: z.string().min(1, "Descrição é obrigatória"),
   dataVencimento: z.string().min(1, "Data de vencimento é obrigatória"),
   valor: z.number().int().positive("Valor é obrigatório"),
-  status: z.enum(["PENDENTE", "PAGO", "CANCELADO"]),
+  status: z.enum(["PENDENTE", "FINALIZADO"]),
 });
 
 export type FormValues = z.infer<typeof FormSchema>;

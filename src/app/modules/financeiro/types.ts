@@ -5,6 +5,8 @@ export type FinanceiroPageStates = {
   showModal: boolean;
   isLoading: boolean;
   showDialog: boolean;
+  showPagarModal?: boolean;
+  showReceberModal?: boolean;
   activeTab: "receber" | "pagar";
 };
 
@@ -34,4 +36,3 @@ export type ContaReceberModalProps = {
 export type FinanceiroModalStates = {
   submitting: boolean;
 };
-

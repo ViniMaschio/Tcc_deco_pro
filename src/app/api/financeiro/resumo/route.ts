@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { StatusTitulo } from "@/generated/prisma";
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { db } from "@/lib/prisma";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
           empresaId,
           deleted: false,
           status: {
-            in: ["PENDENTE"],
+            in: [StatusTitulo.PENDENTE],
           },
         },
         select: {
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
           empresaId,
           deleted: false,
           status: {
-            in: ["PENDENTE"],
+            in: [StatusTitulo.PENDENTE],
           },
         },
         select: {

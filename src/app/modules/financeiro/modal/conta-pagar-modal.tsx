@@ -168,8 +168,7 @@ export const ContaPagarModal = ({
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="PENDENTE">Pendente</SelectItem>
-                            <SelectItem value="PAGO">Pago</SelectItem>
-                            <SelectItem value="CANCELADO">Cancelado</SelectItem>
+                            <SelectItem value="FINALIZADO">Finalizado</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

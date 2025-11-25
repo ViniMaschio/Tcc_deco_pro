@@ -16,7 +16,7 @@ export type ContaPagar = {
   valorPago?: number; // Calculado: soma das caixaSaidas
   valorRestante?: number; // Calculado: valor - valorPago
   valorTotal?: number; // Alias para valor (compatibilidade)
-  status: "PENDENTE" | "PAGO" | "CANCELADO";
+  status: "PENDENTE" | "FINALIZADO";
   createdAt?: string | Date;
   updatedAt?: string | Date;
 };
@@ -27,5 +27,5 @@ export const contaPagarSchema = z.object({
   dataVencimento: z.string().optional(),
   dataPagamento: z.string().optional(),
   valor: z.number().int().positive("Valor é obrigatório"),
-  status: z.enum(["PENDENTE", "PAGO", "CANCELADO"]).default("PENDENTE"),
+  status: z.enum(["PENDENTE", "FINALIZADO"]).default("PENDENTE"),
 });

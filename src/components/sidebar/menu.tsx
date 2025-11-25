@@ -13,12 +13,20 @@ import {
   MdPinDrop,
 } from "react-icons/md";
 
+interface MenuItemChild {
+  id: string;
+  label: string;
+  path: string;
+  pathnames: string[];
+}
+
 interface MenuProps {
   id: string;
   label: string;
   icon?: React.ReactNode;
   path?: string;
   pathnames: string[];
+  children?: MenuItemChild[];
 }
 
 export const menuItems: MenuProps[] = [
@@ -61,8 +69,21 @@ export const menuItems: MenuProps[] = [
     id: "financeiro",
     label: "Financeiro",
     icon: <MdAccountBalance size={20} />,
-    path: "/financeiro",
     pathnames: ["/financeiro"],
+    children: [
+      {
+        id: "financeiro-entrada-saida",
+        label: "Entrada e Saída",
+        path: "/financeiro/entrada-saida",
+        pathnames: ["/financeiro/entrada-saida"],
+      },
+      {
+        id: "financeiro-fluxo-caixa",
+        label: "Fluxo de Caixa",
+        path: "/financeiro/fluxo-caixa",
+        pathnames: ["/financeiro/fluxo-caixa"],
+      },
+    ],
   },
   {
     id: "fornecedor",

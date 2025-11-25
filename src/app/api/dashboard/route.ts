@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
       totalFornecedores,
       orcamentosPendentes,
     ] = await Promise.all([
-
       db.cliente.count({
         where: {
           empresaId,
@@ -156,6 +155,7 @@ export async function GET(request: NextRequest) {
         where: {
           empresaId,
           deleted: false,
+          tipo: "PRO",
         },
       }),
 
@@ -215,11 +215,17 @@ export async function GET(request: NextRequest) {
           contratosAtivos: {
             total: contratosAtivos,
             eventos: eventosEstaSemana,
-            label: eventosEstaSemana > 0 ? `${eventosEstaSemana} eventos esta semana` : "Sem eventos esta semana",
+            label:
+              eventosEstaSemana > 0
+                ? `${eventosEstaSemana} eventos esta semana`
+                : "Sem eventos esta semana",
           },
           receita: {
             valor: formatCurrency(receitaAtual),
-            variacao: variacaoReceita > 0 ? `+${variacaoReceita}% vs mês anterior` : `${variacaoReceita}% vs mês anterior`,
+            variacao:
+              variacaoReceita > 0
+                ? `+${variacaoReceita}% vs mês anterior`
+                : `${variacaoReceita}% vs mês anterior`,
           },
           contasPendentes: {
             total: contasPendentes,
@@ -253,4 +259,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
-
