@@ -1,13 +1,17 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { FaTruck } from "react-icons/fa";
 import {
   MdAttachMoney,
+  MdAssignment,
   MdCalendarToday,
   MdDescription,
   MdInfo,
+  MdInventory,
   MdLocationOn,
   MdPeople,
+  MdPinDrop,
 } from "react-icons/md";
 
 import { usePage } from "./use-page";
@@ -172,28 +176,28 @@ export default function Home() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
-              <MdPeople size={24} className="text-gray-600" />
+              <MdInventory size={24} className="text-gray-600" />
             </div>
             <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.itens}</p>
             <p className="text-sm text-gray-600">Itens</p>
           </div>
           <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
-              <MdPeople size={24} className="text-gray-600" />
+              <MdPinDrop size={24} className="text-gray-600" />
             </div>
             <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.locais}</p>
             <p className="text-sm text-gray-600">Locais</p>
           </div>
           <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
-              <MdPeople size={24} className="text-gray-600" />
+              <FaTruck size={24} className="text-gray-600" />
             </div>
             <p className="mb-1 text-2xl font-bold text-gray-900">{data.cards.fornecedores}</p>
             <p className="text-sm text-gray-600">Fornecedores</p>
           </div>
           <div className="rounded-lg border bg-white p-6 text-center shadow-sm">
             <div className="mb-3 flex justify-center">
-              <MdPeople size={24} className="text-gray-600" />
+              <MdAssignment size={24} className="text-gray-600" />
             </div>
             <p className="mb-1 text-2xl font-bold text-gray-900">
               {data.cards.orcamentosPendentes}
