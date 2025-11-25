@@ -1,8 +1,8 @@
 "use client";
 
-import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Calendar } from "lucide-react";
 
 import {
   Sheet,
@@ -45,12 +45,12 @@ export function DayEventsSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-xl">
-        <SheetHeader>
+        <SheetHeader className="border-b border-gray-200">
           <SheetTitle>Lista de eventos</SheetTitle>
           <SheetDescription>{capitalizedDate}</SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 flex flex-col gap-4 p-2">
+        <div className="flex flex-col gap-4 p-2">
           {dayEvents.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
               <Calendar className="mb-4 h-12 w-12 text-gray-400" />
@@ -64,13 +64,10 @@ export function DayEventsSheet({
                 className="group relative flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-gray-300 hover:shadow-md"
               >
                 <div
-                  className="absolute top-0 right-0 h-full w-1 rounded-r-lg"
+                  className="absolute top-0 left-0 h-full w-2 rounded-l-lg"
                   style={{ backgroundColor: event.color ?? "#6b7280" }}
                 />
-                <div className="shrink-0">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                </div>
-                <div className="min-w-0 flex-1">
+                <div className="ml-2 min-w-0 flex-1">
                   <h3 className="font-semibold text-gray-900 group-hover:text-gray-700">
                     {event.title}
                   </h3>
