@@ -224,7 +224,7 @@ export const usePage = () => {
   const handleClearFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      fornecedorId: undefined,
+      descricao: undefined,
       status: undefined,
     }));
   };

@@ -4,11 +4,16 @@ import { PlusCircle } from "lucide-react";
 
 import { ContaPagarDataTable } from "@/app/modules/financeiro/data-table-pagar";
 import { ContaReceberDataTable } from "@/app/modules/financeiro/data-table-receber";
-import { ContaPagarModal } from "@/app/modules/financeiro/modal/conta-pagar-modal";
-import { ContaReceberModal } from "@/app/modules/financeiro/modal/conta-receber-modal";
-import { PagarModal } from "@/app/modules/financeiro/modal/pagar-modal";
-import { ReceberModal } from "@/app/modules/financeiro/modal/receber-modal";
+import {
+  contaPagarFilterColsWithDates,
+  contaReceberFilterColsWithDates,
+} from "@/app/modules/financeiro/columns";
+import { ContaPagarModal } from "@/app/modules/financeiro/modal-conta-pagar/conta-pagar-modal";
+import { ContaReceberModal } from "@/app/modules/financeiro/modal-conta-receber/conta-receber-modal";
+import { PagarModal } from "@/app/modules/financeiro/modal-conta-pagar/pagar-modal";
+import { ReceberModal } from "@/app/modules/financeiro/modal-conta-receber/receber-modal";
 import { IconButton } from "@/components/icon-button";
+import { PageFilter } from "@/components/page-filter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrencyFromCents } from "@/utils/currency";
 
@@ -136,12 +141,18 @@ export default function Page() {
             className="flex h-full flex-col"
           >
             <div className="flex w-full flex-col bg-white p-6">
-              <TabsList className="h-12 w-full">
-                <TabsTrigger value="receber">Contas a Receber</TabsTrigger>
-                <TabsTrigger value="pagar">Contas a Pagar</TabsTrigger>
-              </TabsList>
-              <div className="mt-4 flex justify-end">
+              <div className="flex justify-end">
                 <div className="flex gap-2">
+                  <PageFilter
+                    changeFilter={handleChangeFilters}
+                    clearFilters={handleClearFilters}
+                    filterCols={
+                      showState.activeTab === "pagar"
+                        ? contaPagarFilterColsWithDates
+                        : contaReceberFilterColsWithDates
+                    }
+                    filters={filters}
+                  />
                   <IconButton
                     icon={<PlusCircle size={20} />}
                     onClick={() => {
@@ -157,6 +168,10 @@ export default function Page() {
                   />
                 </div>
               </div>
+              <TabsList className="mt-4 h-12 w-full">
+                <TabsTrigger value="receber">Contas a Receber</TabsTrigger>
+                <TabsTrigger value="pagar">Contas a Pagar</TabsTrigger>
+              </TabsList>
             </div>
             <TabsContent value="receber" className="flex-1 overflow-auto p-0">
               <ContaReceberDataTable

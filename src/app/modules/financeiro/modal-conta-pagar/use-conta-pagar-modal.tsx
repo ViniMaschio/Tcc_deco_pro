@@ -130,7 +130,7 @@ export const useContaPagarModal = ({
     if (contaPagar?.id) {
       form.reset({
         id: contaPagar.id,
-        fornecedorId: contaPagar.fornecedorId,
+        fornecedorId: contaPagar.fornecedorId ?? undefined,
         descricao: contaPagar.descricao || "",
         dataVencimento: contaPagar.dataVencimento
           ? new Date(contaPagar.dataVencimento).toISOString().split("T")[0]

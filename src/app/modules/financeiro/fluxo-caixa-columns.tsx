@@ -1,10 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 import { CaixaEntrada } from "@/app/api/caixa-entrada/types";
 import { CaixaSaida } from "@/app/api/caixa-saida/types";
 import { formatCurrencyFromCents } from "@/utils/currency";
+import { formatDate } from "@/utils/date";
 
 const METODOS_LABEL: Record<string, string> = {
   PIX: "PIX",
@@ -27,20 +26,7 @@ export const createCaixaEntradaColumns = (): ColumnDef<CaixaEntrada>[] => [
     header: () => <span>Descrição</span>,
     cell: ({ row }) => {
       const descricao = row.getValue("descricao") as string | undefined;
-      const contaReceber = row.original.contaReceber;
-      return <div>{descricao || contaReceber?.descricao || "-"}</div>;
-    },
-  },
-  {
-    id: "contaReceber",
-    accessorKey: "contaReceber.descricao",
-    meta: {
-      name: "Conta",
-    },
-    header: () => <span>Conta a Receber</span>,
-    cell: ({ row }) => {
-      const contaReceber = row.original.contaReceber;
-      return <div>{contaReceber?.descricao || `#${contaReceber?.id || "-"}`}</div>;
+      return <div>{descricao || "-"}</div>;
     },
   },
   {
@@ -52,10 +38,11 @@ export const createCaixaEntradaColumns = (): ColumnDef<CaixaEntrada>[] => [
     header: () => <span>Data de Recebimento</span>,
     cell: ({ row }) => {
       const dataRecebimento = row.getValue("dataRecebimento") as string | Date | undefined;
-      return dataRecebimento ? (
-        <span>{format(new Date(dataRecebimento), "dd/MM/yyyy", { locale: ptBR })}</span>
-      ) : (
+      const formattedDate = formatDate(dataRecebimento);
+      return formattedDate === "-" ? (
         <span className="text-gray-400">-</span>
+      ) : (
+        <span>{formattedDate}</span>
       );
     },
   },
@@ -95,20 +82,7 @@ export const createCaixaSaidaColumns = (): ColumnDef<CaixaSaida>[] => [
     header: () => <span>Descrição</span>,
     cell: ({ row }) => {
       const descricao = row.getValue("descricao") as string | undefined;
-      const contaPagar = row.original.contaPagar;
-      return <div>{descricao || contaPagar?.descricao || "-"}</div>;
-    },
-  },
-  {
-    id: "contaPagar",
-    accessorKey: "contaPagar.descricao",
-    meta: {
-      name: "Conta",
-    },
-    header: () => <span>Conta a Pagar</span>,
-    cell: ({ row }) => {
-      const contaPagar = row.original.contaPagar;
-      return <div>{contaPagar?.descricao || `#${contaPagar?.id || "-"}`}</div>;
+      return <div>{descricao || "-"}</div>;
     },
   },
   {
@@ -132,10 +106,11 @@ export const createCaixaSaidaColumns = (): ColumnDef<CaixaSaida>[] => [
     header: () => <span>Data de Pagamento</span>,
     cell: ({ row }) => {
       const dataPagamento = row.getValue("dataPagamento") as string | Date | undefined;
-      return dataPagamento ? (
-        <span>{format(new Date(dataPagamento), "dd/MM/yyyy", { locale: ptBR })}</span>
-      ) : (
+      const formattedDate = formatDate(dataPagamento);
+      return formattedDate === "-" ? (
         <span className="text-gray-400">-</span>
+      ) : (
+        <span>{formattedDate}</span>
       );
     },
   },
@@ -164,3 +139,16 @@ export const createCaixaSaidaColumns = (): ColumnDef<CaixaSaida>[] => [
     },
   },
 ];
+
+export const fluxoCaixaFilterCols = {
+  dataInicio: {
+    name: "dataInicio",
+    type: "date",
+    label: "Data de Início",
+  },
+  dataFim: {
+    name: "dataFim",
+    type: "date",
+    label: "Data de Fim",
+  },
+};

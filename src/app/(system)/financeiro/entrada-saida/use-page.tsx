@@ -13,7 +13,21 @@ import { FinanceiroFilterType, FinanceiroPageStates } from "@/app/modules/financ
 import { SortingType } from "@/components/sort-table";
 import { buildQueryStringFrom } from "@/utils/functions/quey-functions";
 
+// Função para obter primeiro e último dia do mês
+const getFirstAndLastDayOfMonth = () => {
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  return {
+    firstDay: firstDay.toISOString().split("T")[0],
+    lastDay: lastDay.toISOString().split("T")[0],
+  };
+};
+
 export const usePage = () => {
+  const { firstDay, lastDay } = getFirstAndLastDayOfMonth();
+
   const [contaPagar, setContaPagar] = useState({} as ContaPagar);
   const [contaReceber, setContaReceber] = useState({} as ContaReceber);
 
@@ -39,7 +53,9 @@ export const usePage = () => {
       type: "asc",
     },
     status: "PENDENTE" as const, // Filtrar apenas contas pendentes
-  } as FinanceiroFilterType);
+    dataInicio: firstDay,
+    dataFim: lastDay,
+  } as FinanceiroFilterType & { dataInicio?: string; dataFim?: string });
 
   const changePagination = (pagination: PaginationTable) => {
     setPagination((previous) => ({
@@ -109,8 +125,16 @@ export const usePage = () => {
     }>;
   };
 
-  const getResumo = async () => {
-    const response = await fetch("/api/financeiro/resumo", {
+  const getResumo = async (filtersParam: typeof filters) => {
+    const queryParams = new URLSearchParams();
+    if (filtersParam.dataInicio) {
+      queryParams.append("dataInicio", filtersParam.dataInicio);
+    }
+    if (filtersParam.dataFim) {
+      queryParams.append("dataFim", filtersParam.dataFim);
+    }
+
+    const response = await fetch(`/api/financeiro/resumo?${queryParams.toString()}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -127,8 +151,8 @@ export const usePage = () => {
   };
 
   const { data: resumoData, refetch: refetchResumo } = useQuery({
-    queryKey: ["financeiro-resumo"],
-    queryFn: getResumo,
+    queryKey: ["financeiro-resumo", filters.dataInicio, filters.dataFim],
+    queryFn: () => getResumo(filters),
   });
 
   const {
@@ -229,7 +253,7 @@ export const usePage = () => {
 
   const handleChangeFilters = (
     name: string,
-    value: string | number | boolean | SortingType | undefined
+    value: string | number | boolean | SortingType | Date | undefined
   ) => {
     if (!value) {
       setFilters((filters) => ({
@@ -237,18 +261,23 @@ export const usePage = () => {
         [name]: undefined,
       }));
     } else {
+      // Se for uma data, converter para string YYYY-MM-DD
+      const finalValue = value instanceof Date ? value.toISOString().split("T")[0] : value;
       setFilters((filters) => ({
         ...filters,
-        [name]: value,
+        [name]: finalValue,
       }));
     }
   };
 
   const handleClearFilters = () => {
+    const { firstDay, lastDay } = getFirstAndLastDayOfMonth();
     setFilters((prev) => ({
       ...prev,
-      fornecedorId: undefined,
+      descricao: undefined,
       status: "PENDENTE", // Manter filtro de pendentes
+      dataInicio: firstDay,
+      dataFim: lastDay,
     }));
   };
 

@@ -11,8 +11,10 @@ export type FinanceiroPageStates = {
 };
 
 export type FinanceiroFilterType = {
-  fornecedorId?: number;
+  descricao?: string;
   status?: string;
+  dataInicio?: string;
+  dataFim?: string;
   sorting: {
     name: string;
     type: "asc" | "desc";
