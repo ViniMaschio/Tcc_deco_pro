@@ -142,7 +142,7 @@ export const itemFilterCols = {
     label: "Tipo",
     sortable: true,
     options: [
-      { value: "", label: "Todos" },
+      { value: "TODOS", label: "Todos" },
       { value: "PRO", label: "Produto" },
       { value: "SER", label: "Serviço" },
     ],
@@ -152,7 +152,6 @@ export const itemFilterCols = {
 type Filters = keyof typeof itemFilterCols;
 
 export type ItemFilterType = {
-
   [key in Filters]: any;
 } & {
   sorting: {

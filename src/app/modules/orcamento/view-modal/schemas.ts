@@ -14,6 +14,7 @@ export const empresaCreateSchema = z.object({
   cep: z.string().optional(),
   estado: z.string().optional(),
   telefone: z.string().optional(),
+  logoUrl: z.union([z.string().url(), z.null(), z.literal("")]).optional(),
 });
 
 export const empresaUpdateSchema = empresaCreateSchema

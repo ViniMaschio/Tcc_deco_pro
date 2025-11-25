@@ -31,12 +31,50 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
     const primaryColor = "#000000";
     const lightGray = "#F5F5F5";
 
-    const logoBase64 = "data:image/png;base64,iVBORw0K...";
-
+    // Buscar e adicionar logo da empresa se existir
+    let logoBase64: string | null = null;
+    let logoWidth = 30;
+    let logoHeight = 30;
+    const startY = 10;
     const logoX = 10;
     const logoY = 10;
-    const logoWidth = 30;
-    const logoHeight = 30;
+
+    if (empresa.logoUrl) {
+      try {
+        const logoResponse = await fetch(empresa.logoUrl);
+        if (logoResponse.ok) {
+          const logoBlob = await logoResponse.blob();
+          const logoArrayBuffer = await logoBlob.arrayBuffer();
+          const logoBuffer = Buffer.from(logoArrayBuffer);
+
+          // Determinar o formato da imagem
+          const contentType = logoBlob.type || "image/png";
+          let imageFormat: "PNG" | "JPEG" = "PNG";
+          if (contentType.includes("jpeg") || contentType.includes("jpg")) {
+            imageFormat = "JPEG";
+          }
+
+          logoBase64 = `data:${contentType};base64,${logoBuffer.toString("base64")}`;
+
+          // Dimensões padrão para logo (máximo 30mm de largura)
+          // Usaremos uma abordagem simples: definir largura e altura máximas
+          // O jsPDF vai redimensionar mantendo proporção se necessário
+          const maxLogoSize = 30;
+          logoWidth = maxLogoSize;
+          logoHeight = maxLogoSize;
+
+          // Adicionar logo ao lado esquerdo das informações da empresa (mesma altura)
+          pdf.addImage(logoBase64, imageFormat, logoX, logoY, logoWidth, logoHeight);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar logo da empresa:", error);
+        // Continua sem logo se houver erro
+        logoBase64 = null;
+      }
+    }
+
+    // Calcular margem esquerda da tabela baseado na presença da logo
+    const tableLeftMarginFinal = logoBase64 ? logoWidth + 20 : 10;
 
     autoTable(pdf, {
       body: [
@@ -68,8 +106,8 @@ export async function generateOrcamentoPDF(orcamento: Orcamento, fileName: strin
         overflow: "linebreak",
         lineWidth: 0,
       },
-      margin: { top: 10, left: 45 },
-      startY: 10,
+      margin: { top: 10, left: tableLeftMarginFinal },
+      startY: startY,
     });
 
     autoTable(pdf, {

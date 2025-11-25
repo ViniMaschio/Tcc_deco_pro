@@ -4,31 +4,21 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-import {
-  formatCEPCodeNumber,
-  formatCPFNumber,
-  formatPhoneNumber,
-} from "@/utils/mask";
+import { formatCEPCodeNumber, formatCPFNumber, formatPhoneNumber } from "@/utils/mask";
 
-import {
-  ClienteModalProps,
-  ClienteModalStates,
-  ZipCodeResponse,
-} from "./types";
+import { ClienteModalProps, ClienteModalStates, ZipCodeResponse } from "./types";
 
 export const useClienteModal = ({
   afterSubmit,
   cliente,
 }: Omit<ClienteModalProps, "open" | "changeOpen">) => {
-  const [clienteModalState, setClienteModalStates] = useState(
-    {} as ClienteModalStates,
-  );
+  const [clienteModalState, setClienteModalStates] = useState({} as ClienteModalStates);
 
   const FormSchema = z.object({
     id: z.number().optional(),
     nome: z.string().min(3, "A descrição deve ter pelo menos 3 caracteres"),
     cpf: z.string().optional(),
-    email: z.email("Email inválido").optional(),
+    email: z.union([z.string().email("Email inválido"), z.literal("")]).optional(),
     rua: z.string().optional(),
     numero: z.string().optional(),
     complemento: z.string().optional(),
