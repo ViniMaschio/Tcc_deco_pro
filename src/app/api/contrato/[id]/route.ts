@@ -24,7 +24,93 @@ const updateContratoSchema = z.object({
       })
     )
     .optional(),
+  clausulas: z
+    .array(
+      z.object({
+        ordem: z.number(),
+        titulo: z.string(),
+        conteudo: z.string(),
+        templateClausulaId: z.number().optional(),
+        alteradaPeloUsuario: z.boolean().optional(),
+      })
+    )
+    .optional(),
 });
+
+export async function obterContrato(contratoId: number) {
+  try {
+    const empresaId = await ensureEmpresaId();
+    if (!empresaId) {
+      return { ok: false, error: "Não autorizado" };
+    }
+
+    const contrato = await prisma.contrato.findFirst({
+      where: {
+        id: contratoId,
+        empresaId,
+        deleted: false,
+      },
+      include: {
+        cliente: {
+          select: {
+            id: true,
+            nome: true,
+            telefone: true,
+            email: true,
+            cpf: true,
+            rua: true,
+            numero: true,
+            bairro: true,
+            cidade: true,
+            estado: true,
+            cep: true,
+          },
+        },
+        local: {
+          select: { id: true, descricao: true },
+        },
+        categoriaFesta: {
+          select: { id: true, descricao: true },
+        },
+        orcamento: {
+          select: { id: true, uuid: true },
+        },
+        itens: {
+          include: {
+            item: {
+              select: { id: true, nome: true, descricao: true, tipo: true },
+            },
+          },
+        },
+        clausulas: {
+          orderBy: { ordem: "asc" },
+        },
+      },
+    });
+
+    if (!contrato) {
+      return { ok: false, error: "Contrato não encontrado" };
+    }
+
+    const contratoFormatted = {
+      ...contrato,
+      total: centsToDecimal(contrato.total),
+      desconto: contrato.desconto ? centsToDecimal(contrato.desconto) : undefined,
+      itens: contrato.itens.map((item) => ({
+        ...item,
+        quantidade: item.quantidade / 1000, // Converter milésimos para decimal
+        valorUnit: centsToDecimal(item.valorUnit),
+        desconto: centsToDecimal(item.desconto),
+        valorTotal: centsToDecimal(item.valorTotal),
+      })),
+    };
+
+    return { ok: true, data: contratoFormatted };
+  } catch (error) {
+    console.error("Erro ao buscar contrato:", error);
+    return { ok: false, error: "Erro interno do servidor" };
+  }
+}
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -59,13 +145,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
           },
         },
+        clausulas: {
+          orderBy: { ordem: "asc" },
+        },
       },
     });
 
     if (!contrato) {
       return NextResponse.json({ error: "Contrato não encontrado" }, { status: 404 });
     }
-
 
     const contratoFormatted = {
       ...contrato,
@@ -97,7 +185,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const validatedData = updateContratoSchema.parse(body);
 
-
     const existingContrato = await prisma.contrato.findFirst({
       where: {
         id: parseInt((await params).id),
@@ -109,7 +196,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (!existingContrato) {
       return NextResponse.json({ error: "Contrato não encontrado" }, { status: 404 });
     }
-
 
     const updateData: any = {};
 
@@ -132,17 +218,30 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.observacao = validatedData.observacao;
     }
 
+    if (validatedData.clausulas !== undefined) {
+      await prisma.contratoClausula.deleteMany({
+        where: { contratoId: parseInt((await params).id) },
+      });
+
+      updateData.clausulas = {
+        create: validatedData.clausulas.map((clausula) => ({
+          ordem: clausula.ordem,
+          titulo: clausula.titulo,
+          conteudo: clausula.conteudo,
+          templateClausulaId: clausula.templateClausulaId,
+          alteradaPeloUsuario: clausula.alteradaPeloUsuario || false,
+        })),
+      };
+    }
 
     if (validatedData.dataEvento) {
       updateData.dataEvento = new Date(validatedData.dataEvento);
     }
 
-
     if (validatedData.horaInicio) {
       const dataEvento = validatedData.dataEvento
         ? new Date(validatedData.dataEvento)
         : existingContrato.dataEvento;
-
 
       const [horas, minutos] = validatedData.horaInicio.split(":").map(Number);
 
@@ -152,13 +251,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.horaInicio = dataHoraInicio;
     }
 
-
     if (validatedData.itens) {
-
       await prisma.contratoItem.deleteMany({
         where: { contratoId: parseInt((await params).id) },
       });
-
 
       let totalCents = 0;
       for (const item of validatedData.itens) {
@@ -212,9 +308,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             },
           },
         },
+        clausulas: {
+          orderBy: { ordem: "asc" },
+        },
       },
     });
-
 
     const contratoFormatted = {
       ...contrato,
@@ -242,7 +340,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
-
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

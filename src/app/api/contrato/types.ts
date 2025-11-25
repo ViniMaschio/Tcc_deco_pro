@@ -3,6 +3,15 @@ import { Item } from "@/generated/prisma";
 
 export type ContratoStatus = keyof typeof StatusLabelEnum;
 
+export interface ContratoClausula {
+  id: number;
+  ordem: number;
+  titulo: string;
+  conteudo: string;
+  templateClausulaId?: number;
+  alteradaPeloUsuario?: boolean;
+}
+
 export interface Contrato {
   id: number;
   uuid: string;
@@ -47,6 +56,7 @@ export interface Contrato {
     uuid: string;
   };
   itens?: ContratoItem[];
+  clausulas?: ContratoClausula[];
 }
 
 export interface ContratoItem {
@@ -62,6 +72,14 @@ export interface ContratoItem {
   deletedAt?: Date;
   deleted: boolean;
   item?: Item;
+}
+
+export interface CreateContratoClausula {
+  ordem: number;
+  titulo: string;
+  conteudo: string;
+  templateClausulaId?: number;
+  alteradaPeloUsuario?: boolean;
 }
 
 export interface CreateContratoData {
@@ -81,6 +99,7 @@ export interface CreateContratoData {
     desconto?: number;
     valorTotal?: number;
   }[];
+  clausulas?: CreateContratoClausula[];
 }
 
 export interface UpdateContratoData extends Partial<CreateContratoData> {

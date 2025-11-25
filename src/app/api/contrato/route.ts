@@ -24,6 +24,17 @@ const createContratoSchema = z.object({
       })
     )
     .min(1, "Deve ter pelo menos um item"),
+  clausulas: z
+    .array(
+      z.object({
+        ordem: z.number(),
+        titulo: z.string(),
+        conteudo: z.string(),
+        templateClausulaId: z.number().optional(),
+        alteradaPeloUsuario: z.boolean().optional(),
+      })
+    )
+    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -97,7 +108,6 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(total / limit);
 
-
     const contratosFormatted = contratos.map((contrato) => ({
       ...contrato,
       total: centsToDecimal(contrato.total),
@@ -129,7 +139,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createContratoSchema.parse(body);
 
-
     let totalCents = 0;
     for (const item of validatedData.itens) {
       const valorUnitCents = decimalToCents(item.valorUnit);
@@ -139,12 +148,9 @@ export async function POST(request: NextRequest) {
       totalCents += valorTotalCents;
     }
 
-
     const dataEvento = new Date(validatedData.dataEvento);
 
-
     const [horas, minutos] = validatedData.horaInicio.split(":").map(Number);
-
 
     const dataHoraInicio = new Date(dataEvento);
     dataHoraInicio.setHours(horas, minutos, 0, 0);
@@ -178,6 +184,17 @@ export async function POST(request: NextRequest) {
             };
           }),
         },
+        clausulas: validatedData.clausulas
+          ? {
+              create: validatedData.clausulas.map((clausula) => ({
+                ordem: clausula.ordem,
+                titulo: clausula.titulo,
+                conteudo: clausula.conteudo,
+                templateClausulaId: clausula.templateClausulaId,
+                alteradaPeloUsuario: clausula.alteradaPeloUsuario || false,
+              })),
+            }
+          : undefined,
       },
       include: {
         cliente: {
@@ -199,9 +216,11 @@ export async function POST(request: NextRequest) {
             },
           },
         },
+        clausulas: {
+          orderBy: { ordem: "asc" },
+        },
       },
     });
-
 
     const contratoFormatted = {
       ...contrato,
