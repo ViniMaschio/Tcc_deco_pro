@@ -7,11 +7,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 interface DatePickerProps {
@@ -22,31 +18,23 @@ interface DatePickerProps {
   disabled?: boolean;
 }
 
-export function DatePicker({
-  onSelect,
-  value,
-  fromDate,
-  toDate,
-  disabled,
-}: DatePickerProps) {
+export function DatePicker({ onSelect, value, fromDate, toDate, disabled }: DatePickerProps) {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"libOutlined"}
           className={cn(
             "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
+            !value && "text-muted-foreground"
           )}
           disabled={disabled}
         >
           <CalendarIcon className="text-primary-main mr-2 h-4 w-4" />
           <div className="w-full text-center">
-            {value ? (
-              format(value, "PPP", { locale: ptBR })
-            ) : (
-              <span>Selecione uma data</span>
-            )}
+            {value ? format(value, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
           </div>
         </Button>
       </PopoverTrigger>
@@ -54,7 +42,10 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={value}
-          onDayClick={onSelect}
+          onDayClick={(date) => {
+            onSelect(date);
+            setOpen(false);
+          }}
           initialFocus
           locale={ptBR}
           toDate={toDate}
