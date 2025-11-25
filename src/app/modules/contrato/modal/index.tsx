@@ -188,7 +188,7 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="RASCUNHO">Rascunho</SelectItem>
-                            <SelectItem value="ATIVO">Ativo</SelectItem>
+                            <SelectItem value="ATIVO">Aprovado</SelectItem>
                             <SelectItem value="CONCLUIDO">Concluído</SelectItem>
                             <SelectItem value="CANCELADO">Cancelado</SelectItem>
                           </SelectContent>

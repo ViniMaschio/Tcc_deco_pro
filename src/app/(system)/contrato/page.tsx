@@ -32,6 +32,10 @@ export default function Page() {
     handleViewContrato,
     handleEdit,
     handleShowDelete,
+    handleApproveContrato,
+    handleCancelContrato,
+    handleConcludeContrato,
+    handleGeneratePdfContrato,
   } = usePage();
 
   return (
@@ -78,6 +82,10 @@ export default function Page() {
           onViewContrato={handleViewContrato}
           onEditContrato={handleEdit}
           onDeleteContrato={handleShowDelete}
+          onApproveContrato={handleApproveContrato}
+          onCancelContrato={handleCancelContrato}
+          onConcludeContrato={handleConcludeContrato}
+          onGeneratePdfContrato={handleGeneratePdfContrato}
         />
       </div>
 

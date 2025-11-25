@@ -1,6 +1,6 @@
 export enum StatusLabelEnum {
   RASCUNHO = "Rascunho",
-  ATIVO = "Ativo",
+  ATIVO = "Aprovado",
   CONCLUIDO = "Concluído",
   CANCELADO = "Cancelado",
 }

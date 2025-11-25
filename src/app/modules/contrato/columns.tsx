@@ -3,11 +3,19 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Eye, PencilIcon, TrashIcon } from "@phosphor-icons/react";
+import { Eye, PencilIcon, TrashIcon, DotsThreeVerticalIcon } from "@phosphor-icons/react";
+import { XCircle, FileDown, CheckCircle, CircleCheck } from "lucide-react";
 
 import { Contrato, ContratoStatus } from "@/app/api/contrato/types";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ui/button-action";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { twMerge } from "tailwind-merge";
 import { formatCurrency } from "@/utils/currency";
 import { StatusLabelEnum, StatusColorEnum } from "./enum";
@@ -126,17 +134,81 @@ export const contratoColumns: ColumnDef<Contrato>[] = [
           >
             <PencilIcon weight="fill" size={16} />
           </ButtonAction>
-          <ButtonAction
-            className="h-8 w-8 p-0 text-red-500 hover:text-red-500/80"
-            variant="outline"
-            tooltip="Excluir"
-            onClick={() => {
-              const event = new CustomEvent("deleteContrato", { detail: contrato });
-              window.dispatchEvent(event);
-            }}
-          >
-            <TrashIcon weight="fill" size={16} />
-          </ButtonAction>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <ButtonAction
+                className="h-8 w-8 p-0 text-black hover:text-gray-700"
+                variant="outline"
+                tooltip="Mais ações"
+              >
+                <DotsThreeVerticalIcon weight="bold" size={16} />
+              </ButtonAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-30">
+              <DropdownMenuItem
+                onClick={() => {
+                  const event = new CustomEvent("approveContrato", { detail: contrato });
+                  window.dispatchEvent(event);
+                }}
+                className="w-full cursor-pointer"
+                disabled={
+                  contrato.status === "ATIVO" ||
+                  contrato.status === "CONCLUIDO" ||
+                  contrato.status === "CANCELADO"
+                }
+              >
+                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                Aprovar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const event = new CustomEvent("cancelContrato", { detail: contrato });
+                  window.dispatchEvent(event);
+                }}
+                className="w-full cursor-pointer"
+                disabled={contrato.status === "CANCELADO" || contrato.status === "CONCLUIDO"}
+              >
+                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                Cancelar
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const event = new CustomEvent("concludeContrato", { detail: contrato });
+                  window.dispatchEvent(event);
+                }}
+                className="cursor-pointer"
+                disabled={contrato.status === "CONCLUIDO" || contrato.status === "CANCELADO"}
+              >
+                <CircleCheck className="mr-2 h-4 w-4 text-blue-600" />
+                Concluir
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const event = new CustomEvent("generatePdfContrato", { detail: contrato });
+                  window.dispatchEvent(event);
+                }}
+                className="cursor-pointer"
+              >
+                <FileDown className="mr-2 h-4 w-4 text-blue-600" />
+                Gerar PDF
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  const event = new CustomEvent("deleteContrato", { detail: contrato });
+                  window.dispatchEvent(event);
+                }}
+                className="cursor-pointer"
+                variant="destructive"
+              >
+                <TrashIcon weight="fill" className="mr-2 h-4 w-4" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },
@@ -160,7 +232,7 @@ export const contratoFilterCols = {
     options: [
       { value: "TODOS", label: "Todos os status" },
       { value: "RASCUNHO", label: "Rascunho" },
-      { value: "ATIVO", label: "Ativo" },
+      { value: "ATIVO", label: "Aprovado" },
       { value: "CONCLUIDO", label: "Concluído" },
       { value: "CANCELADO", label: "Cancelado" },
     ],

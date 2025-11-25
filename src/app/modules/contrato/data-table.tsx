@@ -44,6 +44,10 @@ interface DataTableProps {
   onViewContrato?: (contrato: Contrato) => void;
   onEditContrato?: (contrato: Contrato) => void;
   onDeleteContrato?: (contrato: Contrato) => void;
+  onApproveContrato?: (contrato: Contrato) => void;
+  onCancelContrato?: (contrato: Contrato) => void;
+  onConcludeContrato?: (contrato: Contrato) => void;
+  onGeneratePdfContrato?: (contrato: Contrato) => void;
 }
 
 export function ContratoDataTable({
@@ -61,6 +65,10 @@ export function ContratoDataTable({
   onViewContrato,
   onEditContrato,
   onDeleteContrato,
+  onApproveContrato,
+  onCancelContrato,
+  onConcludeContrato,
+  onGeneratePdfContrato,
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -77,16 +85,48 @@ export function ContratoDataTable({
       onDeleteContrato?.(event.detail);
     };
 
+    const handleApproveContrato = (event: CustomEvent) => {
+      onApproveContrato?.(event.detail);
+    };
+
+    const handleCancelContrato = (event: CustomEvent) => {
+      onCancelContrato?.(event.detail);
+    };
+
+    const handleConcludeContrato = (event: CustomEvent) => {
+      onConcludeContrato?.(event.detail);
+    };
+
+    const handleGeneratePdfContrato = (event: CustomEvent) => {
+      onGeneratePdfContrato?.(event.detail);
+    };
+
     window.addEventListener("viewContrato", handleViewContrato as EventListener);
     window.addEventListener("editContrato", handleEditContrato as EventListener);
     window.addEventListener("deleteContrato", handleDeleteContrato as EventListener);
+    window.addEventListener("approveContrato", handleApproveContrato as EventListener);
+    window.addEventListener("cancelContrato", handleCancelContrato as EventListener);
+    window.addEventListener("concludeContrato", handleConcludeContrato as EventListener);
+    window.addEventListener("generatePdfContrato", handleGeneratePdfContrato as EventListener);
 
     return () => {
       window.removeEventListener("viewContrato", handleViewContrato as EventListener);
       window.removeEventListener("editContrato", handleEditContrato as EventListener);
       window.removeEventListener("deleteContrato", handleDeleteContrato as EventListener);
+      window.removeEventListener("approveContrato", handleApproveContrato as EventListener);
+      window.removeEventListener("cancelContrato", handleCancelContrato as EventListener);
+      window.removeEventListener("concludeContrato", handleConcludeContrato as EventListener);
+      window.removeEventListener("generatePdfContrato", handleGeneratePdfContrato as EventListener);
     };
-  }, [onViewContrato, onEditContrato, onDeleteContrato]);
+  }, [
+    onViewContrato,
+    onEditContrato,
+    onDeleteContrato,
+    onApproveContrato,
+    onCancelContrato,
+    onConcludeContrato,
+    onGeneratePdfContrato,
+  ]);
 
   const table = useReactTable({
     data,

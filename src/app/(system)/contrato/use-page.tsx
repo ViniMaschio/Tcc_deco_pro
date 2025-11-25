@@ -145,6 +145,95 @@ export const usePage = () => {
     changeShowState("showViewModal", true);
   };
 
+  const handleApproveContrato = async (contrato: Contrato) => {
+    try {
+      await fetch(`/api/contrato/${contrato.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ATIVO" }),
+      });
+
+      toast.success("Contrato aprovado com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao aprovar contrato", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleCancelContrato = async (contrato: Contrato) => {
+    try {
+      await fetch(`/api/contrato/${contrato.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CANCELADO" }),
+      });
+
+      toast.success("Contrato cancelado com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao cancelar contrato", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleConcludeContrato = async (contrato: Contrato) => {
+    try {
+      await fetch(`/api/contrato/${contrato.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CONCLUIDO" }),
+      });
+
+      toast.success("Contrato concluído com sucesso!", {
+        position: "top-center",
+      });
+      refetch();
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao concluir contrato", {
+        position: "top-center",
+      });
+    }
+  };
+
+  const handleGeneratePdfContrato = async (contrato: Contrato) => {
+    try {
+      const response = await fetch(`/api/contrato/${contrato.id}/pdf`);
+
+      if (!response.ok) {
+        throw new Error("Erro ao gerar PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `contrato-${contrato.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF gerado com sucesso!", {
+        position: "top-center",
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao gerar PDF", {
+        position: "top-center",
+      });
+    }
+  };
+
   const afterSubmit = () => {
     changeShowState("showModal", false);
     refetch();
@@ -174,5 +263,9 @@ export const usePage = () => {
     handleViewContrato,
     handleEdit,
     handleShowDelete,
+    handleApproveContrato,
+    handleCancelContrato,
+    handleConcludeContrato,
+    handleGeneratePdfContrato,
   };
 };
