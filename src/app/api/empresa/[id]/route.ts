@@ -77,6 +77,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     if (data.cep !== undefined) updateData.cep = data.cep;
     if (data.estado !== undefined) updateData.estado = data.estado;
     if (data.telefone !== undefined) updateData.telefone = data.telefone;
+    if (data.logoUrl !== undefined) updateData.logoUrl = data.logoUrl ?? null;
 
     const updated = await db.empresa.update({
       where: { id },
@@ -95,6 +96,7 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
         cidade: true,
         cep: true,
         estado: true,
+        logoUrl: true,
         createdAt: true,
         updatedAt: true,
       },

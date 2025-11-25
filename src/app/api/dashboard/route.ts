@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
       eventosEstaSemana,
       receitaMensal,
       receitaMesAnterior,
-      contasPendentes,
+      contasReceberPendentes,
+      contasPagarPendentes,
       orcamentosRecentes,
       proximosEventos,
       totalItens,
@@ -73,8 +74,10 @@ export async function GET(request: NextRequest) {
       db.caixaEntrada.aggregate({
         where: {
           empresaId,
+          deleted: false,
           dataRecebimento: {
             gte: startOfMonth,
+            lte: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
           },
         },
         _sum: {
@@ -85,6 +88,7 @@ export async function GET(request: NextRequest) {
       db.caixaEntrada.aggregate({
         where: {
           empresaId,
+          deleted: false,
           dataRecebimento: {
             gte: startOfLastMonth,
             lte: endOfLastMonth,
@@ -100,10 +104,14 @@ export async function GET(request: NextRequest) {
           empresaId,
           deleted: false,
           status: "PENDENTE",
-          dataVencimento: {
-            gte: now,
-            lte: nextWeek,
-          },
+        },
+      }),
+
+      db.contaPagar.count({
+        where: {
+          empresaId,
+          deleted: false,
+          status: "PENDENTE",
         },
       }),
 
@@ -228,8 +236,11 @@ export async function GET(request: NextRequest) {
                 : `${variacaoReceita}% vs mês anterior`,
           },
           contasPendentes: {
-            total: contasPendentes,
-            label: contasPendentes > 0 ? "Próximos 7 dias" : "Nenhuma conta pendente",
+            total: contasReceberPendentes + contasPagarPendentes,
+            label:
+              contasReceberPendentes + contasPagarPendentes > 0
+                ? `${contasReceberPendentes} a receber, ${contasPagarPendentes} a pagar`
+                : "Nenhuma conta pendente",
           },
         },
         cards: {

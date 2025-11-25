@@ -21,7 +21,7 @@ export const clienteSchema = z.object({
   nome: z.string().min(3, "Campo Obrigatório"),
   cpf: z.string().optional(),
   telefone: z.string().optional(),
-  email: z.email("Email inválido").optional(),
+  email: z.union([z.string().email("Email inválido"), z.literal("")]).optional(),
   rua: z.string().optional(),
   numero: z.string().optional(),
   complemento: z.string().optional(),
