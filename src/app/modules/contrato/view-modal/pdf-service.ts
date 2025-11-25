@@ -1,10 +1,23 @@
 import { obterEmpresa } from "@/actions/empresa";
 import { Contrato } from "@/app/api/contrato/types";
+import { StatusLabelEnum } from "@/app/modules/contrato/enum";
 import { ensureEmpresaId } from "@/lib/auth-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toZonedTime } from "date-fns-tz";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import autoTable, { RowInput } from "jspdf-autotable";
+
+const formatCurrency = (value?: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value ?? 0);
+const SAO_PAULO_TZ = "America/Sao_Paulo";
+
+const toZonedDate = (value?: Date | string | null) => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return toZonedTime(date, SAO_PAULO_TZ);
+};
 
 export async function generateContratoPDF(contrato: Contrato, fileName: string = "contrato") {
   try {
@@ -20,7 +33,7 @@ export async function generateContratoPDF(contrato: Contrato, fileName: string =
 
     const empresa = empresaResult.data;
 
-    let pdf = new jsPDF({
+    const pdf = new jsPDF({
       unit: "mm",
       format: "a4",
       orientation: "portrait",
@@ -28,322 +41,494 @@ export async function generateContratoPDF(contrato: Contrato, fileName: string =
       compress: true,
     });
 
-    const primaryColor = "#000000";
-    const lightGray = "#F5F5F5";
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const marginX = 14;
+    let cursorY = 0;
 
-    // Buscar e adicionar logo da empresa se existir
-    let logoBase64: string | null = null;
-    let logoWidth = 30;
-    let logoHeight = 30;
-    const startY = 10;
-    const logoX = 10;
-    const logoY = 10;
+    const drawSectionHeader = (label: string) => {
+      pdf.setFillColor(238, 238, 238);
+      pdf.setDrawColor(255, 255, 255);
+      pdf.rect(marginX, cursorY, pageWidth - marginX * 2, 8, "F");
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(44, 44, 44);
+      pdf.text(label.toUpperCase(), marginX + 2, cursorY + 5.6);
+      cursorY += 12;
+    };
 
+    const drawKeyValueTable = (rows: RowInput[], options?: { columnWidths?: number[] }) => {
+      autoTable(pdf, {
+        body: rows,
+        startY: cursorY,
+        theme: "plain",
+        styles: {
+          fontSize: 10,
+          lineWidth: 0.1,
+          cellPadding: 2.5,
+          textColor: [55, 65, 81],
+        },
+        columnStyles: {
+          0: {
+            cellWidth: options?.columnWidths?.[0] ?? 47,
+            fillColor: [248, 250, 252],
+            textColor: [15, 23, 42],
+            fontStyle: "bold",
+          },
+          1: { cellWidth: options?.columnWidths?.[1] ?? "auto" },
+          2: { cellWidth: options?.columnWidths?.[2] ?? "auto" },
+        },
+        margin: { left: marginX, right: marginX },
+        didDrawPage: handleAutoTableDrawPage,
+      });
+      cursorY = (pdf as any).lastAutoTable.finalY + 8;
+    };
+
+    const measureTextWidth = (text: string) => pdf.getTextWidth(text);
+
+    const contentWidth = pageWidth - marginX * 2;
+    const lineHeight = 4.6;
+    const ensureLineSpace = (height: number = lineHeight) => {
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      if (cursorY + height > pageHeight - 20) {
+        addPageWithHeader();
+      }
+    };
+
+    type JustifiedLine = { text: string; width: number; x: number };
+
+    const buildJustifiedLines = (
+      text: string,
+      firstLineWidth: number,
+      subsequentWidth: number,
+      firstLineX: number,
+      subsequentX: number
+    ): JustifiedLine[] => {
+      const words = text.split(/\s+/).filter(Boolean);
+      if (words.length === 0) return [];
+      const lines: JustifiedLine[] = [];
+      let currentLine = "";
+      let currentWidthLimit = firstLineWidth;
+      let currentX = firstLineX;
+
+      const pushLine = () => {
+        if (currentLine.trim().length === 0) return;
+        lines.push({ text: currentLine, width: currentWidthLimit, x: currentX });
+      };
+
+      words.forEach((word) => {
+        const candidate = currentLine ? `${currentLine} ${word}` : word;
+        if (measureTextWidth(candidate) <= currentWidthLimit) {
+          currentLine = candidate;
+        } else {
+          pushLine();
+          currentLine = word;
+          currentWidthLimit = subsequentWidth;
+          currentX = subsequentX;
+        }
+      });
+
+      pushLine();
+      return lines;
+    };
+
+    const drawJustifiedLines = (lines: JustifiedLine[], extraSpacing = 2) => {
+      lines.forEach((line, index) => {
+        ensureLineSpace();
+        const isLast = index === lines.length - 1;
+        if (line.text.length <= 1 || isLast) {
+          pdf.text(line.text, line.x, cursorY);
+        } else {
+          const textWidth = measureTextWidth(line.text);
+          const gap = line.width - textWidth;
+          const charSpace = gap > 0 ? gap / Math.max(line.text.length - 1, 1) : 0;
+          pdf.text(line.text, line.x, cursorY, { charSpace });
+        }
+        cursorY += lineHeight;
+      });
+      cursorY += extraSpacing;
+    };
+
+    const drawJustifiedParagraph = (text: string) => {
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      const lines = buildJustifiedLines(text, contentWidth, contentWidth, marginX, marginX);
+      drawJustifiedLines(lines);
+    };
+
+    const drawParagraph = (text: string) => drawJustifiedParagraph(text);
+
+    const logoSize = 28;
+    let logoImage: { data: string; format: "PNG" | "JPEG" } | null = null;
     if (empresa.logoUrl) {
       try {
         const logoResponse = await fetch(empresa.logoUrl);
         if (logoResponse.ok) {
           const logoBlob = await logoResponse.blob();
-          const logoArrayBuffer = await logoBlob.arrayBuffer();
-          const logoBuffer = Buffer.from(logoArrayBuffer);
-
-          // Determinar o formato da imagem
+          const buffer = Buffer.from(await logoBlob.arrayBuffer());
           const contentType = logoBlob.type || "image/png";
-          let imageFormat: "PNG" | "JPEG" = "PNG";
-          if (contentType.includes("jpeg") || contentType.includes("jpg")) {
-            imageFormat = "JPEG";
-          }
-
-          logoBase64 = `data:${contentType};base64,${logoBuffer.toString("base64")}`;
-
-          // Dimensões padrão para logo (máximo 30mm de largura)
-          const maxLogoSize = 30;
-          logoWidth = maxLogoSize;
-          logoHeight = maxLogoSize;
-
-          // Adicionar logo ao lado esquerdo das informações da empresa (mesma altura)
-          pdf.addImage(logoBase64, imageFormat, logoX, logoY, logoWidth, logoHeight);
+          const imageFormat: "PNG" | "JPEG" = contentType.includes("jpeg") ? "JPEG" : "PNG";
+          logoImage = {
+            data: `data:${contentType};base64,${buffer.toString("base64")}`,
+            format: imageFormat,
+          };
         }
       } catch (error) {
-        console.error("Erro ao carregar logo da empresa:", error);
-        // Continua sem logo se houver erro
-        logoBase64 = null;
+        console.warn("Erro ao carregar logo:", error);
       }
     }
 
-    // Calcular margem esquerda da tabela baseado na presença da logo
-    const tableLeftMarginFinal = logoBase64 ? logoWidth + 20 : 10;
-
-    autoTable(pdf, {
-      body: [
-        [{ content: `Empresa: ${empresa.nome ?? "Vinicius Ribiero Maschio"}`, colSpan: 3 }],
-        [{ content: `CNPJ: ${empresa.cnpj ?? ""}`, colSpan: 3 }],
-        [
-          { content: `Telefone: ${empresa.telefone ?? ""}`, colSpan: 1 },
-          { content: `Email: ${empresa.email ?? ""}`, colSpan: 2 },
-        ],
-        [
-          { content: `Rua: ${empresa.rua ?? ""}`, colSpan: 1 },
-          { content: `Numero: ${empresa.numero ?? ""}`, colSpan: 1 },
-          { content: `Bairro: ${empresa.bairro ?? ""}`, colSpan: 1 },
-        ],
-        [
-          { content: `Cidade: ${empresa.cidade ?? ""}`, colSpan: 1 },
-          { content: `Estado: ${empresa.estado ?? ""}`, colSpan: 1 },
-          { content: `CEP: ${empresa.cep ?? ""}`, colSpan: 1 },
-        ],
-      ],
-
-      theme: "grid",
-      styles: {
-        fontSize: 12,
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        cellPadding: 0.3,
-        valign: "middle",
-        overflow: "linebreak",
-        lineWidth: 0,
-      },
-      margin: { top: 10, left: tableLeftMarginFinal },
-      startY: startY,
-    });
-
-    autoTable(pdf, {
-      body: [
-        [
-          {
-            content: `Contrato gerado em ${format(new Date(), "dd/MM/yyyy", { locale: ptBR })}`,
-            colSpan: 2,
-            styles: { halign: "center", fontSize: 10 },
-          },
-        ],
-      ],
-      theme: "plain",
-      styles: {
-        fillColor: [211, 211, 211],
-        textColor: [64, 64, 64],
-        fontSize: 9,
-      },
-      startY: (pdf as any).lastAutoTable?.finalY + 10,
-    });
-
-    autoTable(pdf, {
-      head: [
-        [{ content: "Dados do Cliente", colSpan: 3, styles: { halign: "center", fontSize: 14 } }],
-      ],
-      body: [
-        [
-          { content: `Nome: ${contrato.cliente?.nome}`, colSpan: 2 },
-          { content: `CPF: ${contrato.cliente?.cpf ?? ""}`, colSpan: 1 },
-        ],
-        [
-          { content: `Telefone: ${contrato.cliente?.telefone ?? ""}`, colSpan: 1 },
-          { content: `Email: ${contrato.cliente?.email ?? ""}`, colSpan: 2 },
-        ],
-        [
-          { content: `Rua: ${contrato.cliente?.rua ?? ""}`, colSpan: 1 },
-          { content: `Numero: ${contrato.cliente?.numero ?? ""}`, colSpan: 1 },
-          { content: `Bairro: ${contrato.cliente?.bairro ?? ""}`, colSpan: 1 },
-        ],
-        [
-          { content: `Cidade: ${contrato.cliente?.cidade ?? ""}`, colSpan: 1 },
-          { content: `Estado: ${contrato.cliente?.estado ?? ""}`, colSpan: 1 },
-          { content: `CEP: ${contrato.cliente?.cep ?? ""}`, colSpan: 1 },
-        ],
-      ],
-      startY: (pdf as any).lastAutoTable.finalY + 5,
-      theme: "grid",
-      styles: {
-        fontSize: 12,
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        cellPadding: 0.3,
-        valign: "middle",
-        overflow: "linebreak",
-        lineWidth: 0.1,
-      },
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
-    });
-
-    const dataEventoFormatada = contrato.dataEvento
-      ? format(new Date(contrato.dataEvento), "dd/MM/yyyy", { locale: ptBR })
-      : "";
-    const horaInicioFormatada = contrato.horaInicio
-      ? format(new Date(contrato.horaInicio), "HH:mm", { locale: ptBR })
-      : "";
-
-    autoTable(pdf, {
-      head: [
-        [{ content: "Dados do Evento", colSpan: 2, styles: { halign: "center", fontSize: 14 } }],
-      ],
-      body: [
-        [
-          { content: `Local: ${contrato.local?.descricao ?? ""}`, colSpan: 1 },
-          { content: `Categoria Festa: ${contrato.categoriaFesta?.descricao ?? ""}`, colSpan: 1 },
-        ],
-        [
-          {
-            content: `Data do Evento: ${dataEventoFormatada}`,
-            colSpan: 1,
-          },
-          {
-            content: `Hora de Início: ${horaInicioFormatada}`,
-            colSpan: 1,
-          },
-        ],
-        [
-          {
-            content: `Status: ${contrato.status}`,
-            colSpan: 2,
-          },
-        ],
-      ],
-      startY: (pdf as any).lastAutoTable.finalY + 5,
-      theme: "grid",
-      styles: {
-        fontSize: 12,
-        fillColor: [255, 255, 255],
-        textColor: [0, 0, 0],
-        cellPadding: 0.3,
-        valign: "middle",
-        overflow: "linebreak",
-        lineWidth: 0.1,
-      },
-      headStyles: { fillColor: [255, 255, 255], textColor: [0, 0, 0] },
-    });
-
-    const produtos: any[] = [];
-    const servicos: any[] = [];
-    let total = 0;
-    if (contrato.itens && contrato.itens.length > 0) {
-      contrato.itens.forEach((item) => {
-        total += item.valorTotal;
-        if (item.item?.tipo == "PRO") {
-          produtos.push([
-            item.item.nome || "",
-            item.quantidade || 0,
-            `R$ ${(item.valorUnit || 0).toFixed(2)}`,
-            `R$ ${(item.desconto || 0).toFixed(2)}`,
-            `R$ ${(item.valorTotal || 0).toFixed(2)}`,
-          ]);
-        } else {
-          servicos.push([
-            item.item?.nome || "",
-            item.quantidade || 0,
-            `R$ ${(item.valorUnit || 0).toFixed(2)}`,
-            `R$ ${(item.desconto || 0).toFixed(2)}`,
-            `R$ ${(item.valorTotal || 0).toFixed(2)}`,
-          ]);
-        }
-      });
-    }
-    const columnStyles = {
-      0: { cellWidth: 100, halign: "left" as const },
-      1: { cellWidth: 10, halign: "right" as const },
-      2: { cellWidth: 24, halign: "right" as const },
-      3: { cellWidth: 24, halign: "right" as const },
-      4: { cellWidth: 24, halign: "right" as const },
+    const headerTop = 18;
+    const headerBottom = headerTop + 28;
+    const renderedHeaderPages = new Set<number>();
+    const resolvePageNumber = (doc: jsPDF) => {
+      const infoGetter = (doc as any).getCurrentPageInfo;
+      if (typeof infoGetter === "function") {
+        return infoGetter.call(doc).pageNumber;
+      }
+      return doc.getNumberOfPages();
     };
 
-    autoTable(pdf, {
-      head: [
-        [
-          {
-            content: "Produtos",
-            colSpan: 5,
-            styles: { halign: "center" },
-          },
-        ],
-        ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
-      ],
-      body: produtos,
-      startY: (pdf as any).lastAutoTable.finalY + 10,
-      styles: {
-        fontSize: 10,
-        cellPadding: 0.3,
-        valign: "middle",
-        overflow: "linebreak",
-        lineWidth: 0.1,
-      },
-      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
-      columnStyles,
-      theme: "grid",
-    });
-    autoTable(pdf, {
-      head: [
-        [
-          {
-            content: "Servicos",
-            colSpan: 5,
-            styles: { halign: "center" },
-          },
-        ],
-        ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
-      ],
-      body: servicos,
-      foot: [
-        [
-          {
-            content: `Total Geral: R$ ${total.toFixed(2)}`,
-            colSpan: 5,
-            styles: { halign: "right" },
-          },
-        ],
-      ],
-      startY: (pdf as any).lastAutoTable.finalY,
-      styles: {
-        fontSize: 10,
-        cellPadding: 0.3,
-        valign: "middle",
-        overflow: "linebreak",
-        lineWidth: 0.1,
-      },
-      headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
-      footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0] },
-      columnStyles,
-      theme: "grid",
-    });
+    const drawHeaderForPage = (doc: jsPDF) => {
+      const pageNumber = resolvePageNumber(doc);
+      if (renderedHeaderPages.has(pageNumber)) return;
+      renderedHeaderPages.add(pageNumber);
 
-    // Adicionar cláusulas do contrato
-    if (contrato.clausulas && contrato.clausulas.length > 0) {
-      contrato.clausulas.forEach((clausula) => {
-        // Verificar se precisa de nova página
-        const currentY = (pdf as any).lastAutoTable?.finalY || 0;
-        if (currentY > 250) {
-          pdf.addPage();
-        }
+      if (logoImage) {
+        doc.addImage(logoImage.data, logoImage.format, marginX, headerTop - 8, logoSize, logoSize);
+      }
 
-        autoTable(pdf, {
-          head: [
-            [
-              {
-                content: clausula.titulo || `Cláusula ${clausula.ordem}`,
-                colSpan: 1,
-                styles: { halign: "left", fontSize: 12, fontStyle: "bold" },
-              },
-            ],
-          ],
-          body: [
-            [
-              {
-                content: clausula.conteudo || "",
-                styles: { halign: "left", fontSize: 10 },
-              },
-            ],
-          ],
-          startY: (pdf as any).lastAutoTable?.finalY + 5 || 10,
-          theme: "plain",
-          styles: {
-            fontSize: 10,
-            cellPadding: 2,
-            valign: "top",
-            overflow: "linebreak",
-            lineWidth: 0.1,
-          },
-          headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
-        });
+      doc.setTextColor(51, 51, 51);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text(empresa.nome ?? "Minha Empresa", pageWidth - marginX, headerTop, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      const headerLines = [
+        empresa.email ? `Email: ${empresa.email}` : null,
+        empresa.telefone ? `Tel: ${empresa.telefone}` : null,
+      ].filter(Boolean) as string[];
+      headerLines.forEach((line, index) => {
+        doc.text(line, pageWidth - marginX, headerTop + 6 + index * 4, { align: "right" });
       });
+
+      doc.setDrawColor(229, 231, 235);
+    };
+
+    drawHeaderForPage(pdf);
+    cursorY = headerBottom;
+    const handleAutoTableDrawPage = ({ doc }: { doc: jsPDF }) => {
+      drawHeaderForPage(doc);
+    };
+    const addPageWithHeader = () => {
+      pdf.addPage();
+      drawHeaderForPage(pdf);
+      cursorY = headerBottom;
+    };
+
+    // Título
+    const refText = contrato.orcamento?.uuid
+      ? `Ref. Orçamento Nº: ${contrato.orcamento.uuid}`
+      : `Contrato Nº: ${contrato.id}`;
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.text(`CONTRATO`, pageWidth / 2, cursorY, { align: "center" });
+    cursorY += 10;
+
+    const nowZoned = toZonedDate(new Date())!;
+    const dataGeracao = format(toZonedDate(contrato.createdAt) ?? nowZoned, "dd/MM/yyyy", {
+      locale: ptBR,
+    });
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.setTextColor(100, 116, 139);
+    pdf.text(`Documento gerado em ${dataGeracao}`, pageWidth / 2, cursorY, { align: "center" });
+    cursorY += 12;
+
+    // Seção Detalhes
+    drawSectionHeader("Detalhes da Contratação");
+    drawKeyValueTable([
+      [
+        { content: "Contratada" },
+        { content: empresa.nome ?? "-" },
+        { content: empresa.cnpj ? `CNPJ: ${empresa.cnpj}` : "" },
+      ],
+      [
+        { content: "Contratante" },
+        { content: contrato.cliente?.nome ?? "-" },
+        { content: contrato.cliente?.cpf ? `CPF: ${contrato.cliente?.cpf}` : "" },
+      ],
+    ]);
+
+    // Seção Evento
+    const dataEventoDate = toZonedDate(contrato.dataEvento);
+    const horaInicioDate = toZonedDate(contrato.horaInicio);
+    const dataEvento = dataEventoDate
+      ? format(dataEventoDate, "dd/MM/yyyy", { locale: ptBR })
+      : "-";
+    const horaInicio = horaInicioDate ? format(horaInicioDate, "HH:mm", { locale: ptBR }) : "-";
+
+    drawSectionHeader("Informações do Evento");
+    drawKeyValueTable(
+      [
+        [
+          { content: "Local" },
+          { content: contrato.local?.descricao ?? "Não informado", colSpan: 2 },
+        ],
+        [
+          { content: "Categoria" },
+          { content: contrato.categoriaFesta?.descricao ?? "-", colSpan: 2 },
+        ],
+        [{ content: "Data" }, { content: dataEvento }, { content: `Horário: ${horaInicio}` }],
+      ],
+      { columnWidths: [40, 70, 60] }
+    );
+
+    // Seção Itens
+    if (contrato.itens && contrato.itens.length > 0) {
+      drawSectionHeader("Itens do Contrato");
+
+      const produtos: any[] = [];
+      const servicos: any[] = [];
+      let total = 0;
+      contrato.itens.forEach((item) => {
+        total += item.valorTotal ?? 0;
+        const row = [
+          item.item?.nome || "Item",
+          item.quantidade || 0,
+          formatCurrency(item.valorUnit),
+          formatCurrency(item.desconto),
+          formatCurrency(item.valorTotal),
+        ];
+
+        if (item.item?.tipo === "PRO") {
+          produtos.push(row);
+        } else {
+          servicos.push(row);
+        }
+      });
+
+      const columnStyles = {
+        0: { cellWidth: 100, halign: "left" as const },
+        1: { cellWidth: 10, halign: "right" as const },
+        2: { cellWidth: 24, halign: "right" as const },
+        3: { cellWidth: 24, halign: "right" as const },
+        4: { cellWidth: 24, halign: "right" as const },
+      };
+
+      autoTable(pdf, {
+        head: [
+          [{ content: "Produtos", colSpan: 5, styles: { halign: "center" } }],
+          ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
+        ],
+        body: produtos,
+        startY: cursorY,
+        styles: {
+          fontSize: 10,
+          cellPadding: 0.3,
+          valign: "middle",
+          overflow: "linebreak",
+          lineWidth: 0.1,
+        },
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+        columnStyles,
+        theme: "grid",
+        margin: { left: marginX, right: marginX },
+        didDrawPage: handleAutoTableDrawPage,
+      });
+
+      cursorY = (pdf as any).lastAutoTable.finalY + 6;
+
+      autoTable(pdf, {
+        head: [
+          [{ content: "Serviços", colSpan: 5, styles: { halign: "center" } }],
+          ["Nome", "Qtd", "Valor Unit.", "Desconto", "Total"],
+        ],
+        body: servicos,
+        foot: [
+          [
+            {
+              content: `Total Geral: ${formatCurrency(total)}`,
+              colSpan: 5,
+              styles: { halign: "right" },
+            },
+          ],
+        ],
+        startY: cursorY,
+        styles: {
+          fontSize: 10,
+          cellPadding: 0.3,
+          valign: "middle",
+          overflow: "linebreak",
+          lineWidth: 0.1,
+        },
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0] },
+        footStyles: { fillColor: [220, 220, 220], textColor: [0, 0, 0] },
+        columnStyles,
+        theme: "grid",
+        margin: { left: marginX, right: marginX },
+        didDrawPage: handleAutoTableDrawPage,
+      });
+
+      cursorY = (pdf as any).lastAutoTable.finalY + 10;
     }
+
+    const formatAddress = (address?: {
+      rua?: string | null;
+      numero?: string | null;
+      bairro?: string | null;
+      cidade?: string | null;
+      estado?: string | null;
+    }) => {
+      if (!address) return "não informado";
+      const parts = [
+        address.rua,
+        address.numero,
+        address.bairro,
+        address.cidade,
+        address.estado,
+      ].filter((part) => part && part.trim().length > 0);
+      return parts.length > 0 ? parts.join(", ") : "não informado";
+    };
+
+    const sanitizeText = (value?: string | null) =>
+      value && value.trim().length > 0 ? value : "não informado";
+
+    const contratanteResumo = `Nome/Razão Social: ${sanitizeText(
+      contrato.cliente?.nome
+    )}, inscrito(a) no CPF/CNPJ sob o nº ${sanitizeText(
+      contrato.cliente?.cpf
+    )}, com sede/residência em ${formatAddress(contrato.cliente)}, endereço eletrônico ${sanitizeText(
+      contrato.cliente?.email
+    )}, telefone ${sanitizeText(contrato.cliente?.telefone)}, neste ato representado(a) na forma de seus atos constitutivos ou por seu representante legal.`;
+
+    const contratadaResumo = `Nome/Razão Social: ${sanitizeText(
+      empresa.nome
+    )}, inscrita no CNPJ sob o nº ${sanitizeText(empresa.cnpj)}, com sede em ${formatAddress(
+      empresa
+    )}, endereço eletrônico ${sanitizeText(empresa.email)}, telefone ${sanitizeText(
+      empresa.telefone
+    )}, neste ato representada na forma de seus atos constitutivos ou por seu representante legal.`;
+
+    // Seção Cláusulas
+    if (contrato.clausulas && contrato.clausulas.length > 0) {
+      drawSectionHeader("Termos do Contrato");
+
+      const drawPartyParagraph = (label: string, content: string) => {
+        const labelText = `${label} `;
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 41, 59);
+        const labelWidth = measureTextWidth(labelText);
+        ensureLineSpace();
+        pdf.text(labelText, marginX, cursorY);
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(71, 85, 105);
+        const firstLineWidth = Math.max(contentWidth - labelWidth, contentWidth * 0.4);
+        const lines = buildJustifiedLines(
+          content,
+          firstLineWidth,
+          contentWidth,
+          marginX + labelWidth,
+          marginX
+        );
+        drawJustifiedLines(lines);
+      };
+
+      cursorY += 4;
+      pdf.text("CONTRATO DE PRESTAÇÃO DE SERVIÇOS", pageWidth / 2, cursorY, { align: "center" });
+      cursorY += 8;
+      pdf.text("IDENTIFICAÇÃO DAS PARTES CONTRATANTES", pageWidth / 2, cursorY, {
+        align: "center",
+      });
+      cursorY += 6;
+      drawPartyParagraph("CONTRATANTE:", contratanteResumo);
+      cursorY += 4;
+      drawPartyParagraph("CONTRATADA:", contratadaResumo);
+      cursorY += 6;
+
+      contrato.clausulas
+        .sort((a, b) => a.ordem - b.ordem)
+        .forEach((clausula) => {
+          if (cursorY > 260) {
+            addPageWithHeader();
+          }
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(11);
+          pdf.setTextColor(30, 41, 59);
+          pdf.text(
+            clausula.titulo || `Cláusula ${clausula.ordem.toString().padStart(2, "0")}`,
+            marginX,
+            cursorY
+          );
+          cursorY += 6;
+          pdf.setTextColor(71, 85, 105);
+          drawParagraph(clausula.conteudo || "");
+        });
+    }
+
+    const ensureSpace = (minSpace: number) => {
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      if (cursorY + minSpace > pageHeight - 20) {
+        addPageWithHeader();
+      }
+    };
+
+    ensureSpace(60);
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(11);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text(
+      "ESTANDO AMBAS AS PARTES JUSTAS E CONTRATADAS, ASSINAM O PRESENTE CONTRATO EM DUAS VIAS DE IGUAL TEOR.",
+      marginX,
+      cursorY,
+      { maxWidth: pageWidth - marginX * 2 }
+    );
+    cursorY += 14;
+
+    const assinaturaDataDate = dataEventoDate ?? nowZoned;
+    const assinaturaData = format(assinaturaDataDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const cidadeBase =
+      contrato.cliente?.cidade && contrato.cliente?.estado
+        ? `${contrato.cliente.cidade}, ${contrato.cliente.estado}`
+        : empresa.cidade && empresa.estado
+          ? `${empresa.cidade}, ${empresa.estado}`
+          : "";
+
+    if (cidadeBase) {
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(71, 85, 105);
+      pdf.text(`${cidadeBase}, ${assinaturaData}`, pageWidth - marginX, cursorY, {
+        align: "right",
+      });
+      cursorY += 12;
+    }
+
+    const sectionWidth = (pageWidth - marginX * 2 - 20) / 2;
+    const leftX = marginX;
+    const rightX = marginX + sectionWidth + 20;
+
+    const drawSignatureBlock = ({ x, label }: { x: number; label: string }) => {
+      const lineY = cursorY + 12;
+      pdf.setDrawColor(100, 116, 139);
+      pdf.line(x, lineY, x + sectionWidth, lineY);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(10);
+      pdf.setTextColor(71, 85, 105);
+      pdf.text(label, x + sectionWidth / 2, lineY + 6, { align: "center" });
+    };
+
+    drawSignatureBlock({
+      x: leftX,
+      label: "CONTRATADA",
+    });
+    drawSignatureBlock({
+      x: rightX,
+      label: "CONTRATANTE",
+    });
 
     return pdf.output("blob");
   } catch (error) {
