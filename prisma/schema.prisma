@@ -61,6 +61,7 @@ model Empresa {
   cidade      String?
   estado      String?
   cep         String?
+  logoUrl     String?  @map("logo_url")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -294,7 +295,7 @@ model ContaPagar {
   id             Int          @id @default(autoincrement())
   uuid           String       @unique @default(uuid()) @db.Uuid
   empresaId      Int
-  fornecedorId   Int
+  fornecedorId   Int?
   descricao      String?
   dataVencimento DateTime?
   dataPagamento  DateTime?
@@ -307,7 +308,7 @@ model ContaPagar {
   deleted   Boolean   @default(false)
 
   empresa     Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  fornecedor  Fornecedor   @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
+  fornecedor  Fornecedor?  @relation(fields: [fornecedorId], references: [id], onDelete: Restrict)
   caixaSaidas CaixaSaida[]
 }
 
