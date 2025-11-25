@@ -28,6 +28,10 @@ export const usePage = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [focusedEntity, setFocusedEntity] = useState<{
+    type: CalendarEvent["type"];
+    id: number;
+  } | null>(null);
 
   const month = currentDate.getMonth() + 1;
   const year = currentDate.getFullYear();
@@ -53,9 +57,24 @@ export const usePage = () => {
     [refetch]
   );
 
-  const onSelectEvent = useCallback((e: CalendarEvent) => {
+  const onSelectEvent = useCallback((event: CalendarEvent) => {
+    let entityId: number | undefined;
 
-    console.log("Evento selecionado:", e);
+    if (event.type === "contrato" && typeof event.meta?.contratoId === "number") {
+      entityId = event.meta.contratoId;
+    }
+
+    if (event.type === "orcamento" && typeof event.meta?.orcamentoId === "number") {
+      entityId = event.meta.orcamentoId;
+    }
+
+    if (!entityId) {
+      console.warn("Evento selecionado sem identificador válido:", event);
+      return;
+    }
+
+    setFocusedEntity({ type: event.type, id: entityId });
+    setIsSheetOpen(false);
   }, []);
 
   const onSelectDay = useCallback((date: Date) => {
@@ -70,6 +89,10 @@ export const usePage = () => {
     }
   }, []);
 
+  const handleCloseFocusedEntity = useCallback(() => {
+    setFocusedEntity(null);
+  }, []);
+
   return {
     currentDate,
     events,
@@ -80,5 +103,7 @@ export const usePage = () => {
     selectedDate,
     isSheetOpen,
     onSheetOpenChange: handleSheetOpenChange,
+    focusedEntity,
+    onCloseFocusedEntity: handleCloseFocusedEntity,
   };
 };

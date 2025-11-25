@@ -1,5 +1,14 @@
 export type CalendarView = "month" | "week" | "day";
 
+export type AgendaEventType = "contrato" | "orcamento";
+
+export interface CalendarEventMeta extends Record<string, unknown> {
+  contratoId?: number;
+  orcamentoId?: number;
+  clienteNome?: string;
+  localDescricao?: string; 
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -8,7 +17,8 @@ export interface CalendarEvent {
   end: Date;
   color?: string;
   allDay?: boolean;
-  meta?: Record<string, unknown>;
+  type: AgendaEventType;
+  meta?: CalendarEventMeta;
 }
 
 export interface CalendarDayCell {

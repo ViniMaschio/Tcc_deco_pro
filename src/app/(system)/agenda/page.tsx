@@ -2,6 +2,8 @@
 
 import Calendar from "@/app/modules/agenda/components";
 import { DayEventsSheet } from "@/app/modules/agenda/day-events-sheet";
+import { ViewContratoModal } from "@/app/modules/contrato/view-modal";
+import { ViewItemsModal } from "@/app/modules/orcamento/view-modal";
 
 import { usePage } from "./use-page";
 
@@ -15,6 +17,8 @@ export default function Page() {
     selectedDate,
     isSheetOpen,
     onSheetOpenChange,
+    focusedEntity,
+    onCloseFocusedEntity,
   } = usePage();
 
   return (
@@ -34,6 +38,24 @@ export default function Page() {
         selectedDate={selectedDate}
         events={events}
         onSelectEvent={onSelectEvent}
+      />
+      <ViewContratoModal
+        open={focusedEntity?.type === "contrato"}
+        contratoId={focusedEntity?.type === "contrato" ? focusedEntity.id : null}
+        onOpenChange={(open) => {
+          if (!open) {
+            onCloseFocusedEntity();
+          }
+        }}
+      />
+      <ViewItemsModal
+        open={focusedEntity?.type === "orcamento"}
+        orcamentoId={focusedEntity?.type === "orcamento" ? focusedEntity.id : null}
+        onOpenChange={(open) => {
+          if (!open) {
+            onCloseFocusedEntity();
+          }
+        }}
       />
     </>
   );
