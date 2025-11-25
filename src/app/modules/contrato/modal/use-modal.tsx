@@ -15,7 +15,9 @@ import {
   ContratoItem,
   ContratoStatus,
   UpdateContratoData,
+  CreateContratoClausula,
 } from "@/app/api/contrato/types";
+import { Clausula } from "./clausulas-table";
 import { centsToDecimal } from "@/utils/currency";
 
 import { Categoria, Item, ContratoModalProps } from "../types";
@@ -38,6 +40,7 @@ export const useContratoModal = ({
 }: Omit<ContratoModalProps, "onOpenChange">) => {
   const [activeTab, setActiveTab] = useState("dados-gerais");
   const [itens, setItens] = useState<CreateContratoData["itens"]>([]);
+  const [clausulas, setClausulas] = useState<Clausula[]>([]);
   const [total, setTotal] = useState(0);
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | undefined>(undefined);
   const [localSelecionado, setLocalSelecionado] = useState<LocalAPI | undefined>(undefined);
@@ -68,10 +71,35 @@ export const useContratoModal = ({
     }
   };
 
+  const getClausulasTemplate = async () => {
+    try {
+      const response = await fetch("/api/clausulas", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar templates de cláusulas");
+      }
+
+      const data = await response.json();
+      return data.clausulas || [];
+    } catch (error) {
+      console.error("Erro ao buscar templates de cláusulas:", error);
+      return [];
+    }
+  };
+
   const { data, isLoading } = useQuery<Contrato>({
     queryKey: ["getContrato", contrato?.id],
     queryFn: getContrato,
     enabled: !!contrato?.id,
+  });
+
+  const { data: clausulasTemplate } = useQuery({
+    queryKey: ["clausulas-template"],
+    queryFn: getClausulasTemplate,
+    enabled: !contrato?.id && open, // Carregar apenas quando criar novo contrato
   });
 
   const form = useForm<z.infer<typeof contratoSchema>>({
@@ -124,6 +152,60 @@ export const useContratoModal = ({
     const newItens = itens.filter((_, i) => i !== index);
     setItens(newItens);
     calculateTotal(newItens);
+  };
+
+  const addClausula = () => {
+    const maxOrdem = clausulas.length > 0 ? Math.max(...clausulas.map((c) => c.ordem)) : 0;
+    const novaClausula: Clausula = {
+      ordem: maxOrdem + 1,
+      titulo: "",
+      conteudo: "",
+      alteradaPeloUsuario: true,
+    };
+    setClausulas([...clausulas, novaClausula]);
+  };
+
+  const updateClausula = (index: number, field: keyof Clausula, value: string | number) => {
+    const clausulasOrdenadas = [...clausulas].sort((a, b) => a.ordem - b.ordem);
+    const newClausulas = [...clausulasOrdenadas];
+    newClausulas[index] = { ...newClausulas[index], [field]: value };
+    setClausulas(newClausulas);
+  };
+
+  const removeClausula = (index: number) => {
+    const clausulasOrdenadas = [...clausulas].sort((a, b) => a.ordem - b.ordem);
+    const newClausulas = clausulasOrdenadas.filter((_, i) => i !== index);
+    // Reordenar as cláusulas restantes
+    const clausulasReordenadas = newClausulas.map((clausula, i) => ({
+      ...clausula,
+      ordem: i + 1,
+    }));
+    setClausulas(clausulasReordenadas);
+  };
+
+  const moveClausula = (index: number, direction: "up" | "down") => {
+    const clausulasOrdenadas = [...clausulas].sort((a, b) => a.ordem - b.ordem);
+
+    if (
+      (direction === "up" && index === 0) ||
+      (direction === "down" && index === clausulasOrdenadas.length - 1)
+    ) {
+      return;
+    }
+
+    const novoIndex = direction === "up" ? index - 1 : index + 1;
+
+    [clausulasOrdenadas[index], clausulasOrdenadas[novoIndex]] = [
+      clausulasOrdenadas[novoIndex],
+      clausulasOrdenadas[index],
+    ];
+
+    const clausulasReordenadas = clausulasOrdenadas.map((clausula, i) => ({
+      ...clausula,
+      ordem: i + 1,
+    }));
+
+    setClausulas(clausulasReordenadas);
   };
 
   const createMutation = useMutation({
@@ -183,8 +265,21 @@ export const useContratoModal = ({
   });
 
   const handleSubmit = async (contratoData: CreateContratoData) => {
+    const clausulasParaEnvio: CreateContratoClausula[] = clausulas.map((clausula) => ({
+      ordem: clausula.ordem,
+      titulo: clausula.titulo,
+      conteudo: clausula.conteudo,
+      templateClausulaId: clausula.templateClausulaId,
+      alteradaPeloUsuario: clausula.alteradaPeloUsuario || false,
+    }));
+
+    const contratoDataComClausulas = {
+      ...contratoData,
+      clausulas: clausulasParaEnvio,
+    };
+
     if (!contrato?.id) {
-      await createMutation.mutateAsync(contratoData);
+      await createMutation.mutateAsync(contratoDataComClausulas);
     } else if (contrato?.id) {
       const itensParaAtualizacao = contratoData.itens.map((item) => ({
         itemId: item.itemId,
@@ -203,6 +298,7 @@ export const useContratoModal = ({
         horaInicio: contratoData.horaInicio,
         observacao: contratoData.observacao,
         itens: itensParaAtualizacao as any,
+        clausulas: clausulasParaEnvio,
       };
 
       await updateMutation.mutateAsync({
@@ -266,6 +362,7 @@ export const useContratoModal = ({
       observacao: "",
     });
     setItens([]);
+    setClausulas([]);
     setTotal(0);
     setClienteSelecionado(undefined);
     setLocalSelecionado(undefined);
@@ -279,8 +376,19 @@ export const useContratoModal = ({
       setActiveTab("dados-gerais");
     } else if (open && !contrato?.id) {
       resetForm();
+      // Carregar templates de cláusulas quando criar novo contrato
+      if (clausulasTemplate && clausulasTemplate.length > 0) {
+        const clausulasFromTemplate: Clausula[] = clausulasTemplate.map((template: any) => ({
+          ordem: template.ordem,
+          titulo: template.titulo,
+          conteudo: template.conteudo,
+          templateClausulaId: template.id,
+          alteradaPeloUsuario: false,
+        }));
+        setClausulas(clausulasFromTemplate);
+      }
     }
-  }, [open, contrato?.id]);
+  }, [open, contrato?.id, clausulasTemplate]);
 
   useEffect(() => {
     if (data && contrato?.id) {
@@ -322,13 +430,25 @@ export const useContratoModal = ({
         const itensFormatados: CreateContratoData["itens"] = data.itens.map((item) => ({
           itemId: item.itemId,
           nome: item.item?.nome || "",
-          quantidade: item.quantidade,
+          quantidade: item.quantidade / 1000, // Converter milésimos para decimal
           valorUnit: item.valorUnit,
           desconto: item.desconto || 0,
           valorTotal: item.valorTotal || 0,
         }));
         setItens(itensFormatados);
         calculateTotal(itensFormatados);
+      }
+
+      if (data.clausulas && data.clausulas.length > 0) {
+        const clausulasFormatadas: Clausula[] = data.clausulas.map((clausula) => ({
+          id: clausula.id,
+          ordem: clausula.ordem,
+          titulo: clausula.titulo,
+          conteudo: clausula.conteudo,
+          templateClausulaId: clausula.templateClausulaId,
+          alteradaPeloUsuario: clausula.alteradaPeloUsuario || false,
+        }));
+        setClausulas(clausulasFormatadas);
       }
     }
   }, [data, contrato?.id]);
@@ -337,6 +457,7 @@ export const useContratoModal = ({
     activeTab,
     setActiveTab,
     itens,
+    clausulas,
     total,
     form,
     clienteSelecionado,
@@ -349,6 +470,10 @@ export const useContratoModal = ({
     addItemFromAutocomplete,
     updateItem,
     removeItem,
+    addClausula,
+    updateClausula,
+    removeClausula,
+    moveClausula,
     onSubmit,
     handleClienteSelect,
     handleLocalSelect,

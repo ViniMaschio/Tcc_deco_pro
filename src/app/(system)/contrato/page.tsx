@@ -6,6 +6,7 @@ import { Contrato } from "@/app/api/contrato/types";
 import { contratoFilterCols } from "@/app/modules/contrato/columns";
 import { ContratoDataTable } from "@/app/modules/contrato/data-table";
 import { ContratoModal } from "@/app/modules/contrato/modal";
+import { ViewContratoModal } from "@/app/modules/contrato/view-modal";
 import { IconButton } from "@/components/icon-button";
 import { PageFilter } from "@/components/page-filter";
 
@@ -91,6 +92,17 @@ export default function Page() {
           }}
           contrato={contrato?.id ? contrato : undefined}
           onSuccess={afterSubmit}
+        />
+      ) : null}
+
+      {showState.showViewModal ? (
+        <ViewContratoModal
+          open={showState.showViewModal}
+          onOpenChange={(value: boolean) => {
+            changeShowState("showViewModal", value);
+            setContrato({} as Contrato);
+          }}
+          contratoId={contrato?.id || null}
         />
       ) : null}
     </>

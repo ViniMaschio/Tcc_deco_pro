@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, FileText, Package, X, Loader2 } from "lucide-react";
+import { CheckCircle, FileText, Package, X, Loader2, FileCheck } from "lucide-react";
 import moment from "moment";
 import { Controller } from "react-hook-form";
 
@@ -32,6 +32,7 @@ import { ItemAutocomplete } from "../../item/auto-complete";
 import { LocalAutocomplete } from "../../local/auto-complete";
 import { ContratoModalProps } from "../types";
 import { ContratoItensTable } from "./itens-table";
+import { ClausulasTable } from "./clausulas-table";
 import { useContratoModal } from "./use-modal";
 import { ContratoStatus } from "@/app/api/contrato/types";
 
@@ -40,6 +41,7 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
     activeTab,
     setActiveTab,
     itens,
+    clausulas,
     total,
     form,
     clienteSelecionado,
@@ -52,6 +54,10 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
     addItemFromAutocomplete,
     updateItem,
     removeItem,
+    addClausula,
+    updateClausula,
+    removeClausula,
+    moveClausula,
     onSubmit,
     handleClienteSelect,
     handleLocalSelect,
@@ -84,7 +90,7 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
             onValueChange={setActiveTab}
             className="flex w-full flex-1 flex-col overflow-hidden"
           >
-            <TabsList className="grid w-full shrink-0 grid-cols-2">
+            <TabsList className="grid w-full shrink-0 grid-cols-3">
               <TabsTrigger
                 value="dados-gerais"
                 className="flex items-center gap-2 text-xs sm:text-sm"
@@ -97,6 +103,11 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
                 <Package className="h-4 w-4" />
                 <span className="hidden sm:inline">Itens do Contrato</span>
                 <span className="sm:hidden">Itens</span>
+              </TabsTrigger>
+              <TabsTrigger value="contrato" className="flex items-center gap-2 text-xs sm:text-sm">
+                <FileCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Contrato</span>
+                <span className="sm:hidden">Contrato</span>
               </TabsTrigger>
             </TabsList>
 
@@ -251,6 +262,16 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="contrato" className="flex-1 space-y-4 overflow-auto">
+              <ClausulasTable
+                clausulas={clausulas}
+                onAddClausula={addClausula}
+                onUpdateClausula={updateClausula}
+                onRemoveClausula={removeClausula}
+                onMoveClausula={moveClausula}
+              />
+            </TabsContent>
           </Tabs>
         )}
 
@@ -258,7 +279,7 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
           <Button
             variant="outline"
             onClick={() => {
-              if (activeTab === "itens") {
+              if (activeTab === "itens" || activeTab === "contrato") {
                 setActiveTab("dados-gerais");
               } else {
                 onOpenChange(false);
@@ -273,6 +294,8 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
               onClick={() => {
                 if (activeTab === "dados-gerais") {
                   setActiveTab("itens");
+                } else if (activeTab === "itens") {
+                  setActiveTab("contrato");
                 } else {
                   form.handleSubmit(onSubmit)();
                 }
@@ -281,7 +304,7 @@ export const ContratoModal = ({ open, onOpenChange, contrato, onSuccess }: Contr
               className="w-full sm:w-auto"
               loading={isSubmitting}
             >
-              {activeTab === "dados-gerais" ? "Avançar" : "Salvar"}
+              {activeTab === "dados-gerais" || activeTab === "itens" ? "Avançar" : "Salvar"}
             </Button>
           )}
           {contrato?.id && (
